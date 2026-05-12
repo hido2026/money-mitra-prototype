@@ -1,87 +1,63 @@
 import { useState, useRef, useEffect } from 'react';
 import Groq from 'groq-sdk';
-import { MUKUND_PROMPT, MEERA_PROMPT } from '../config/system-prompts.js';
+import { MUKUND_PROMPT } from '../config/system-prompts.js';
 import TopBar from '../components/TopBar';
 import Message from '../components/Message';
 import TypingIndicator from '../components/TypingIndicator';
 import InputBar from '../components/InputBar';
 
-// ── JBIQ 4-petal brand icon ────────────────────────────────────────────────
-// Matches the purple flower/asterisk mark shown in all companion chat screens
-const JBIQDot = ({ size = 52 }) => (
-  <svg width={size} height={size} viewBox="0 0 48 48" fill="var(--jds-primary-50)">
-    <ellipse cx="24" cy="14" rx="9" ry="13" />
-    <ellipse cx="34" cy="24" rx="13" ry="9" />
-    <ellipse cx="24" cy="34" rx="9" ry="13" />
-    <ellipse cx="14" cy="24" rx="13" ry="9" />
-  </svg>
-);
-
-// ── Prompt pills ──────────────────────────────────────────────────────────────
-const PILLS = {
-  Mukund: [
-    'SIP kya hai?',
-    'Beti ki college ke liye plan banao',
-    'Yeh message scam hai kya?',
-  ],
-  Meera: [
-    'SIP kya hai?',
-    'Beti ki college ke liye plan banao',
-    'Yeh message scam hai kya?',
-  ],
-};
-
-// ── API client (Groq — free, browser-safe) ────────────────────────────────────
+// ── Groq client ────────────────────────────────────────────────────────────────
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
 const groqClient = _apiKey
   ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser: true })
   : null;
 const LIVE_MODE = !!groqClient;
 
-// ── v2-compliant mock responses ────────────────────────────────────────────────
-// Short · Hinglish · no sycophantic openers · ends with specific question
+// ── v2-compliant mock (fallback when no API key) ───────────────────────────────
 const MOCK = {
-  Mukund: {
-    default:
-      'Haan, batao. Kya hai — koi specific plan banana hai, kuch samajhna hai, ya koi aur cheez?',
-    'SIP kya hai?':
-      'SIP yaani har mahine fixed paisa mutual fund mein automatic invest karna. Jaise ₹2,000 har mahine automatically kat ke fund mein chala jaata hai — aap alag se kuch nahi karte, compounding kaam karta rehta hai. Koi specific goal hai jiske liye SIP plan kar rahe ho?',
-    'Beti ki college ke liye plan banao':
-      'Theek hai, numbers chahiye. Beti ki abhi umar kya hai, aur roughly college kab hoga — 8 saal baad, 12 saal baad?',
-    'Yeh message scam hai kya?':
-      'Message dikhao mujhe — abhi check karta hoon. Number kahaan se aaya, aur exact kya likha hai?',
-  },
-  Meera: {
-    default:
-      'Batao, kya hai? Koi plan banana hai, kuch samajhna hai, ya koi problem hai?',
-    'SIP kya hai?':
-      'SIP yaani har mahine fixed paisa mutual fund mein automatic invest karna. Jaise ₹2,000 har mahine kat ke fund mein jaata hai — ek baar set karo, phir automatic. Aapke mind mein koi goal hai jiske liye SIP karna chahti ho?',
-    'Beti ki college ke liye plan banao':
-      'Theek hai. Teen cheezein bata sakti hoon — beti ki abhi kya umar hai, kitne saal mein fund chahiye, aur aaj roughly kitna month bachat ho sakti hai?',
-    'Yeh message scam hai kya?':
-      'Message dikhao mujhe — abhi check karti hoon. Kahaan se aaya, exact kya likha hai?',
-  },
+  default:
+    'Haan, batao. Kya hai — koi specific plan banana hai, kuch samajhna hai, ya koi aur cheez?',
+  'SIP kya hai?':
+    'SIP yaani har mahine fixed paisa mutual fund mein automatic invest karna. Jaise ₹2,000 har mahine automatically kat ke fund mein chala jaata hai — compounding kaam karta rehta hai. Koi specific goal hai jiske liye SIP plan kar rahe ho?',
+  'Beti ki college ke liye plan banao':
+    'Theek hai, numbers chahiye. Beti ki abhi umar kya hai, aur roughly college kab hoga — 8 saal baad, 12 saal baad?',
+  'Yeh message scam hai kya?':
+    'Message dikhao mujhe — abhi check karta hoon. Number kahaan se aaya, aur exact kya likha hai?',
 };
 
-async function streamMock(text, persona, onChunk) {
-  const bank = MOCK[persona] ?? MOCK.Mukund;
-  const reply = bank[text] ?? bank.default;
+async function streamMock(text, onChunk) {
+  const reply = MOCK[text] ?? MOCK.default;
   for (const word of reply.split(' ')) {
     onChunk(word + ' ');
     await new Promise((r) => setTimeout(r, 55));
   }
 }
 
-// ── Chat page ──────────────────────────────────────────────────────────────────
-export default function Chat({ persona, onPersonaChange, onBack }) {
+// ── Mukund large avatar (welcome state) ───────────────────────────────────────
+const MukundAvatar = ({ size = 72 }) => (
+  <div style={{
+    width: size,
+    height: size,
+    borderRadius: '50%',
+    background: '#3900ad',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: "'JioType', sans-serif",
+    fontWeight: 700,
+    fontSize: size * 0.31,
+    flexShrink: 0,
+  }}>
+    Mu
+  </div>
+);
+
+// ── Chat ───────────────────────────────────────────────────────────────────────
+export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const bottomRef = useRef(null);
-
-  const greeting =
-    persona === 'Mukund'
-      ? `Hey! Main Mukund hoon — aapka finance companion. Paise ke baare mein kya soch rahe ho?`
-      : `Hey! Main Meera hoon — aapki finance companion. Paise ke baare mein kya soch rahi ho?`;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -95,10 +71,8 @@ export default function Chat({ persona, onPersonaChange, onBack }) {
 
     try {
       if (LIVE_MODE) {
-        const systemPrompt = persona === 'Meera' ? MEERA_PROMPT : MUKUND_PROMPT;
-        // Groq uses OpenAI-compatible chat format: system as first message
         const groqMessages = [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: MUKUND_PROMPT },
           ...nextMessages.map((m) => ({ role: m.role, content: m.content })),
         ];
         const stream = await groqClient.chat.completions.create({
@@ -108,18 +82,18 @@ export default function Chat({ persona, onPersonaChange, onBack }) {
           stream: true,
         });
         for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content ?? '';
-          if (text) {
+          const token = chunk.choices[0]?.delta?.content ?? '';
+          if (token) {
             setMessages((prev) => {
               const updated = [...prev];
               const last = updated[updated.length - 1];
-              updated[updated.length - 1] = { ...last, content: last.content + text };
+              updated[updated.length - 1] = { ...last, content: last.content + token };
               return updated;
             });
           }
         }
       } else {
-        await streamMock(text, persona, (chunk) => {
+        await streamMock(text, (chunk) => {
           setMessages((prev) => {
             const updated = [...prev];
             const last = updated[updated.length - 1];
@@ -144,113 +118,137 @@ export default function Chat({ persona, onPersonaChange, onBack }) {
   };
 
   const isEmpty = messages.length === 0;
-  const pills = PILLS[persona] ?? PILLS.Mukund;
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100dvh',
-      background: 'var(--jds-surface-default)',
+      background: '#FAF7F2',
     }}>
-      <TopBar
-        persona={persona}
-        onBack={onBack}
-        onClearConversation={() => setMessages([])}
-      />
+      {/* Header renders first — visible on slow connections before anything else */}
+      <TopBar onClear={() => setMessages([])} />
 
-      {/* Message list */}
+      {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{
-          maxWidth: '672px',
+          maxWidth: '520px',
           margin: '0 auto',
-          padding: '20px 20px 8px',
+          padding: '24px 16px 8px',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
         }}>
 
-          {/* ── Empty state: matches JBIQ companion chat start ── */}
+          {/* ── Welcome state ── */}
           {isEmpty && (
-            <div className="animate-fade-in">
-              {/* JBIQ 4-petal brand icon */}
-              <div style={{ marginBottom: '16px' }}>
-                <JBIQDot size={52} />
-              </div>
+            <div className="animate-fade-in" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              paddingTop: '16px',
+              paddingBottom: '8px',
+            }}>
+              {/* Large avatar */}
+              <MukundAvatar size={80} />
 
-              {/* Bold greeting — left-aligned, 2 lines */}
+              {/* Greeting */}
               <p style={{
-                margin: '0 0 20px',
+                margin: '16px 0 20px',
                 fontFamily: "'JioType', sans-serif",
                 fontWeight: 700,
                 fontSize: '18px',
-                lineHeight: 1.4,
-                color: 'var(--jds-text-high)',
-                maxWidth: '340px',
+                lineHeight: 1.45,
+                color: '#1F1F1F',
+                maxWidth: '300px',
               }}>
-                {greeting}
+                Namaste! Main Mukund hoon. Aapka paise ka companion. Paise ke baare mein kuch poochhna hai?
               </p>
 
-              {/* Prompt pills — left-aligned, stacked vertically */}
+              {/* Pill label */}
+              <p style={{
+                margin: '0 0 12px',
+                fontFamily: "'JioType', sans-serif",
+                fontWeight: 500,
+                fontSize: '13px',
+                color: 'rgba(25,27,30,0.55)',
+                alignSelf: 'flex-start',
+              }}>
+                Aise puchh sakte ho:
+              </p>
+
+              {/* Prompt pills — left-aligned, stacked */}
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 gap: '10px',
+                width: '100%',
               }}>
-                {pills.map((pill) => (
+                {[
+                  'SIP kya hai?',
+                  'Beti ki college ke liye plan banao',
+                  'Yeh message scam hai kya?',
+                ].map((pill) => (
                   <button
                     key={pill}
                     onClick={() => sendMessage(pill)}
                     style={{
-                      padding: '10px 18px',
-                      borderRadius: '999px',
-                      border: 'none',
-                      background: 'var(--jds-primary-20)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(57,0,173,0.15)',
+                      background: '#f0eeff',
                       fontFamily: "'JioType', sans-serif",
-                      fontWeight: 700,
+                      fontWeight: 600,
                       fontSize: '14px',
-                      color: 'var(--jds-surface-bold)',
+                      color: '#3900ad',
                       cursor: 'pointer',
+                      width: '100%',
+                      textAlign: 'left',
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = '#d4d4fc'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--jds-primary-20)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#e3dcff'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#f0eeff'; }}
                   >
+                    <span style={{ fontSize: '16px' }}>💬</span>
                     {pill}
                   </button>
                 ))}
               </div>
+
+              {/* Footer hint */}
+              <p style={{
+                margin: '16px 0 0',
+                fontFamily: "'JioType', sans-serif",
+                fontWeight: 400,
+                fontSize: '13px',
+                color: 'rgba(25,27,30,0.45)',
+                fontStyle: 'italic',
+              }}>
+                …ya aap kuch aur poochh sakte ho
+              </p>
             </div>
           )}
 
-          {/* Messages */}
+          {/* ── Messages ── */}
           {messages.map((msg, i) => (
-            <Message key={i} role={msg.role} content={msg.content} persona={persona} />
+            <Message key={i} role={msg.role} content={msg.content} persona="Mukund" />
           ))}
 
-          {/* Typing indicator */}
+          {/* ── Typing indicator ── */}
           {isStreaming && messages[messages.length - 1]?.content === '' && (
-            <TypingIndicator persona={persona} />
-          )}
-
-          {/* "Scroll to view history" hint — shown when there are messages */}
-          {!isEmpty && (
-            <div style={{
-              textAlign: 'center',
-              padding: '8px 0 4px',
-              fontFamily: "'JioType', sans-serif",
-              fontSize: '13px',
-              color: 'var(--jds-text-disabled)',
-            }}>
-            </div>
+            <TypingIndicator persona="Mukund" />
           )}
 
           <div ref={bottomRef} />
         </div>
       </div>
 
-      <InputBar persona={persona} onSend={sendMessage} disabled={isStreaming} />
+      <InputBar onSend={sendMessage} disabled={isStreaming} />
     </div>
   );
 }

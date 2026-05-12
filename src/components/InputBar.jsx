@@ -1,11 +1,10 @@
-// InputBar — matches JBIQ app input bar pattern
-// [+] [placeholder text.......] [purple Speak/Send pill]
+// InputBar — voice button dominant, text input secondary
+// Voice is disabled (Phase 2). Text input auto-focused on load.
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-// JDS ic_mic svg_path
 const IcMic = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+  <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
     <path
       d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z"
       fill="currentColor"
@@ -13,26 +12,29 @@ const IcMic = () => (
   </svg>
 );
 
-// Waveform / voice bars icon (matches "Speak" button in app)
-const IcWave = () => (
-  <svg viewBox="0 0 20 14" fill="none" width="20" height="14">
-    <rect x="0" y="4" width="2.5" height="6" rx="1.25" fill="white" />
-    <rect x="4" y="1" width="2.5" height="12" rx="1.25" fill="white" />
-    <rect x="8" y="0" width="2.5" height="14" rx="1.25" fill="white" />
-    <rect x="12" y="2" width="2.5" height="10" rx="1.25" fill="white" />
-    <rect x="16" y="4" width="2.5" height="6" rx="1.25" fill="white" />
+const IcSend = () => (
+  <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
   </svg>
 );
 
-export default function InputBar({ persona, onSend, disabled }) {
+export default function InputBar({ onSend, disabled }) {
   const [text, setText] = useState('');
-  const placeholder = `Hey, ${persona === 'Mukund' ? 'Mukund' : 'Meera'} se poochhna hai…`;
+  const [voiceTip, setVoiceTip] = useState(false);
+  const inputRef = useRef(null);
+
+  // Auto-focus on load so cursor is immediately visible
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleSubmit = () => {
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setText('');
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e) => {
@@ -42,94 +44,123 @@ export default function InputBar({ persona, onSend, disabled }) {
     }
   };
 
-  const canSend = !!text.trim() && !disabled;
-
   return (
     <div style={{
       position: 'sticky',
       bottom: 0,
-      background: 'var(--jds-surface-default)',
-      borderTop: '1px solid var(--jds-stroke-subtle)',
-      padding: '10px 16px 16px',
+      background: '#FAF7F2',
+      borderTop: '1px solid rgba(139,44,44,0.18)',
+      padding: '14px 16px 22px',
     }}>
-      {/* JDS input pill — surface-ghost, rounded 28px */}
+
+      {/* ── Voice button — large, dominant, deep red ── */}
+      <div style={{ position: 'relative', marginBottom: '12px' }}>
+        <button
+          onClick={() => { setVoiceTip(true); setTimeout(() => setVoiceTip(false), 2500); }}
+          style={{
+            width: '100%',
+            padding: '15px 20px',
+            borderRadius: '14px',
+            border: 'none',
+            background: '#8B2C2C',
+            color: '#fff',
+            fontFamily: "'JioType', sans-serif",
+            fontWeight: 700,
+            fontSize: '16px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            animation: 'voice-pulse 2.8s ease-in-out infinite',
+          }}
+        >
+          <IcMic />
+          Bolo aur poochho
+        </button>
+
+        {/* Tooltip on tap */}
+        {voiceTip && (
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#1F1F1F',
+            color: '#fff',
+            fontFamily: "'JioType', sans-serif",
+            fontSize: '13px',
+            padding: '8px 14px',
+            borderRadius: '8px',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 20,
+          }}>
+            Voice jald aa raha hai — abhi text mein puchhiye
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '6px solid #1F1F1F',
+            }} />
+          </div>
+        )}
+      </div>
+
+      {/* ── Text input — secondary ── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        background: 'var(--jds-surface-ghost)',
-        borderRadius: '28px',
-        padding: '6px 6px 6px 14px',
-        maxWidth: '672px',
-        margin: '0 auto',
         gap: '8px',
       }}>
-        {/* "+" attachment button */}
-        <button
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '2px 4px',
-            cursor: 'pointer',
-            fontFamily: "'JioType', sans-serif",
-            fontWeight: 700,
-            fontSize: '22px',
-            color: 'var(--jds-primary-50)',
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-          title="Attach"
-        >
-          +
-        </button>
-
-        {/* Text input */}
         <input
+          ref={inputRef}
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder="ya yahan likhein…"
           disabled={disabled}
           style={{
             flex: 1,
             background: 'transparent',
             border: 'none',
+            borderBottom: '1px solid rgba(139,44,44,0.25)',
             outline: 'none',
+            padding: '8px 2px',
             fontFamily: "'JioType', sans-serif",
             fontWeight: 400,
             fontSize: '15px',
-            color: 'var(--jds-text-high)',
-            minWidth: 0,
+            color: '#1F1F1F',
+            fontStyle: 'italic',
           }}
         />
 
-        {/* Speak / Send pill button */}
-        <button
-          onClick={handleSubmit}
-          disabled={disabled}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '9px 16px',
-            borderRadius: '999px',
-            border: 'none',
-            background: canSend
-              ? 'var(--jds-primary-50)'
-              : 'var(--jds-surface-bold)',    // always purple like app
-            color: '#fff',
-            fontFamily: "'JioType', sans-serif",
-            fontWeight: 700,
-            fontSize: '14px',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            flexShrink: 0,
-            opacity: disabled ? 0.65 : 1,
-            transition: 'opacity 0.15s',
-          }}
-        >
-          <IcWave />
-          <span>{canSend ? 'Bhejo' : 'Bolo'}</span>
-        </button>
+        {/* Send — only visible when there's text */}
+        {text.trim() && (
+          <button
+            onClick={handleSubmit}
+            disabled={disabled}
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              border: 'none',
+              background: '#8B2C2C',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <IcSend />
+          </button>
+        )}
       </div>
     </div>
   );

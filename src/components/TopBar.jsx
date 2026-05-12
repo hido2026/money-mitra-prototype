@@ -1,110 +1,138 @@
-// TopBar — matches JBIQ companion chat header pattern
-// ← back | avatar+ring | companion name | ✏ edit (clears conversation)
+// TopBar — renders first in HTML so Mukund identity appears
+// on 2G/3G before chat content finishes loading.
+// Row 1: "Money Mitra" (serif, deep red) + "⋯" menu
+// Row 2: Mu avatar + "Mukund" + "Aapka paise ka companion"
 
-import PersonaAvatar from './PersonaAvatar';
+import { useState } from 'react';
 
-// JDS ic_arrow_back svg_path
-const IcArrowBack = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-    <path
-      d="M2.29 12.71l6 6a1.004 1.004 0 101.42-1.42L5.41 13H21a1 1 0 100-2H5.41l4.3-4.29a1 1 0 000-1.42 1 1 0 00-1.42 0l-6 6a1 1 0 000 1.42z"
-      fill="var(--jds-text-high)"
-    />
-  </svg>
-);
+export default function TopBar({ onClear }) {
+  const [menuOpen, setMenuOpen] = useState(false);
 
-// Pencil / edit icon (JDS ic_edit_pen style)
-const IcPencil = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-    <path
-      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-      fill="var(--jds-text-high)"
-    />
-  </svg>
-);
-
-export default function TopBar({ persona, onBack, onClearConversation }) {
   return (
     <header style={{
       position: 'sticky',
       top: 0,
       zIndex: 10,
-      background: 'var(--jds-surface-default)',
-      borderBottom: '1px solid var(--jds-stroke-subtle)',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '10px 16px',
-      gap: '12px',
-      height: '60px',
+      background: '#FAF7F2',
+      borderBottom: '1px solid rgba(139,44,44,0.18)',
+      padding: '12px 16px 10px',
     }}>
-      {/* ← Back */}
-      <button
-        onClick={onBack}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: '4px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          flexShrink: 0,
-        }}
-        title="Back"
-      >
-        <IcArrowBack />
-      </button>
-
-      {/* Avatar + ring + name (flex: grows to fill space) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-        {/* Avatar with purple ring */}
-        <div style={{
-          padding: '2px',
-          borderRadius: '50%',
-          border: '2px solid var(--jds-primary-50)',
-          flexShrink: 0,
+      {/* ── Row 1: title + menu ── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '8px',
+      }}>
+        <span style={{
+          fontFamily: 'Georgia, serif',
+          fontWeight: 600,
+          fontSize: '20px',
+          color: '#8B2C2C',
+          letterSpacing: '-0.01em',
         }}>
-          <PersonaAvatar persona={persona} size="sm" />
-        </div>
-        {/* Name + subtitle */}
-        <div>
-          <p style={{
-            margin: 0,
-            fontFamily: "'JioType', sans-serif",
-            fontWeight: 700,
-            fontSize: '16px',
-            color: 'var(--jds-text-high)',
-            lineHeight: 1.2,
-          }}>
-            {persona}
-          </p>
-          <p style={{
-            margin: 0,
-            fontFamily: "'JioType', sans-serif",
-            fontWeight: 400,
-            fontSize: '12px',
-            color: 'var(--jds-text-low)',
-          }}>
-            Money Mitra
-          </p>
+          Money Mitra
+        </span>
+
+        {/* ⋯ menu */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '22px',
+              color: '#8B2C2C',
+              padding: '2px 8px',
+              lineHeight: 1,
+              letterSpacing: '2px',
+            }}
+            title="Menu"
+          >
+            ···
+          </button>
+
+          {menuOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 40,
+                }}
+              />
+              {/* Dropdown */}
+              <div style={{
+                position: 'absolute',
+                right: 0,
+                top: 'calc(100% + 6px)',
+                zIndex: 50,
+                background: '#fff',
+                borderRadius: '12px',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.13)',
+                minWidth: '200px',
+                overflow: 'hidden',
+              }}>
+                <button
+                  onClick={() => { onClear(); setMenuOpen(false); }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '14px 18px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: "'JioType', sans-serif",
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    color: '#1F1F1F',
+                  }}
+                >
+                  Conversation clear karein
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* ✏ Edit = clear conversation */}
-      <button
-        onClick={onClearConversation}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: '4px',
-          cursor: 'pointer',
+      {/* ── Row 2: Mukund identity ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{
+          width: '28px',
+          height: '28px',
+          borderRadius: '50%',
+          background: '#3900ad',
+          color: '#fff',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: "'JioType', sans-serif",
+          fontWeight: 700,
+          fontSize: '11px',
           flexShrink: 0,
-        }}
-        title="New conversation"
-      >
-        <IcPencil />
-      </button>
+        }}>
+          Mu
+        </div>
+        <span style={{
+          fontFamily: "'JioType', sans-serif",
+          fontWeight: 700,
+          fontSize: '13px',
+          color: '#1F1F1F',
+        }}>
+          Mukund
+        </span>
+        <span style={{
+          fontFamily: "'JioType', sans-serif",
+          fontWeight: 400,
+          fontSize: '12px',
+          color: 'rgba(25,27,30,0.55)',
+        }}>
+          · Aapka paise ka companion
+        </span>
+      </div>
     </header>
   );
 }
