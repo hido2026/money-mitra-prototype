@@ -1,10 +1,10 @@
-// InputBar — voice button dominant, text input secondary
-// Voice is disabled (Phase 2). Text input auto-focused on load.
+// InputBar — text input primary, mic icon secondary (voice Phase 2)
+// Text input auto-focused on load.
 
 import { useState, useRef, useEffect } from 'react';
 
 const IcMic = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+  <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
     <path
       d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z"
       fill="currentColor"
@@ -50,71 +50,18 @@ export default function InputBar({ onSend, disabled }) {
       bottom: 0,
       background: '#FAF7F2',
       borderTop: '1px solid rgba(139,44,44,0.18)',
-      padding: '14px 16px 22px',
+      padding: '12px 16px 24px',
     }}>
 
-      {/* ── Voice button — large, dominant, deep red ── */}
-      <div style={{ position: 'relative', marginBottom: '12px' }}>
-        <button
-          onClick={() => { setVoiceTip(true); setTimeout(() => setVoiceTip(false), 2500); }}
-          style={{
-            width: '100%',
-            padding: '15px 20px',
-            borderRadius: '14px',
-            border: 'none',
-            background: '#8B2C2C',
-            color: '#fff',
-            fontFamily: "'JioType', sans-serif",
-            fontWeight: 700,
-            fontSize: '16px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            animation: 'voice-pulse 2.8s ease-in-out infinite',
-          }}
-        >
-          <IcMic />
-          Bolo aur poochho
-        </button>
-
-        {/* Tooltip on tap */}
-        {voiceTip && (
-          <div style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 8px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#1F1F1F',
-            color: '#fff',
-            fontFamily: "'JioType', sans-serif",
-            fontSize: '13px',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 20,
-          }}>
-            Voice jald aa raha hai — abhi text mein puchhiye
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              borderLeft: '6px solid transparent',
-              borderRight: '6px solid transparent',
-              borderTop: '6px solid #1F1F1F',
-            }} />
-          </div>
-        )}
-      </div>
-
-      {/* ── Text input — secondary ── */}
+      {/* ── Primary row: text input + mic + send ── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
+        background: '#fff',
+        border: '1.5px solid rgba(139,44,44,0.22)',
+        borderRadius: '14px',
+        padding: '10px 12px',
       }}>
         <input
           ref={inputRef}
@@ -122,22 +69,73 @@ export default function InputBar({ onSend, disabled }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="ya yahan likhein…"
+          placeholder="Kuch poochhiye Mukund se…"
           disabled={disabled}
           style={{
             flex: 1,
             background: 'transparent',
             border: 'none',
-            borderBottom: '1px solid rgba(139,44,44,0.25)',
             outline: 'none',
-            padding: '8px 2px',
             fontFamily: "'JioType', sans-serif",
             fontWeight: 400,
             fontSize: '15px',
             color: '#1F1F1F',
-            fontStyle: 'italic',
           }}
         />
+
+        {/* Mic — secondary, greyed out with "Coming soon" tooltip */}
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <button
+            onClick={() => { setVoiceTip(true); setTimeout(() => setVoiceTip(false), 2500); }}
+            title="Voice jald aa raha hai"
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              border: '1.5px solid rgba(139,44,44,0.18)',
+              background: 'transparent',
+              color: 'rgba(139,44,44,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,44,44,0.06)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <IcMic />
+          </button>
+
+          {/* Tooltip on tap */}
+          {voiceTip && (
+            <div style={{
+              position: 'absolute',
+              bottom: 'calc(100% + 8px)',
+              right: 0,
+              background: '#1F1F1F',
+              color: '#fff',
+              fontFamily: "'JioType', sans-serif",
+              fontSize: '12px',
+              padding: '7px 12px',
+              borderRadius: '8px',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+              zIndex: 20,
+            }}>
+              Voice jald aa raha hai
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: '14px',
+                borderLeft: '5px solid transparent',
+                borderRight: '5px solid transparent',
+                borderTop: '5px solid #1F1F1F',
+              }} />
+            </div>
+          )}
+        </div>
 
         {/* Send — only visible when there's text */}
         {text.trim() && (
@@ -154,8 +152,9 @@ export default function InputBar({ onSend, disabled }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
+              cursor: disabled ? 'not-allowed' : 'pointer',
               flexShrink: 0,
+              opacity: disabled ? 0.6 : 1,
             }}
           >
             <IcSend />
