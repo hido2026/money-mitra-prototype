@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import Anthropic from '@anthropic-ai/sdk';
+import Groq from 'groq-sdk';
 import { MUKUND_PROMPT, MEERA_PROMPT } from '../config/system-prompts.js';
 import TopBar from '../components/TopBar';
 import Message from '../components/Message';
@@ -31,12 +31,12 @@ const PILLS = {
   ],
 };
 
-// ── API client ─────────────────────────────────────────────────────────────────
-const _apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-const claudeClient = _apiKey
-  ? new Anthropic({ apiKey: _apiKey, dangerouslyAllowBrowser: true })
+// ── API client (Groq — free, browser-safe) ────────────────────────────────────
+const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
+const groqClient = _apiKey
+  ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser: true })
   : null;
-const LIVE_MODE = !!claudeClient;
+const LIVE_MODE = !!groqClient;
 
 // ── v2-compliant mock responses ────────────────────────────────────────────────
 // Short · Hinglish · no sycophantic openers · ends with specific question
@@ -96,18 +96,24 @@ export default function Chat({ persona, onPersonaChange, onBack }) {
     try {
       if (LIVE_MODE) {
         const systemPrompt = persona === 'Meera' ? MEERA_PROMPT : MUKUND_PROMPT;
-        const stream = claudeClient.messages.stream({
-          model: 'claude-opus-4-7',
+        // Groq uses OpenAI-compatible chat format: system as first message
+        const groqMessages = [
+          { role: 'system', content: systemPrompt },
+          ...nextMessages.map((m) => ({ role: m.role, content: m.content })),
+        ];
+        const stream = await groqClient.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: groqMessages,
           max_tokens: 1024,
-          system: systemPrompt,
-          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+          stream: true,
         });
-        for await (const event of stream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? '';
+          if (text) {
             setMessages((prev) => {
               const updated = [...prev];
               const last = updated[updated.length - 1];
-              updated[updated.length - 1] = { ...last, content: last.content + event.delta.text };
+              updated[updated.length - 1] = { ...last, content: last.content + text };
               return updated;
             });
           }

@@ -40,7 +40,7 @@ jobs:
           # Set VITE_ANTHROPIC_API_KEY in repo Settings → Secrets → Actions
           # to enable live Claude API calls in the deployed prototype.
           # Without it the app uses v2-faithful mock responses (safe for sharing).
-          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
+          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
