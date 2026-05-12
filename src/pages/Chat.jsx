@@ -14,7 +14,7 @@ const PILLS = [
 // ─── Mock responses (UI testing only, no API key needed) ─────────────────────
 // When a real ANTHROPIC_API_KEY is added to Vercel, this block gets replaced
 // by a call to /api/chat and MOCK_MODE flipped to false.
-const MOCK_MODE = true;
+const MOCK_MODE = false;
 
 const MOCK = {
   Mukund: {
