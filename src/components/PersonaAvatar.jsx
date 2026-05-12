@@ -1,16 +1,35 @@
+// JDS Avatar — kind: initials, sizes per JDS spec
+// Mukund → surface-bold (#3900ad)  Meera → sparkle-50 (#1eccb0)
+
+const SIZE = {
+  sm: { box: '32px', font: '13px' },
+  md: { box: '56px', font: '20px' },
+  lg: { box: '80px', font: '28px' },
+};
+
 export default function PersonaAvatar({ persona, size = 'md' }) {
-  const sizes = {
-    sm: 'w-8 h-8 text-sm',
-    md: 'w-14 h-14 text-xl',
-    lg: 'w-20 h-20 text-2xl',
-  };
+  const { box, font } = SIZE[size] ?? SIZE.md;
+  const bg = persona === 'Mukund' ? 'var(--jds-surface-bold)' : 'var(--jds-sparkle-50)';
 
   return (
     <div
-      className={`${sizes[size]} rounded-full flex items-center justify-center font-semibold flex-shrink-0`}
-      style={{ background: '#F0EBE3', color: '#8B2C2C' }}
+      style={{
+        width: box,
+        height: box,
+        minWidth: box,
+        borderRadius: '50%',
+        background: bg,
+        color: 'var(--jds-text-on-bold)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'JioType', sans-serif",
+        fontWeight: 700,
+        fontSize: font,
+        userSelect: 'none',
+      }}
     >
-      {persona === 'Mukund' ? 'M' : 'Me'}
+      {persona === 'Mukund' ? 'Mu' : 'Me'}
     </div>
   );
 }

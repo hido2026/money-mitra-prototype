@@ -1,31 +1,42 @@
 import PersonaAvatar from './PersonaAvatar';
 
+// JDS chat bubbles
+// User  → primary-20 (#e8e8fc), right-aligned
+// Bot   → surface-default (#fff) + stroke-subtle border, left-aligned
+
 export default function Message({ role, content, persona }) {
   const isUser = role === 'user';
 
   return (
     <div
-      className={`flex items-end gap-2 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}
+      className="animate-fade-in"
+      style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: '8px',
+        justifyContent: isUser ? 'flex-end' : 'flex-start',
+      }}
     >
       {!isUser && <PersonaAvatar persona={persona} size="sm" />}
 
-      <div
-        className="max-w-[78%] sm:max-w-[65%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
-        style={
-          isUser
-            ? {
-                background: '#F0EBE3',
-                color: '#1F1F1F',
-                borderRadius: '18px 18px 4px 18px',
-              }
-            : {
-                background: '#FAF7F2',
-                color: '#1F1F1F',
-                border: '1px solid #E8E0D5',
-                borderRadius: '18px 18px 18px 4px',
-              }
-        }
-      >
+      <div style={{
+        maxWidth: '72%',
+        padding: '12px 16px',
+        borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+        fontFamily: "'JioType', sans-serif",
+        fontWeight: 400,
+        fontSize: '15px',           // body-m
+        lineHeight: 1.5,
+        color: 'var(--jds-text-high)',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+        background: isUser
+          ? 'var(--jds-primary-20)'
+          : 'var(--jds-surface-default)',
+        border: isUser
+          ? 'none'
+          : '1px solid var(--jds-stroke-subtle)',
+      }}>
         {content}
       </div>
     </div>

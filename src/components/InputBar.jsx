@@ -1,8 +1,30 @@
 import { useState } from 'react';
 
+// JDS ic_mic svg_path (from JDS icon library)
+const IcMic = ({ color = 'currentColor', size = 20 }) => (
+  <svg viewBox="0 0 24 24" fill="none" width={size} height={size}>
+    <path
+      d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z"
+      fill={color}
+    />
+  </svg>
+);
+
+// Send icon — JDS arrow (paper-plane style)
+const IcSend = ({ size = 18 }) => (
+  <svg viewBox="0 0 24 24" fill="none" width={size} height={size}>
+    <path
+      d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
 export default function InputBar({ persona, onSend, disabled }) {
   const [text, setText] = useState('');
-  const placeholder = persona === 'Mukund' ? 'Mukund se baat karein...' : 'Meera se baat karein...';
+  const placeholder = persona === 'Mukund'
+    ? 'Mukund se baat karein…'
+    : 'Meera se baat karein…';
 
   const handleSubmit = () => {
     const trimmed = text.trim();
@@ -18,15 +40,27 @@ export default function InputBar({ persona, onSend, disabled }) {
     }
   };
 
+  const canSend = !!text.trim() && !disabled;
+
   return (
-    <div
-      className="sticky bottom-0 px-4 py-3 border-t"
-      style={{ background: '#FAF7F2', borderColor: '#E8E0D5' }}
-    >
-      <div
-        className="flex items-center gap-2 rounded-2xl border px-4 py-2.5 max-w-2xl mx-auto"
-        style={{ background: '#FFFFFF', borderColor: '#E8E0D5' }}
-      >
+    <div style={{
+      position: 'sticky',
+      bottom: 0,
+      background: 'var(--jds-surface-default)',
+      borderTop: '1px solid var(--jds-stroke-subtle)',
+      padding: '10px 16px 14px',
+    }}>
+      {/* JDS InputField — surface-ghost pill, border-radius 23px per spec */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        background: 'var(--jds-surface-ghost)',
+        borderRadius: '23px',
+        padding: '6px 6px 6px 16px',
+        maxWidth: '672px',
+        margin: '0 auto',
+      }}>
         <input
           type="text"
           value={text}
@@ -34,38 +68,58 @@ export default function InputBar({ persona, onSend, disabled }) {
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
-          style={{ color: '#1F1F1F' }}
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            fontFamily: "'JioType', sans-serif",
+            fontWeight: 400,
+            fontSize: '15px',
+            color: 'var(--jds-text-high)',
+            minWidth: 0,
+          }}
         />
 
-        {/* Voice button — disabled, tooltip */}
-        <div className="relative group">
+        {/* Mic — disabled, voice coming soon */}
+        <div title="Voice coming soon" style={{ position: 'relative' }}>
           <button
             disabled
-            className="w-8 h-8 flex items-center justify-center rounded-full opacity-30 cursor-not-allowed"
-            style={{ color: '#6B6560' }}
+            style={{
+              width: '36px', height: '36px',
+              borderRadius: '50%',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: 0.38,   // JDS disabled opacity
+            }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>
+            <IcMic color="var(--jds-icon-medium)" />
           </button>
-          <span className="absolute bottom-10 right-0 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            Voice coming soon
-          </span>
         </div>
 
-        {/* Send button */}
+        {/* Send — JDS primary button, circle */}
         <button
           onClick={handleSubmit}
-          disabled={!text.trim() || disabled}
-          className="w-8 h-8 flex items-center justify-center rounded-full transition-opacity disabled:opacity-30"
-          style={{ background: '#8B2C2C', color: '#FFFFFF' }}
+          disabled={!canSend}
+          style={{
+            width: '36px', height: '36px',
+            borderRadius: '50%',
+            border: 'none',
+            background: canSend ? 'var(--jds-primary-50)' : 'var(--jds-surface-ghost)',
+            color: canSend ? '#fff' : 'var(--jds-text-disabled)',
+            cursor: canSend ? 'pointer' : 'default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.15s, color 0.15s',
+            flexShrink: 0,
+          }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
+          <IcSend />
         </button>
       </div>
     </div>

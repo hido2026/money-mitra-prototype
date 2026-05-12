@@ -1,26 +1,36 @@
 import PersonaAvatar from './PersonaAvatar';
 
+// JDS typing indicator — three dots using primary-50 color
 export default function TypingIndicator({ persona }) {
   return (
-    <div className="flex items-end gap-2 animate-fade-in">
+    <div
+      className="animate-fade-in"
+      style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}
+    >
       <PersonaAvatar persona={persona} size="sm" />
-      <div
-        className="px-4 py-3 rounded-2xl rounded-bl-sm border"
-        style={{ background: '#FAF7F2', borderColor: '#E8E0D5' }}
-      >
-        <div className="flex gap-1 items-center h-4">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className="w-1.5 h-1.5 rounded-full"
-              style={{
-                background: '#8B2C2C',
-                opacity: 0.5,
-                animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-              }}
-            />
-          ))}
-        </div>
+      <div style={{
+        padding: '14px 16px',
+        borderRadius: '18px 18px 18px 4px',
+        background: 'var(--jds-surface-default)',
+        border: '1px solid var(--jds-stroke-subtle)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+        height: '44px',
+      }}>
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: 'var(--jds-primary-50)',
+              display: 'inline-block',
+              animation: `typing-dot 1.2s ease-in-out ${i * 0.18}s infinite`,
+            }}
+          />
+        ))}
       </div>
     </div>
   );

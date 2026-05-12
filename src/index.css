@@ -1,26 +1,79 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
+/* ── JioType font (JDS mandatory) ─────────────────────────── */
+@font-face {
+  font-family: 'JioType';
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
 }
+@font-face {
+  font-family: 'JioType';
+  font-weight: 500;
+  font-display: swap;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeW05-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JioType';
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeW05-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JioType';
+  font-weight: 900;
+  font-display: swap;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeW05-Black.woff2') format('woff2');
+}
+
+/* ── JDS design tokens ────────────────────────────────────── */
+:root {
+  --jds-primary-20:      #e8e8fc;
+  --jds-primary-50:      #3535f3;
+  --jds-primary-60:      #000093;
+  --jds-surface-bold:    #3900ad;
+  --jds-sparkle-20:      #e8faf7;
+  --jds-sparkle-50:      #1eccb0;
+  --jds-secondary-50:    #f7ab20;
+  --jds-grey-100:        #141414;
+  --jds-grey-60:         #b5b5b5;
+  --jds-grey-40:         #e0e0e0;
+  --jds-grey-20:         #f5f5f5;
+  --jds-surface-default: #ffffff;
+  --jds-surface-ghost:   #eeeeef;
+  --jds-surface-minimal: #f5f5f5;
+  --jds-text-high:       #141414;
+  --jds-text-low:        rgba(25, 27, 30, 0.65);
+  --jds-text-disabled:   rgba(25, 27, 30, 0.38);
+  --jds-text-on-bold:    #ffffff;
+  --jds-stroke-subtle:   rgba(36, 38, 43, 0.12);
+  --jds-icon-medium:     #170054;
+  --jds-error:           #fa2f40;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #FAF7F2;
+  font-family: 'JioType', sans-serif;
+  background: var(--jds-surface-minimal);
+  color: var(--jds-text-high);
   margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-@keyframes bounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30%            { transform: translateY(-5px); }
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes typing-dot {
+  0%, 80%, 100% { transform: translateY(0);   opacity: 0.38; }
+  40%           { transform: translateY(-5px); opacity: 1;    }
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
   from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 200ms ease-out forwards;
+  animation: fade-in 220ms ease-out forwards;
 }

@@ -1,51 +1,64 @@
 import { useState, useRef, useEffect } from 'react';
+import Anthropic from '@anthropic-ai/sdk';
+import { MUKUND_PROMPT, MEERA_PROMPT } from '../config/system-prompts.js';
 import TopBar from '../components/TopBar';
 import PersonaAvatar from '../components/PersonaAvatar';
 import Message from '../components/Message';
 import TypingIndicator from '../components/TypingIndicator';
 import InputBar from '../components/InputBar';
 
+// ── Prompt pills ──────────────────────────────────────────────────────────────
 const PILLS = [
   'SIP kya hai?',
   'Beti ki college ke liye plan banao',
   'Yeh message scam hai kya?',
 ];
 
-// ─── Mock responses (UI testing only, no API key needed) ─────────────────────
-// When a real ANTHROPIC_API_KEY is added to Vercel, this block gets replaced
-// by a call to /api/chat and MOCK_MODE flipped to false.
-const MOCK_MODE = false;
+// ── API client (browser-safe prototype mode) ──────────────────────────────────
+// Set VITE_ANTHROPIC_API_KEY in .env.local for local dev with real Claude.
+// GitHub Pages builds without the key → falls back to v2-faithful mock mode.
+const _apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+const claudeClient = _apiKey
+  ? new Anthropic({ apiKey: _apiKey, dangerouslyAllowBrowser: true })
+  : null;
+const LIVE_MODE = !!claudeClient;
 
+// ── v2-compliant mock responses ───────────────────────────────────────────────
+// Short · Hinglish · no sycophantic openers · ends with specific follow-up question
 const MOCK = {
   Mukund: {
-    default: 'Bilkul! Main aapki madad karne ke liye yahaan hoon. Paise ke baare mein aap koi bhi sawaal poochh sakte hain — SIP ho, insurance ho, ya phir koi bhi financial planning. Batayein, kya jaanna chahte hain? 😊',
-    'SIP kya hai?': 'SIP matlab Systematic Investment Plan! Yeh ek tarika hai jisme aap har mahine ek fixed amount — jaise ₹500 ya ₹1000 — mutual fund mein invest karte hain. Jaise aap har mahine kirana khareedne ke liye paise nikalte ho, waise hi SIP se aap apne future ke liye thoda-thoda invest karte rehte ho. Compounding ki wajah se yeh chota amount aaage jaake kaafi bada ban jaata hai!',
-    'Beti ki college ke liye plan banao': 'Bahut achha socha aapne! Beti ki education ke liye abhi se plan karna bilkul sahi hai. Pehle batayein — beti ki abhi kya umar hai, aur aap kitne saal mein college fund chahte hain? Uske hisaab se main aapko ek simple SIP plan suggest kar sakta hoon jo aaram se goal achieve kar sake. 📚',
-    'Yeh message scam hai kya?': 'Agar koi message yeh keh raha hai ki "aapne lottery jeeti," ya "ek baar payment karo aur double paise milenge," ya "aapka account band hoga — abhi click karo" — toh 99% chance hai yeh SCAM hai! Koi bhi sarkari bank ya company aapko aise messages nahi bhejti. Message ka screenshot share karein, main confirm kar sakta hoon. 🚨',
+    default:
+      'Haan, batao. Kya hai — koi specific plan banana hai, kuch samajhna hai, ya koi aur cheez?',
+    'SIP kya hai?':
+      'SIP yaani har mahine fixed paisa mutual fund mein automatic invest karna. Jaise ₹2,000 har mahine automatically kat ke fund mein chala jaata hai — aap alag se kuch nahi karte, compounding kaam karta rehta hai. Koi specific goal hai jiske liye SIP plan kar rahe ho?',
+    'Beti ki college ke liye plan banao':
+      'Theek hai, numbers chahiye. Beti ki abhi umar kya hai, aur roughly college kab hoga — 8 saal baad, 12 saal baad?',
+    'Yeh message scam hai kya?':
+      'Message dikhao mujhe — abhi check karta hoon. Number kahaan se aaya, aur exact kya likha hai?',
   },
   Meera: {
-    default: 'Namaste! Main yahaan hoon aapki madad ke liye. Paise ke baare mein koi bhi sawaal poochhne mein jhijhak mat karein — chhote savings ho ya badi planning, sab discuss kar sakte hain. Aaj kya jaanna chahti hain aap? 😊',
-    'SIP kya hai?': 'SIP ek bahut simple aur samajhdari wala tarika hai invest karne ka! Har mahine ek choti si raqam — jaise ₹500 — mutual fund mein jaati hai automatically. Sochiye jaise piggy bank, lekin yeh piggy bank time ke saath grow bhi karta hai! Aur sabse achhi baat — aapko share market ke utar-chadaav ki chinta nahi karni, kyunki aap regularly thoda-thoda invest karti rehti hain. 💰',
-    'Beti ki college ke liye plan banao': 'Wah, kitni achhi soch hai! Beti ki education ke liye planning abhi se shuru karna samajhdaari hai. Kya aap mujhe bata sakti hain — beti ki age kya hai aur aap approximately kitne saal mein college fund ready chahti hain? Ussi ke hisaab se main aapko suggest karungi kitna monthly invest karna chahiye. 🎓',
-    'Yeh message scam hai kya?': 'Aajkal bohot saare fraud messages aa rahe hain — bilkul sahi kiya jo check kiya! Kuch red flags jo dekhne chahiye: agar message mein "urgent" ya "last chance" likha ho, koi link click karne ko keh raha ho, ya personal details maang raha ho — toh yeh scam ho sakta hai. Message mujhe dikhayein, main help karungi check karne mein! 🛡️',
+    default:
+      'Batao, kya hai? Koi plan banana hai, kuch samajhna hai, ya koi problem hai?',
+    'SIP kya hai?':
+      'SIP yaani har mahine fixed paisa mutual fund mein automatic invest karna. Jaise ₹2,000 har mahine kat ke fund mein jaata hai — ek baar set karo, phir automatic. Aapke mind mein koi goal hai jiske liye SIP karna chahti ho?',
+    'Beti ki college ke liye plan banao':
+      'Theek hai. Teen cheezein bata sakti hain — beti ki abhi kya umar hai, kitne saal mein fund chahiye, aur aaj roughly kitna month bachat ho sakti hai?',
+    'Yeh message scam hai kya?':
+      'Message dikhao mujhe — abhi check karti hoon. Kahaan se aaya, exact kya likha hai?',
   },
 };
 
-function getMockReply(persona, text) {
-  const bank = MOCK[persona] || MOCK.Mukund;
-  return bank[text] || bank.default;
-}
-
 async function streamMock(text, persona, onChunk) {
-  const reply = getMockReply(persona, text);
+  const bank = MOCK[persona] ?? MOCK.Mukund;
+  const reply = bank[text] ?? bank.default;
   const words = reply.split(' ');
   for (const word of words) {
     onChunk(word + ' ');
-    await new Promise((r) => setTimeout(r, 60));
+    await new Promise((r) => setTimeout(r, 55));
   }
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
+// ── Chat page ─────────────────────────────────────────────────────────────────
 export default function Chat({ persona, onPersonaChange }) {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -53,8 +66,8 @@ export default function Chat({ persona, onPersonaChange }) {
 
   const greeting =
     persona === 'Mukund'
-      ? 'Namaste! Main Mukund hoon. Paise ke baare mein kuch poochhna hai?'
-      : 'Namaste! Main Meera hoon. Paise ke baare mein kuch poochhna hai?';
+      ? 'Namaste! Main Mukund hoon. Paise ke baare mein kya soch rahe ho aaj?'
+      : 'Namaste! Main Meera hoon. Paise ke baare mein kya soch rahe ho aaj?';
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,56 +80,53 @@ export default function Chat({ persona, onPersonaChange }) {
     setIsStreaming(true);
 
     try {
-      if (MOCK_MODE) {
+      if (LIVE_MODE) {
+        // ── Real Claude API (browser, dangerouslyAllowBrowser) ──
+        const systemPrompt = persona === 'Meera' ? MEERA_PROMPT : MUKUND_PROMPT;
+        const stream = claudeClient.messages.stream({
+          model: 'claude-opus-4-7',
+          max_tokens: 1024,
+          system: systemPrompt,
+          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta.type === 'text_delta'
+          ) {
+            setMessages((prev) => {
+              const updated = [...prev];
+              const last = updated[updated.length - 1];
+              updated[updated.length - 1] = {
+                ...last,
+                content: last.content + event.delta.text,
+              };
+              return updated;
+            });
+          }
+        }
+      } else {
+        // ── v2-faithful mock (GitHub Pages / no API key) ──
         await streamMock(text, persona, (chunk) => {
           setMessages((prev) => {
             const updated = [...prev];
             const last = updated[updated.length - 1];
-            updated[updated.length - 1] = { ...last, content: last.content + chunk };
+            updated[updated.length - 1] = {
+              ...last,
+              content: last.content + chunk,
+            };
             return updated;
           });
         });
-      } else {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: nextMessages, persona }),
-        });
-
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop();
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
-            try {
-              const { text: chunk } = JSON.parse(data);
-              setMessages((prev) => {
-                const updated = [...prev];
-                const last = updated[updated.length - 1];
-                updated[updated.length - 1] = { ...last, content: last.content + chunk };
-                return updated;
-              });
-            } catch { /* ignore malformed chunk */ }
-          }
-        }
       }
-    } catch {
+    } catch (err) {
+      console.error('[chat] error:', err);
       setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: 'assistant',
-          content: 'Sorry, kuch technical gadbad ho gayi. Thodi der mein dobara try karein.',
+          content: 'Kuch technical gadbad ho gayi. Thodi der mein dobara try karein.',
         };
         return updated;
       });
@@ -126,41 +136,89 @@ export default function Chat({ persona, onPersonaChange }) {
   };
 
   const handleTogglePersona = () => {
-    const next = persona === 'Mukund' ? 'Meera' : 'Mukund';
-    onPersonaChange(next);
+    onPersonaChange(persona === 'Mukund' ? 'Meera' : 'Mukund');
     setMessages([]);
   };
 
-  const handleClear = () => setMessages([]);
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#FAF7F2' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100dvh',
+      background: 'var(--jds-surface-minimal)',
+    }}>
       <TopBar
         persona={persona}
         onTogglePersona={handleTogglePersona}
-        onClearConversation={handleClear}
+        onClearConversation={() => setMessages([])}
       />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-4">
+      {/* Message list */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{
+          maxWidth: '672px',
+          margin: '0 auto',
+          padding: '20px 16px 8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+        }}>
 
+          {/* Empty state */}
           {isEmpty && (
-            <div className="flex flex-col items-center gap-4 pt-6 pb-2 animate-fade-in">
+            <div
+              className="animate-fade-in"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                paddingTop: '32px',
+                paddingBottom: '8px',
+              }}
+            >
               <PersonaAvatar persona={persona} size="lg" />
-              <p
-                className="text-base sm:text-lg text-center font-medium"
-                style={{ color: '#1F1F1F', fontFamily: 'Georgia, serif', maxWidth: 320 }}
-              >
+              <p style={{
+                margin: 0,
+                fontFamily: "'JioType', sans-serif",
+                fontWeight: 700,
+                fontSize: '17px',
+                color: 'var(--jds-text-high)',
+                textAlign: 'center',
+                maxWidth: '300px',
+                lineHeight: 1.35,
+              }}>
                 {greeting}
               </p>
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
+
+              {/* Prompt pills */}
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '8px',
+                marginTop: '8px',
+              }}>
                 {PILLS.map((pill) => (
                   <button
                     key={pill}
                     onClick={() => sendMessage(pill)}
-                    className="px-4 py-2 rounded-full border text-sm transition-colors hover:bg-white"
-                    style={{ borderColor: '#E8E0D5', color: '#1F1F1F', background: 'transparent' }}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '999px',
+                      border: '1px solid var(--jds-stroke-subtle)',
+                      background: 'var(--jds-surface-default)',
+                      fontFamily: "'JioType', sans-serif",
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      color: 'var(--jds-text-high)',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--jds-primary-20)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--jds-surface-default)'; }}
                   >
                     {pill}
                   </button>
@@ -169,10 +227,12 @@ export default function Chat({ persona, onPersonaChange }) {
             </div>
           )}
 
+          {/* Messages */}
           {messages.map((msg, i) => (
             <Message key={i} role={msg.role} content={msg.content} persona={persona} />
           ))}
 
+          {/* Typing indicator — shown only while streaming and reply is still empty */}
           {isStreaming && messages[messages.length - 1]?.content === '' && (
             <TypingIndicator persona={persona} />
           )}
