@@ -15,7 +15,7 @@ const SIZE = {
 };
 
 // Resolve portrait path relative to Vite base (works on both dev and GitHub Pages)
-const PORTRAIT_SRC = `${import.meta.env.BASE_URL}mukund.png`;
+const PORTRAIT_SRC = `${import.meta.env.BASE_URL}mukund.jpg`;
 
 export default function PersonaAvatar({ persona, size = 'md', isTyping = false, shadow = false }) {
   const [imgError, setImgError] = useState(false);
