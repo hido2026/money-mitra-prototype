@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar';
 import Message from '../components/Message';
 import TypingIndicator from '../components/TypingIndicator';
 import InputBar from '../components/InputBar';
+import PersonaAvatar from '../components/PersonaAvatar';
 
 // ── Groq client ────────────────────────────────────────────────────────────────
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -32,26 +33,6 @@ async function streamMock(text, onChunk) {
     await new Promise((r) => setTimeout(r, 55));
   }
 }
-
-// ── Mukund large avatar (welcome state) ───────────────────────────────────────
-const MukundAvatar = ({ size = 72 }) => (
-  <div style={{
-    width: size,
-    height: size,
-    borderRadius: '50%',
-    background: '#3900ad',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: "'JioType', sans-serif",
-    fontWeight: 700,
-    fontSize: size * 0.31,
-    flexShrink: 0,
-  }}>
-    Mu
-  </div>
-);
 
 // ── Chat ───────────────────────────────────────────────────────────────────────
 export default function Chat() {
@@ -126,8 +107,8 @@ export default function Chat() {
       minHeight: '100dvh',
       background: '#FAF7F2',
     }}>
-      {/* Header renders first — visible on slow connections before anything else */}
-      <TopBar onClear={() => setMessages([])} />
+      {/* Header — isTyping pulses the portrait avatar */}
+      <TopBar onClear={() => setMessages([])} isTyping={isStreaming} />
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -150,12 +131,12 @@ export default function Chat() {
               paddingTop: '16px',
               paddingBottom: '8px',
             }}>
-              {/* Large avatar */}
-              <MukundAvatar size={80} />
+              {/* Large portrait — 120px, shadow for depth */}
+              <PersonaAvatar persona="Mukund" size="xl" shadow={true} />
 
               {/* Greeting */}
               <p style={{
-                margin: '16px 0 20px',
+                margin: '20px 0 20px',
                 fontFamily: "'JioType', sans-serif",
                 fontWeight: 700,
                 fontSize: '18px',

@@ -1,11 +1,12 @@
 // TopBar — renders first in HTML so Mukund identity appears
 // on 2G/3G before chat content finishes loading.
 // Row 1: "Money Mitra" (serif, deep red) + "⋯" menu
-// Row 2: Mu avatar + "Mukund" + "Aapka paise ka companion"
+// Row 2: portrait avatar (pulsing when typing) + "Mukund" + subtitle
 
 import { useState } from 'react';
+import PersonaAvatar from './PersonaAvatar';
 
-export default function TopBar({ onClear }) {
+export default function TopBar({ onClear, isTyping = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -58,9 +59,7 @@ export default function TopBar({ onClear }) {
               {/* Backdrop */}
               <div
                 onClick={() => setMenuOpen(false)}
-                style={{
-                  position: 'fixed', inset: 0, zIndex: 40,
-                }}
+                style={{ position: 'fixed', inset: 0, zIndex: 40 }}
               />
               {/* Dropdown */}
               <div style={{
@@ -100,22 +99,7 @@ export default function TopBar({ onClear }) {
 
       {/* ── Row 2: Mukund identity ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '50%',
-          background: '#3900ad',
-          color: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: "'JioType', sans-serif",
-          fontWeight: 700,
-          fontSize: '11px',
-          flexShrink: 0,
-        }}>
-          Mu
-        </div>
+        <PersonaAvatar persona="Mukund" size="sm" isTyping={isTyping} />
         <span style={{
           fontFamily: "'JioType', sans-serif",
           fontWeight: 700,
