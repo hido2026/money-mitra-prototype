@@ -1,5 +1,14 @@
 // Capture each conversation showcase at iPhone-X width (375) and natural content height.
 // Output: ./screenshots/{slug}.png at 2× DPR for crisp deck embedding.
+//
+// Usage:
+//   1. Start dev server in another terminal: `npm run dev`
+//   2. Install puppeteer ad-hoc (NOT a project dep, keeps lockfile small for CI):
+//        npx --yes -p puppeteer node scripts/screenshot.mjs
+//      Or one-time:  npm install --no-save puppeteer && node scripts/screenshot.mjs
+//
+// We deliberately keep puppeteer OUT of package.json so `npm ci` on GitHub Pages
+// stays fast and never breaks on transitive deps.
 
 import puppeteer from 'puppeteer';
 import { mkdirSync } from 'node:fs';
