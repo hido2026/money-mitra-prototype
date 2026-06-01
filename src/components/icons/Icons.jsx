@@ -145,3 +145,102 @@ export const IcHome = ({ size = 16, color = '#3B6D11' }) => (
     <path d="M3 11l9-8 9 8M5 10v10h14V10"/>
   </svg>
 );
+
+// ── New icons for Decoder / Passbook / Products ────────────────────────────────
+
+export const IcCamera = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+);
+
+export const IcZap = ({ size = 16, color = '#D85A30' }) => (
+  <svg {...base(size, color)}>
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+  </svg>
+);
+
+export const IcSmartphone = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+    <path d="M12 18h.01"/>
+  </svg>
+);
+
+export const IcFileText = ({ size = 16, color = '#888780' }) => (
+  <svg {...base(size, color)}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+    <polyline points="10 9 9 9 8 9"/>
+  </svg>
+);
+
+export const IcBookOpen = ({ size = 16, color = '#3B6D11' }) => (
+  <svg {...base(size, color)}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z"/>
+  </svg>
+);
+
+export const IcCoins = ({ size = 16, color = '#C8961E' }) => (
+  <svg {...base(size, color)}>
+    <circle cx="8" cy="8" r="6"/>
+    <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+    <path d="M7 6h1v4M16.71 13.88l.7.71-2.82 2.82"/>
+  </svg>
+);
+
+export const IcBuilding = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <rect x="4" y="2" width="16" height="20" rx="2"/>
+    <path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>
+  </svg>
+);
+
+export const IcCheck = ({ size = 20, color = '#3B6D11' }) => (
+  <svg {...base(size, color)}><path d="M20 6L9 17l-5-5"/></svg>
+);
+
+export const IcXMark = ({ size = 20, color = '#D85A30' }) => (
+  <svg {...base(size, color)}><path d="M18 6L6 18M6 6l12 12"/></svg>
+);
+
+export const IcRepeat = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <polyline points="17 1 21 5 17 9"/>
+    <path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/>
+    <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+  </svg>
+);
+
+export const IcTarget = ({ size = 16, color = '#3B6D11' }) => (
+  <svg {...base(size, color)}>
+    <circle cx="12" cy="12" r="10"/>
+    <circle cx="12" cy="12" r="6"/>
+    <circle cx="12" cy="12" r="2"/>
+  </svg>
+);
+
+export const IcArrowUp = ({ size = 16, color = '#3B6D11' }) => (
+  <svg {...base(size, color)}><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+);
+
+export const IcArrowDown = ({ size = 16, color = '#D85A30' }) => (
+  <svg {...base(size, color)}><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+);
+
+export const IcSparks = ({ size = 16, color = '#C8961E' }) => (
+  <svg {...base(size, color)}>
+    <path d="M12 3v1M12 20v1M4.22 4.22l.7.7M18.36 18.36l.7.7M1 12h2M20 12h2M4.22 19.78l.7-.7M18.36 5.64l.7-.7"/>
+    <circle cx="12" cy="12" r="4"/>
+  </svg>
+);
+
+export const IcShield = ({ size = 16, color = '#D85A30' }) => (
+  <svg {...base(size, color)}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
