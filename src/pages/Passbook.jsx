@@ -158,6 +158,9 @@ export default function Passbook() {
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const [editGoalMode, setEditGoalMode]   = useState(false);
 
+  // Decoder entry tagging — bill_type passed from Decoder navigation state
+  const [decoderBillType, setDecoderBillType] = useState(null);
+
   // SMS opt-in
   const [smsConsent, setSmsConsent] = useState(false);
   const [smsShown, setSmsShown]     = useState(false);
@@ -183,6 +186,7 @@ export default function Passbook() {
       setPendingAmt(loc.state.decoderAmount);
       setPendingLabel('बिल');
       setPendingType('out');
+      setDecoderBillType(loc.state.decoderBillType ?? null); // tag for decode_comparison pattern
       setMode('add_out');
     } else if (loc.state?.fromDecoder && loc.state?.saveable) {
       setGoalName('बचत');
@@ -200,8 +204,11 @@ export default function Passbook() {
       category:  pendingLabel,
       timestamp: nowISO(),
       time:      displayTime(nowISO()),
-      src:       'manual',
+      src:       decoderBillType ? 'decoder' : 'manual',
+      source:    decoderBillType ? 'decoder' : 'manual',
+      bill_type: decoderBillType ?? null,   // enables decode_comparison pattern
     };
+    setDecoderBillType(null); // clear after use — not sticky across entries
     dispatch({ type: 'ADD_ENTRY', payload: entry });
     logEvent('entry_logged');
 

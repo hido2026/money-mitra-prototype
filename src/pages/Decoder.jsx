@@ -62,6 +62,22 @@ function cleanText(text) {
   return text.replace(/\nAMOUNT:₹[\d,]+\s*$/, '').trim();
 }
 
+/**
+ * Infer bill_type from Mukund's Devanagari/English response text.
+ * Used to tag the entry for cross-decode comparison.
+ */
+function parseBillType(text) {
+  if (!text) return 'other';
+  const t = text.toLowerCase();
+  if (t.includes('बिजली') || t.includes('electricity') || t.includes('electric') || t.includes('power') || t.includes('bijli')) {
+    return 'बिजली बिल';
+  }
+  if (t.includes('रिचार्ज') || t.includes('recharge') || t.includes('mobile') || t.includes('jio') || t.includes('airtel') || t.includes('vi ') || t.includes('bsnl')) {
+    return 'मोबाइल रिचार्ज';
+  }
+  return 'other';
+}
+
 // ── Loading dots (needs its own component to use hooks safely) ────────────────
 function ReadingStep() {
   const [dots, setDots] = useState('.');
@@ -183,7 +199,11 @@ export default function Decoder() {
   const onFileChange = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
 
   const goToPassbook = () => {
-    nav('/passbook', { state: { decoderAmount: parsedAmt } });
+    const billType = parseBillType(result);
+    nav('/passbook', { state: {
+      decoderAmount:   parsedAmt,
+      decoderBillType: billType,
+    }});
   };
 
   const handleInsightAction = (action) => {
