@@ -87,3 +87,23 @@ body {
   0%, 100% { box-shadow: 0 0 0 0   rgba(57, 0, 173, 0);    opacity: 1;    }
   50%       { box-shadow: 0 0 0 4px rgba(57, 0, 173, 0.28); opacity: 0.88; }
 }
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+.bottom-sheet-panel {
+  animation: slide-up 240ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes toast-in-out {
+  0%   { opacity: 0; transform: translateY(8px);  }
+  15%  { opacity: 1; transform: translateY(0);    }
+  80%  { opacity: 1; transform: translateY(0);    }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+.toast-animate {
+  animation: toast-in-out 2.4s ease forwards;
+}

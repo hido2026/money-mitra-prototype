@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 
 // ── Pages ──────────────────────────────────────────────────────────────────────
+import Registration from './pages/Registration';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Decoder from './pages/Decoder';
@@ -14,12 +16,21 @@ import ConversationShowcase from './pages/ConversationShowcase';
 import { samjhoCorridor, bachaoCorridor, aageBadhoCorridor } from './data/corridors';
 import { samjhaoPriya, bachaoRavi, aageBadhoRavi } from './data/conversations';
 
-// ── Routes ─────────────────────────────────────────────────────────────────────
-// AppProvider wraps everything so Decoder and Passbook share session state
-// (entries, sessionDecodes, goal) for the insight engine.
-// Reload resets all state — by design, no localStorage.
+// ── Registration gate ─────────────────────────────────────────────────────────
+// On every load: check localStorage for "user" key.
+// If absent → show Registration once. On submit → normal app.
+// AppProvider wraps everything so Decoder + Passbook share session state.
 
 export default function App() {
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user') || 'null'); }
+    catch { return null; }
+  });
+
+  if (!user) {
+    return <Registration onComplete={(u) => setUser(u)} />;
+  }
+
   return (
     <AppProvider>
       <HashRouter>
@@ -31,7 +42,7 @@ export default function App() {
           <Route path="/passbook"           element={<Passbook />} />
           <Route path="/products"           element={<Products />} />
 
-          {/* ── Legacy corridors ── */}
+          {/* ── Legacy corridors (still reachable, not on home) ── */}
           <Route path="/samjho-entry"       element={<CorridorEntry corridor={samjhoCorridor} />} />
           <Route path="/bachao-entry"       element={<CorridorEntry corridor={bachaoCorridor} />} />
           <Route path="/aage-badho-entry"   element={<CorridorEntry corridor={aageBadhoCorridor} />} />

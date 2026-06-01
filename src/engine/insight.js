@@ -27,8 +27,10 @@ function r(n) {
 function periodSurplus(entries) {
   // Treat all entries as covering one ~weekly period (prototype simplification).
   // In production: filter by date range, compute rolling weekly average.
-  const totalIn  = entries.filter(e => e.type === 'in' ).reduce((s, e) => s + e.amt, 0);
-  const totalOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amt, 0);
+  // Uses e.amount (v2 schema) with fallback to e.amt (v1 migration shim).
+  const amt = e => e.amount ?? e.amt ?? 0;
+  const totalIn  = entries.filter(e => e.type === 'in' ).reduce((s, e) => s + amt(e), 0);
+  const totalOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + amt(e), 0);
   return totalIn - totalOut;
 }
 
