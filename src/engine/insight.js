@@ -48,7 +48,7 @@ function weeksToGoal(weeklyRate, goal) {
 function buildT0() {
   return {
     tier: 0,
-    text: 'अभी थोड़े दिन का हिसाब है, इसलिए अभी जोड़ने को कुछ खास नहीं। रोज़ हिसाब डालते रहें — हफ़्ते भर बाद बता पाऊँगा पैसा कहाँ जा रहा है और कहाँ बच सकता है।',
+    text: 'अभी थोड़े दिन का हिसाब है, इसलिए अभी बताने लायक कुछ खास नहीं। रोज़ हिसाब डालते रहें — हफ़्ते भर बाद बता पाऊँगा पैसा कहाँ जा रहा है और कहाँ बच सकता है।',
     action: null,
   };
 }
@@ -56,7 +56,7 @@ function buildT0() {
 function buildT1(surplus) {
   return {
     tier: 1,
-    text: `पिछले हफ़्ते करीब ${r(surplus)} बचे। कोई लक्ष्य सोचा है — त्योहार, सोना, या कुछ और? बता दें तो हर हफ़्ते हिसाब रखूँगा कि कितना पास हैं।`,
+    text: `पिछले हफ़्ते करीब ${r(surplus)} बचे। कोई लक्ष्य सोचा है — त्योहार, सोना, या कुछ और? बता दें तो हर हफ़्ते हिसाब रखूँगा, लक्ष्य कितना बाकी है।`,
     action: 'set_goal',
   };
 }
@@ -87,7 +87,7 @@ function tryT3(decode, surplus, weeks, goal) {
     const yearlyCost     = monthlyCost * 12;
     const annualPlanCost = decode.annual_plan_cost;
     const saving         = decode.saveable;
-    text = `${decode.labelHi} पे हर महीने करीब ${r(monthlyCost)} जाते हैं — साल का ${r(yearlyCost)}। सालाना प्लान ${r(annualPlanCost)} का पड़ता है, यानी ${r(saving)} बच सकते हैं। वो ${r(saving)} बही में डालें तो ${goal.label} का लक्ष्य लगभग ${weeksEarlier} हफ़्ते पहले पूरा।`;
+    text = `${decode.labelHi} पे हर महीने करीब ${r(monthlyCost)} जाते हैं — साल का ${r(yearlyCost)}। सालाना प्लान ${r(annualPlanCost)} का पड़ता है (सार्वजनिक रेट के अनुसार), यानी ${r(saving)} बच सकते हैं। वो ${r(saving)} बही में डालें तो ${goal.label} का लक्ष्य लगभग ${weeksEarlier} हफ़्ते पहले पूरा।`;
   } else {
     // Behaviour-change saving (e.g., electricity — use fewer units)
     const monthlySaving = decode.saveable;
