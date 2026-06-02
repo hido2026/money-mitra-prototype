@@ -37,13 +37,17 @@ const BottomInputBar = forwardRef(function BottomInputBar(
     voiceStatus === 'recording'  ? '#D85A30' :
     voiceStatus === 'processing' ? '#888780' :
     voiceStatus === 'done'       ? '#3B6D11' :
+    voiceStatus === 'no_mic'     ? '#D85A30' :
+    voiceStatus === 'error'      ? '#888780' :
     '#534AB7';
 
   const speakLabel =
     voiceStatus === 'recording'  ? '🛑 रुकें' :
-    voiceStatus === 'processing' ? '⏳' :
-    voiceStatus === 'done'       ? '✓' :
-    'बोलिए';
+    voiceStatus === 'processing' ? '⏳ सुना...' :
+    voiceStatus === 'done'       ? '✓ हो गया' :
+    voiceStatus === 'no_mic'     ? '⚠️ इजाज़त दें' :
+    voiceStatus === 'error'      ? '⚠️ फिर कोशिश' :
+    '🎤 बोलिए';
 
   return (
     <div style={{
