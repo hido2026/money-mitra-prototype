@@ -75,7 +75,7 @@ export default function Home() {
       recordPatternShown(result.type);
       logEvent('pattern_shown');
     }
-  }, [entries, goal]);
+  }, [entries, goals, balance]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
