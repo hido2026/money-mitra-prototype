@@ -2,7 +2,7 @@
 // Fire-and-forget. App works fully if webhook is missing or fails.
 // Set SHEET_WEBHOOK to your Google Apps Script deployment URL.
 
-export const SHEET_WEBHOOK = "REPLACE_WITH_WEBHOOK_URL";
+export const SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbz3Rx-F6RGHc-A4ZTAtchzjr3_D6aI3ALOJRGj7-jT3LmsosVh_eDi0TjR7lGGCrcyo/exec";
 
 export function logEvent(eventName) {
   try {
