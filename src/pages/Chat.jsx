@@ -45,6 +45,16 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isStreaming]);
 
+  // Speak Mukund's response AFTER streaming is fully done.
+  // useEffect is the correct place for side effects — NOT inside setMessages().
+  useEffect(() => {
+    if (isStreaming) return; // still streaming
+    const last = messages[messages.length - 1];
+    if (last?.role === 'assistant' && last.content) {
+      speakMukund(last.content);
+    }
+  }, [isStreaming]); // fires only when isStreaming flips to false
+
   const sendMessage = async (text) => {
     const userMsg = { role: 'user', content: text };
     const nextMessages = [...messages, userMsg];
@@ -95,13 +105,7 @@ export default function Chat() {
         return updated;
       });
     } finally {
-      setIsStreaming(false);
-      // Speak the completed Mukund response (silent-fail if no key set)
-      setMessages(prev => {
-        const last = prev[prev.length - 1];
-        if (last?.role === 'assistant' && last.content) speakMukund(last.content);
-        return prev;
-      });
+      setIsStreaming(false); // triggers the useEffect above which calls speakMukund
     }
   };
 
