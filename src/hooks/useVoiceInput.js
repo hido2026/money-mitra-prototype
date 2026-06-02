@@ -154,6 +154,13 @@ export function useVoiceInput({ onResult }) {
       return;
     }
 
+    // Check MediaRecorder support (iOS 14.3+ supports it, older does not)
+    if (typeof MediaRecorder === 'undefined') {
+      setStatus('no_mic');
+      setTimeout(() => setStatus('idle'), 3000);
+      return;
+    }
+
     setStatus('recording');
     setTranscript('');
     chunksRef.current = [];
@@ -162,11 +169,27 @@ export function useVoiceInput({ onResult }) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const mr = new MediaRecorder(stream);
+      // iOS Safari uses audio/mp4; Chrome/Firefox use audio/webm
+      // Pick the first supported MIME type
+      const mimeType = (() => {
+        for (const t of [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/mp4',
+          'audio/mpeg',
+          'audio/ogg',
+        ]) {
+          try { if (MediaRecorder.isTypeSupported(t)) return t; } catch { /* ignore */ }
+        }
+        return ''; // let browser choose
+      })();
+
+      const mrOptions = mimeType ? { mimeType } : {};
+      const mr = new MediaRecorder(stream, mrOptions);
       mrRef.current = mr;
 
       mr.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       mr.onstop = async () => {
@@ -174,9 +197,16 @@ export function useVoiceInput({ onResult }) {
         setStatus('processing');
 
         try {
-          const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+          // Use detected mimeType for the blob; fallback to mp4 (iOS safe)
+          const blobType = mimeType || 'audio/mp4';
+          const ext      = blobType.includes('webm') ? 'webm'
+                         : blobType.includes('ogg')  ? 'ogg'
+                         : 'mp4';
+
+          const blob = new Blob(chunksRef.current, { type: blobType });
           const form = new FormData();
-          form.append('file', blob, 'audio.webm');
+          form.append('file', blob, `audio.${ext}`);
+          form.append('language_code', 'hi-IN'); // improves Hindi accuracy
 
           const res = await fetch(SARVAM_STT_URL, {
             method: 'POST',
@@ -184,7 +214,11 @@ export function useVoiceInput({ onResult }) {
             body: form,
           });
 
-          if (!res.ok) throw new Error(`sarvam_${res.status}`);
+          if (!res.ok) {
+            const errText = await res.text().catch(() => '');
+            console.error('[sarvam] HTTP', res.status, errText);
+            throw new Error(`sarvam_${res.status}`);
+          }
           const data = await res.json();
           const tx   = (data.transcript || '').trim();
 
@@ -199,8 +233,9 @@ export function useVoiceInput({ onResult }) {
         }
       };
 
-      mr.start();
-      // Auto-stop after 5 s, or user taps toggle again to stop early
+      // Request data every 250ms so we get chunks even on short recordings
+      mr.start(250);
+      // Auto-stop after 5 s
       timerRef.current = setTimeout(() => {
         if (mr.state === 'recording') mr.stop();
       }, 5000);

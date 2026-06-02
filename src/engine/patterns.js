@@ -7,6 +7,10 @@
 //
 // Cooldown: last_pattern_type stored in localStorage — skip same type twice in a row.
 // Session gate: caller (Home.jsx) checks sessionStorage to cap at one per session.
+//
+// v2: accepts goals[] (array) and uses computeGoalProgress for accurate progress.
+
+import { topGoalWithProgress } from './goals';
 
 const LAST_TYPE_KEY = 'last_pattern_type';
 const f = n => Math.abs(Math.round(n)).toLocaleString('en-IN');
@@ -86,38 +90,41 @@ function checkSavingStreak(entries) {
   };
 }
 
-// c) GOAL PROXIMITY — saved > 80% of target
-function checkGoalProximity(entries, goal) {
-  if (!goal || goal.target <= 0) return null;
-  if (goal.saved / goal.target <= 0.8) return null;
-  const remaining = goal.target - goal.saved;
+// c) GOAL PROXIMITY — top-priority goal > 80% filled (based on balance, not goal.saved)
+function checkGoalProximity(entries, goals, balance) {
+  const top = topGoalWithProgress(balance, goals);
+  if (!top || top.target <= 0) return null;
+  if (top.pct < 80) return null;
+  if (top.achieved) return {
+    type: 'goal_proximity',
+    text: `${top.name} पूरा हो गया! 🎉 अब नया लक्ष्य रखें।`,
+  };
   return {
     type: 'goal_proximity',
-    text: `${goal.label} लगभग पूरा — सिर्फ़ ₹${f(remaining)} बाकी!`,
+    text: `${top.name} लगभग पूरा — सिर्फ़ ₹${f(top.remaining)} बाकी!`,
   };
 }
 
-// d) GOAL PROJECTION — compute weekly surplus, project weeks
-function checkGoalProjection(entries, goal) {
-  if (!goal || goal.target <= 0) return null;
-  const remaining = goal.target - goal.saved;
-  if (remaining <= 0) return null;
+// d) GOAL PROJECTION — weekly surplus → weeks to complete top goal
+function checkGoalProjection(entries, goals, balance) {
+  const top = topGoalWithProgress(balance, goals);
+  if (!top || top.achieved || top.remaining <= 0) return null;
 
   const now = Date.now();
   const last14 = entries.filter(e => inRange(e, now - 14 * DAY, now));
-  if (last14.length < 3) return null; // too little data to project honestly
+  if (last14.length < 3) return null;
 
   const totalIn  = last14.filter(e => e.type === 'in' ).reduce((s, e) => s + (e.amount ?? 0), 0);
   const totalOut = last14.filter(e => e.type === 'out').reduce((s, e) => s + (e.amount ?? 0), 0);
-  const weeklyRate = (totalIn - totalOut) / 2; // 14 days ≈ 2 weeks
+  const weeklyRate = (totalIn - totalOut) / 2;
 
   if (weeklyRate <= 0) return null;
-  const weeks = Math.ceil(remaining / weeklyRate);
-  if (weeks > 52) return null; // don't project > 1 year (not credible)
+  const weeks = Math.ceil(top.remaining / weeklyRate);
+  if (weeks > 52) return null;
 
   return {
     type: 'goal_projection',
-    text: `इसी रफ़्तार से ${goal.label} करीब ${weeks} हफ़्ते में पूरा हो जाएगा।`,
+    text: `इसी रफ़्तार से ${top.name} करीब ${weeks} हफ़्ते में पूरा हो जाएगा।`,
   };
 }
 
@@ -173,11 +180,12 @@ function checkTopCategory(entries) {
  * Returns the first matching pattern (respecting type cooldown), or null.
  * Caller (Home.jsx) handles session gate via sessionStorage.
  *
- * @param {Array}       entries  from AppContext state
- * @param {object|null} goal
+ * @param {Array}  entries  from AppContext state
+ * @param {Array}  goals    goals[] array (v2)
+ * @param {number} balance  current balance (for goal progress)
  * @returns {{ type: string, text: string } | null}
  */
-export function computePattern(entries, goal) {
+export function computePattern(entries, goals, balance) {
   if (!entries || entries.length < 5) return null;
 
   const lastType = localStorage.getItem(LAST_TYPE_KEY);
@@ -185,8 +193,8 @@ export function computePattern(entries, goal) {
   const checks = [
     () => checkCategorySpike(entries),
     () => checkSavingStreak(entries),
-    () => checkGoalProximity(entries, goal),
-    () => checkGoalProjection(entries, goal),
+    () => checkGoalProximity(entries, goals, balance),
+    () => checkGoalProjection(entries, goals, balance),
     () => checkDecodeComparison(entries),
     () => checkTopCategory(entries),
   ];

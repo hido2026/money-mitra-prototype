@@ -1,9 +1,10 @@
-// summary.js — compute the morning summary text shown on the home screen.
-// Pure arithmetic from localStorage entries. ZERO API calls.
-// Returns a string, or null if no data (caller shows default).
+// summary.js — morning summary text for the home screen.
+// Uses computeGoalProgress so "remaining" is balance-based, never goal.saved.
 
-const f    = n => Math.abs(Math.round(n)).toLocaleString('en-IN');  // entry amounts (always positive)
-const fBal = n => (n < 0 ? '-₹' : '₹') + Math.abs(Math.round(n)).toLocaleString('en-IN'); // balance (signed)
+import { topGoalWithProgress } from './goals';
+
+const f    = n => Math.abs(Math.round(n)).toLocaleString('en-IN');
+const fBal = n => (n < 0 ? '-₹' : '₹') + Math.abs(Math.round(n)).toLocaleString('en-IN');
 
 function dateStr(isoOrLegacy) {
   if (!isoOrLegacy) return null;
@@ -21,25 +22,26 @@ function daysAgoStr(n) {
 }
 
 function sumEntries(list, type) {
-  return list
-    .filter(e => e.type === type)
-    .reduce((s, e) => s + (e.amount ?? 0), 0);
+  return list.filter(e => e.type === type).reduce((s, e) => s + (e.amount ?? 0), 0);
 }
 
 /**
  * computeMorningSummary
- * @param {Array}  entries  from AppContext state
- * @param {object|null} goal
- * @param {number} balance  running total
+ * @param {Array}   entries
+ * @param {Array}   goals    goals[] array (v2)
+ * @param {number}  balance
  * @returns {string|null}  null → caller shows default subtitle
  */
-export function computeMorningSummary(entries, goal, balance) {
+export function computeMorningSummary(entries, goals, balance) {
   if (!entries || entries.length === 0) return null;
 
-  const goalSuffix =
-    goal && goal.target > goal.saved && goal.target > 0
-      ? ` · ${goal.label} में ₹${f(goal.target - goal.saved)} बाकी।`
-      : '';
+  // Goal suffix — show highest-priority goal progress
+  const top = topGoalWithProgress(balance, goals);
+  const goalSuffix = top
+    ? top.achieved
+      ? ` · ${top.name} पूरा! 🎉`
+      : ` · ${top.name} में ₹${f(top.remaining)} बाकी।`
+    : '';
 
   const today     = daysAgoStr(0);
   const yesterday = daysAgoStr(1);
@@ -58,6 +60,5 @@ export function computeMorningSummary(entries, goal, balance) {
     return `कल: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
   }
 
-  // Entries exist but none from today / yesterday — show balance + goal only
   return `बैलेंस: ${fBal(balance)}${goalSuffix}`;
 }

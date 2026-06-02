@@ -1,10 +1,11 @@
 // AppContext — shared in-memory + localStorage state.
 //
-// Entry shape (v2):
-//   { id, type:'in'|'out', amount, category, timestamp (ISO), time (display), src }
+// Entry shape (v2): { id, type, amount, category, timestamp, time, src, source?, bill_type? }
+// Goals shape (v2): [{ id, name, target, priority }]  ← replaces single goal object
+//   Progress is computed from balance (goals.js) — NOT stored as goal.saved.
 //
-// Persisted to localStorage key "money_mitra_data": entries, balance, goal.
-// Session-only (not persisted): sessionDecodes, insightFired.
+// Persisted: entries, balance, goals
+// Session-only: sessionDecodes, insightFired
 
 import { createContext, useContext, useReducer } from 'react';
 
@@ -22,19 +23,19 @@ function saveToStorage(state) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       entries: state.entries,
       balance: state.balance,
-      goal:    state.goal,
+      goals:   state.goals,
     }));
-  } catch { /* storage full / unavailable — ignore */ }
+  } catch { /* storage full — ignore */ }
 }
 
-// ── Initial state (loads from localStorage if available) ──────────────────────
+// ── Initial state (loads + migrates from localStorage) ────────────────────────
 
 const DEFAULT_STATE = {
-  entries:            [],
-  balance:            0,
-  goal:               null,
-  sessionDecodes:     [],
-  insightFired:       false,
+  entries:             [],
+  balance:             0,
+  goals:               [],   // replaces goal: null
+  sessionDecodes:      [],
+  insightFired:        false,
   restoredFromStorage: false,
 };
 
@@ -43,13 +44,25 @@ function getInitialState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_STATE;
     const saved = JSON.parse(raw);
+
+    // ── Migrate old single-goal format → goals[] ──────────────────────────────
+    let goals = saved.goals ?? [];
+    if (!goals.length && saved.goal) {
+      goals = [{
+        id:       'g1',
+        name:     saved.goal.label ?? saved.goal.name ?? 'लक्ष्य',
+        target:   saved.goal.target ?? 0,
+        priority: 1,
+      }];
+    }
+
     const entries = saved.entries ?? [];
-    const hasData = entries.length > 0 || saved.goal != null;
+    const hasData = entries.length > 0 || goals.length > 0;
     return {
       ...DEFAULT_STATE,
       entries,
       balance: saved.balance ?? calcBalance(entries),
-      goal:    saved.goal ?? null,
+      goals,
       restoredFromStorage: hasData,
     };
   } catch {
@@ -67,60 +80,89 @@ function reducer(state, action) {
     case 'ADD_DECODE':
       return { ...state, sessionDecodes: [...state.sessionDecodes, action.payload] };
 
-    // ── Passbook: add entry ───────────────────────────────────────────────────
+    // ── Entries ───────────────────────────────────────────────────────────────
     case 'ADD_ENTRY': {
-      const e = action.payload;
+      const e     = action.payload;
       const delta = e.type === 'in' ? e.amount : -e.amount;
-      const newGoal = state.goal && e.type === 'in'
-        ? { ...state.goal, saved: Math.min(state.goal.target, state.goal.saved + e.amount) }
-        : state.goal;
+      // NOTE: Do NOT update goal.saved here — progress is computed from balance
       next = {
         ...state,
         entries: [e, ...state.entries],
         balance: state.balance + delta,
-        goal: newGoal,
       };
       saveToStorage(next);
       return next;
     }
 
-    // ── Passbook: edit entry ──────────────────────────────────────────────────
     case 'UPDATE_ENTRY': {
       const { id, amount, category } = action.payload;
-      const newEntries = state.entries.map(e =>
-        e.id === id ? { ...e, amount, category } : e
-      );
-      const newBalance = calcBalance(newEntries);
-      next = { ...state, entries: newEntries, balance: newBalance };
+      const newEntries = state.entries.map(e => e.id === id ? { ...e, amount, category } : e);
+      next = { ...state, entries: newEntries, balance: calcBalance(newEntries) };
       saveToStorage(next);
       return next;
     }
 
-    // ── Passbook: delete entry ────────────────────────────────────────────────
     case 'DELETE_ENTRY': {
       const newEntries = state.entries.filter(e => e.id !== action.payload);
-      const newBalance = calcBalance(newEntries);
-      next = { ...state, entries: newEntries, balance: newBalance };
+      next = { ...state, entries: newEntries, balance: calcBalance(newEntries) };
       saveToStorage(next);
       return next;
     }
 
-    // ── Goal ──────────────────────────────────────────────────────────────────
-    case 'SET_GOAL':
-      next = { ...state, goal: action.payload };
+    // ── Goals (multiple) ──────────────────────────────────────────────────────
+    case 'ADD_GOAL': {
+      next = { ...state, goals: [...state.goals, action.payload] };
       saveToStorage(next);
       return next;
+    }
 
-    case 'CLEAR_GOAL':
-      next = { ...state, goal: null };
+    case 'UPDATE_GOAL': {
+      const newGoals = state.goals.map(g =>
+        g.id === action.payload.id ? { ...g, ...action.payload } : g
+      );
+      next = { ...state, goals: newGoals };
       saveToStorage(next);
       return next;
+    }
 
-    // ── Insight engine ────────────────────────────────────────────────────────
+    case 'DELETE_GOAL': {
+      next = { ...state, goals: state.goals.filter(g => g.id !== action.payload) };
+      saveToStorage(next);
+      return next;
+    }
+
+    // ── Legacy single-goal shim (used by some callers) ────────────────────────
+    // Converts to ADD_GOAL or UPDATE_GOAL[0] for backward compat
+    case 'SET_GOAL': {
+      const g = action.payload;
+      if (!g) {
+        next = { ...state, goals: [] };
+        saveToStorage(next);
+        return next;
+      }
+      // If we already have goals, update first; otherwise add
+      if (state.goals.length > 0) {
+        const newGoals = state.goals.map((existing, i) =>
+          i === 0 ? { ...existing, name: g.label ?? g.name, target: g.target } : existing
+        );
+        next = { ...state, goals: newGoals };
+      } else {
+        next = { ...state, goals: [{ id: Date.now().toString(), name: g.label ?? g.name, target: g.target, priority: 1 }] };
+      }
+      saveToStorage(next);
+      return next;
+    }
+
+    case 'CLEAR_GOAL': {
+      next = { ...state, goals: [] };
+      saveToStorage(next);
+      return next;
+    }
+
+    // ── Insight ───────────────────────────────────────────────────────────────
     case 'MARK_INSIGHT_FIRED':
       return { ...state, insightFired: true };
 
-    // ── Utility ───────────────────────────────────────────────────────────────
     case 'CLEAR_RESTORED_FLAG':
       return { ...state, restoredFromStorage: false };
 

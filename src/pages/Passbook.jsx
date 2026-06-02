@@ -1,57 +1,56 @@
 // Passbook — Money Passbook  (route: /#/passbook)
-// Entry schema: { id, type, amount, category, timestamp, time, src }
-// State lives in AppContext (persisted to localStorage on every change).
-// Features: add in/out · edit · delete · goal card · persistence toast
+// v3: multiple goals · correct progress (balance-based) · Groq chat · voice
+//
+// Entry schema: { id, type, amount, category, timestamp, time, src, source?, bill_type? }
+// Goals schema: [{ id, name, target, priority }] — progress computed from balance
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Groq from 'groq-sdk';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import BottomSheet from '../components/BottomSheet';
 import InsightBubble from '../components/InsightBubble';
 import { useApp } from '../context/AppContext';
 import { computeInsight } from '../engine/insight';
+import { computeGoalProgress, nextPriority } from '../engine/goals';
 import { logEvent } from '../utils/analytics';
+import { speakMukund } from '../utils/tts';
 import { useVoiceInput, parseHindiAmount, parseHindiCategory, parseHindiSource } from '../hooks/useVoiceInput';
 import {
   IcChevronLeft, IcDots, IcCheck,
   IcArrowUp, IcArrowDown, IcTarget,
 } from '../components/icons/Icons';
 
+// ── Groq client (for in-passbook chat) ───────────────────────────────────────
+const groqClient = import.meta.env.VITE_GROQ_API_KEY
+  ? new Groq({ apiKey: import.meta.env.VITE_GROQ_API_KEY, dangerouslyAllowBrowser: true })
+  : null;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmt(n)     { return '₹' + Math.abs(Number(n)).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function fmt(n)     { return '₹' + Math.abs(Math.round(n)).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
 function fmtFull(n) { return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function nowISO()   { return new Date().toISOString(); }
-function displayTime(isoOrLegacy) {
+function displayTime(iso) {
   try {
-    const d = new Date(isoOrLegacy);
-    if (isNaN(d)) return isoOrLegacy; // legacy "9:41 AM" string — return as-is
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
     let h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
     const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
     return `${h}:${m} ${ap}`;
-  } catch { return isoOrLegacy; }
+  } catch { return iso; }
 }
 
 const CATEGORIES = ['खाना','यात्रा','बिल','दवाई','फ़ोन','बच्चे','घर','अन्य'];
-const SOURCES    = [
-  { label:'तनख़्वाह', sub:'Salary' },
-  { label:'उपहार',   sub:'Gift'   },
-  { label:'बेचा',    sub:'Sold'   },
-  { label:'मिला',    sub:'Found'  },
-];
-const GOAL_CHIPS  = ['त्योहार','फीस','फ़ोन','बफ़र'];
-const CANNED_SMS  = { display: 'Rs.199 debited for recharge', amount: 199, category: 'फ़ोन' };
+const SOURCES    = [{ label:'तनख़्वाह', sub:'Salary' },{ label:'उपहार', sub:'Gift' },{ label:'बेचा', sub:'Sold' },{ label:'मिला', sub:'Found' }];
+const CANNED_SMS = { display: 'Rs.199 debited for recharge', amount: 199, category: 'फ़ोन' };
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function TopBar({ onBack }) {
   return (
-    <header style={{
-      display: 'flex', alignItems: 'center', gap: '10px',
-      padding: '4px 18px 14px',
-      borderBottom: '0.5px solid rgba(0,0,0,0.05)', flexShrink: 0,
-    }}>
+    <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 18px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', flexShrink: 0 }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
         <IcChevronLeft size={24} color="#2C2C2A" />
       </button>
@@ -92,110 +91,62 @@ function Chip({ label, sub, selected, onClick }) {
   );
 }
 
-function GoalProgressBar({ goal }) {
-  const pct = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
+// ── Goal card (single goal with progress) ─────────────────────────────────────
+function GoalCard({ gp, onTap }) {
+  if (gp.achieved) {
+    return (
+      <button onClick={onTap} style={{ width: '100%', background: '#EAF3DE', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #C5E0A8', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{ fontSize: '20px' }}>🎉</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 700, color: '#3B6D11' }}>{gp.name} — लक्ष्य पूरा!</div>
+          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A', marginTop: '2px' }}>{fmt(gp.target)} जोड़े गए · नया लक्ष्य रखें?</div>
+        </div>
+      </button>
+    );
+  }
   return (
-    <div>
+    <button onClick={onTap} style={{ width: '100%', background: '#EAF3DE', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #C5E0A8', cursor: 'pointer', textAlign: 'left' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', fontWeight: 600, color: '#3B6D11' }}>🎯 {goal.label}</span>
-        <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '12px', color: '#3B6D11' }}>{pct}%</span>
+        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', fontWeight: 600, color: '#3B6D11' }}>🎯 {gp.name} {gp.priority > 1 ? `(P${gp.priority})` : ''}</span>
+        <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '12px', color: '#3B6D11' }}>{gp.pct}%</span>
       </div>
-      <div style={{ background: '#D0EAC0', borderRadius: '999px', height: '8px', overflow: 'hidden', marginBottom: '4px' }}>
-        <div style={{ background: '#3B6D11', height: '100%', width: `${pct}%`, borderRadius: '999px', transition: 'width 0.5s ease' }} />
+      <div style={{ background: '#D0EAC0', borderRadius: '999px', height: '6px', overflow: 'hidden', marginBottom: '4px' }}>
+        <div style={{ background: '#3B6D11', height: '100%', width: `${gp.pct}%`, borderRadius: '999px', transition: 'width 0.5s ease' }} />
       </div>
-      <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '12px', color: '#5F5E5A' }}>
-        {fmt(goal.saved)} / {fmt(goal.target)}
+      <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A' }}>
+        {fmt(gp.allocated)} / {fmt(gp.target)} · ₹{Math.round(gp.remaining).toLocaleString('en-IN')} बाकी
       </div>
-    </div>
+    </button>
   );
 }
 
-// ── AmountPicker ──────────────────────────────────────────────────────────────
-// Bug fix: chips now in 2×2 grid (was 4-in-a-row — ₹200/₹2000 overlapped).
-// Each chip: min 52px tall, full quarter-width, clear tap target.
-// Voice button above chips — records → auto-fills amount (and label if parsed).
-
+// ── AmountPicker with voice button ────────────────────────────────────────────
 function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceToggle }) {
   const QUICK = [200, 500, 1000, 2000];
-
-  const voiceBtnStyle = (() => {
-    if (voiceStatus === 'recording')   return { bg: '#D85A30', label: '🛑  सुन रहा हूँ... (रोकें)', pulse: true };
-    if (voiceStatus === 'processing')  return { bg: '#888780', label: '⏳  समझ रहा हूँ...', pulse: false };
-    if (voiceStatus === 'done')        return { bg: '#3B6D11', label: '✓  ' + (voiceTranscript || 'हो गया'), pulse: false };
-    if (voiceStatus === 'no_key')      return { bg: '#888780', label: 'API key नहीं मिली — settings जाँचें', pulse: false };
-    if (voiceStatus === 'no_mic')      return { bg: '#888780', label: 'माइक्रोफ़ोन की इजाज़त चाहिए', pulse: false };
-    if (voiceStatus === 'error')       return { bg: '#888780', label: 'कुछ गड़बड़ हुई — दोबारा कोशिश करें', pulse: false };
+  const voiceBtn = (() => {
+    if (voiceStatus === 'recording')  return { bg: '#D85A30', label: '🛑  सुन रहा हूँ... (रोकें)', pulse: true };
+    if (voiceStatus === 'processing') return { bg: '#888780', label: '⏳  समझ रहा हूँ...', pulse: false };
+    if (voiceStatus === 'done')       return { bg: '#3B6D11', label: '✓  ' + (voiceTranscript || 'हो गया'), pulse: false };
+    if (voiceStatus === 'no_key')     return { bg: '#888780', label: 'Sarvam key नहीं मिली', pulse: false };
+    if (voiceStatus === 'no_mic')     return { bg: '#888780', label: 'माइक्रोफ़ोन की इजाज़त चाहिए', pulse: false };
+    if (voiceStatus === 'error')      return { bg: '#888780', label: 'कुछ गड़बड़ हुई — दोबारा कोशिश करें', pulse: false };
     return { bg: '#534AB7', label: '🎤  बोलिए', pulse: false };
   })();
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-
-      {/* Voice button — full width, always visible */}
-      <button
-        onClick={onVoiceToggle}
-        className={voiceBtnStyle.pulse ? 'mic-recording' : ''}
-        style={{
-          width: '100%', padding: '14px 16px',
-          borderRadius: '14px', border: 'none',
-          background: voiceBtnStyle.bg, color: '#FFFFFF',
-          fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
-          fontSize: '15px', fontWeight: 600,
-          cursor: 'pointer', textAlign: 'center',
-          transition: 'background 0.2s',
-        }}
-      >
-        {voiceBtnStyle.label}
+      <button onClick={onVoiceToggle} className={voiceBtn.pulse ? 'mic-recording' : ''} style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', border: 'none', background: voiceBtn.bg, color: '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer', textAlign: 'center', transition: 'background 0.2s' }}>
+        {voiceBtn.label}
       </button>
-
-      {/* 2×2 chip grid — each chip is ≥52px tall, half-width, no overlap */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '10px',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
         {QUICK.map(q => (
-          <button
-            key={q}
-            onClick={() => onChange(q)}
-            style={{
-              padding: '14px 8px',
-              minHeight: '52px',          // ≥44px touch target
-              borderRadius: '12px',
-              cursor: 'pointer',
-              border:      value === q ? '2px solid #534AB7' : '1.5px solid #EEEDFE',
-              background:  value === q ? '#EEEDFE' : '#FFFFFF',
-              fontFamily: "'JioType',sans-serif",
-              fontSize: '16px',
-              fontWeight: 700,
-              color: value === q ? '#534AB7' : '#2C2C2A',
-              textAlign: 'center',
-            }}
-          >
+          <button key={q} onClick={() => onChange(q)} style={{ padding: '14px 8px', minHeight: '52px', borderRadius: '12px', cursor: 'pointer', border: value === q ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: value === q ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: value === q ? '#534AB7' : '#2C2C2A', textAlign: 'center' }}>
             {fmt(q)}
           </button>
         ))}
       </div>
-
-      {/* Custom amount text input */}
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        background: '#F5F4FA', borderRadius: '12px',
-        padding: '13px 16px',
-        border: '1.5px solid #EEEDFE',
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '12px', padding: '13px 16px', border: '1.5px solid #EEEDFE' }}>
         <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '17px', color: '#888780', marginRight: '4px' }}>₹</span>
-        <input
-          type="number"
-          inputMode="numeric"
-          placeholder="और रकम लिखें"
-          value={value && ![200, 500, 1000, 2000].includes(value) ? value : ''}
-          onChange={e => onChange(Number(e.target.value) || null)}
-          style={{
-            flex: 1, background: 'transparent', border: 'none', outline: 'none',
-            fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A',
-          }}
-        />
+        <input type="number" inputMode="numeric" placeholder="और रकम लिखें" value={value && ![200,500,1000,2000].includes(value) ? value : ''} onChange={e => onChange(Number(e.target.value) || null)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }} />
       </div>
     </div>
   );
@@ -208,41 +159,128 @@ export default function Passbook() {
   const loc  = useLocation();
   const inputRef = useRef(null);
   const { state, dispatch } = useApp();
-  const { entries, goal, balance, insightFired, sessionDecodes, restoredFromStorage } = state;
+  const { entries, goals, balance, insightFired, sessionDecodes, restoredFromStorage } = state;
+
+  // Computed goal progress (correct: based on balance, not goal.saved)
+  const goalProgress = useMemo(() => computeGoalProgress(balance, goals), [balance, goals]);
+  // Legacy single-goal format for insight engine compatibility
+  const legacyGoal = goalProgress[0]
+    ? { label: goalProgress[0].name, target: goalProgress[0].target, saved: goalProgress[0].allocated }
+    : null;
 
   // ── UI flow state ───────────────────────────────────────────────────────────
-  const [mode, setMode]               = useState('home');
-  const [pendingAmt, setPendingAmt]   = useState(null);
+  const [mode, setMode]                 = useState('home');
+  const [pendingAmt, setPendingAmt]     = useState(null);
   const [pendingLabel, setPendingLabel] = useState('');
-  const [pendingType, setPendingType] = useState(null);
-  const [insight, setInsight]         = useState(null);
-
-  // Goal form
-  const [goalName, setGoalName]     = useState('');
-  const [goalTarget, setGoalTarget] = useState(null);
-
-  // Edit/delete sheet
-  const [editEntry, setEditEntry]   = useState(null);   // entry being edited
-  const [editAmt, setEditAmt]       = useState('');
-  const [editCat, setEditCat]       = useState('');
-  const [confirmDelete, setConfirmDelete] = useState(false);
-
-  // Goal sheet
-  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
-  const [editGoalMode, setEditGoalMode]   = useState(false);
-
-  // Decoder entry tagging — bill_type passed from Decoder navigation state
+  const [pendingType, setPendingType]   = useState(null);
+  const [insight, setInsight]           = useState(null);
   const [decoderBillType, setDecoderBillType] = useState(null);
+
+  // Goal management
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+  const [editingGoal, setEditingGoal]     = useState(null); // null=add, obj=edit
+  const [goalName, setGoalName]           = useState('');
+  const [goalTarget, setGoalTarget]       = useState(null);
+  const [goalPriority, setGoalPriority]   = useState(1);
+
+  // Edit/delete entry sheet
+  const [editEntry, setEditEntry]               = useState(null);
+  const [editAmt, setEditAmt]                   = useState('');
+  const [editCat, setEditCat]                   = useState('');
+  const [confirmDelete, setConfirmDelete]       = useState(false);
+
+  // SMS opt-in
+  const [smsConsent, setSmsConsent] = useState(false);
+  const [smsShown, setSmsShown]     = useState(false);
+
+  // Groq chat in home mode
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isChatting, setIsChatting]     = useState(false);
+
+  // Toast
+  const [toast, setToast] = useState(null);
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
+
+  // Mode ref (for voice callback, avoids stale closure)
+  const modeRef      = useRef(mode);
+  const chatHandleRef = useRef(null);
+  modeRef.current    = mode;
+
+  // ── Persistence toast ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (restoredFromStorage) {
+      showToast('पिछला हिसाब लोड हो गया');
+      dispatch({ type: 'CLEAR_RESTORED_FLAG' });
+    }
+  }, []);
+
+  // ── Incoming navigation state ───────────────────────────────────────────────
+  useEffect(() => {
+    if (loc.state?.openGoal) {
+      openAddGoal();
+    } else if (loc.state?.decoderAmount) {
+      setPendingAmt(loc.state.decoderAmount);
+      setPendingLabel('बिल');
+      setPendingType('out');
+      setDecoderBillType(loc.state.decoderBillType ?? null);
+      setMode('add_out');
+    } else if (loc.state?.fromDecoder && loc.state?.saveable) {
+      openAddGoal(loc.state.saveable);
+    }
+  }, []);
+
+  // ── Groq chat with बही context ──────────────────────────────────────────────
+  const handleChatInput = async (text) => {
+    if (!groqClient || !text.trim()) return;
+    const userMsg = { role: 'user', content: text };
+    setChatMessages(prev => [...prev, userMsg]);
+    setIsChatting(true);
+
+    try {
+      const user = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; } })();
+      const goalsText = goalProgress.length
+        ? goalProgress.map(g => `${g.name} ₹${g.target} (${g.pct}%)`).join(', ')
+        : 'कोई लक्ष्य नहीं';
+      const recentText = entries.slice(0, 6).map(e =>
+        `${e.type === 'in' ? '+' : '-'}₹${e.amount} ${e.category}`
+      ).join(', ') || 'कोई entry नहीं';
+
+      const systemContent = `तुम मुकुंद हो — ${user.name || 'उपयोगकर्ता'} के पैसों के साथी। बैलेंस: ${balance < 0 ? '-' : ''}₹${Math.abs(Math.round(balance)).toLocaleString('en-IN')}। लक्ष्य: ${goalsText}। हाल के खर्च: ${recentText}। Devanagari Hindi में जवाब दो, 2-3 वाक्य, 80 शब्दों से कम। सीधे, गर्मजोशी से, बिना jargon।`;
+
+      const res = await groqClient.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemContent },
+          ...chatMessages.slice(-4), // last 4 for context
+          userMsg,
+        ],
+        max_tokens: 200,
+      });
+
+      const reply = res.choices[0]?.message?.content?.trim() || 'कुछ गड़बड़ हुई — फिर कोशिश करें।';
+      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      speakMukund(reply);
+    } catch (err) {
+      console.error('[passbook chat]', err);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'कुछ गड़बड़ हुई — फिर कोशिश करें।' }]);
+    } finally {
+      setIsChatting(false);
+    }
+  };
+  chatHandleRef.current = handleChatInput;
 
   // ── Voice input ─────────────────────────────────────────────────────────────
   const { status: voiceStatus, transcript: voiceTranscript, toggle: toggleVoice } =
     useVoiceInput({
       onResult: (text) => {
-        // Parse amount from Hindi speech
+        // Home mode → route to Groq chat
+        if (modeRef.current === 'home') {
+          chatHandleRef.current?.(text);
+          return;
+        }
+        // Structured entry modes → parse amount + label
         const amt = parseHindiAmount(text);
         if (amt) setPendingAmt(amt);
-
-        // Parse category (expense) or source (income) from the same utterance
         if (pendingType === 'out') {
           const cat = parseHindiCategory(text);
           if (cat) setPendingLabel(cat);
@@ -253,41 +291,41 @@ export default function Passbook() {
       },
     });
 
-  // SMS opt-in
-  const [smsConsent, setSmsConsent] = useState(false);
-  const [smsShown, setSmsShown]     = useState(false);
-
-  // Toast
-  const [toast, setToast] = useState(null);
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
-
-  // Show "data restored" toast once on mount
-  useEffect(() => {
-    if (restoredFromStorage) {
-      showToast('पिछला हिसाब लोड हो गया');
-      dispatch({ type: 'CLEAR_RESTORED_FLAG' });
+  // ── Goal sheet helpers ───────────────────────────────────────────────────────
+  const openAddGoal = (prefillTarget = null) => {
+    setEditingGoal(null);
+    setGoalName('');
+    setGoalTarget(prefillTarget);
+    setGoalPriority(nextPriority(goals));
+    setGoalSheetOpen(true);
+  };
+  const openEditGoal = (gp) => {
+    setEditingGoal(gp);
+    setGoalName(gp.name);
+    setGoalTarget(gp.target);
+    setGoalPriority(gp.priority);
+    setGoalSheetOpen(true);
+  };
+  const saveGoal = () => {
+    if (!goalName.trim() || !goalTarget) return;
+    if (editingGoal) {
+      dispatch({ type: 'UPDATE_GOAL', payload: { id: editingGoal.id, name: goalName.trim(), target: Number(goalTarget), priority: Number(goalPriority) } });
+      showToast('लक्ष्य बदला गया');
+    } else {
+      dispatch({ type: 'ADD_GOAL', payload: { id: Date.now().toString(), name: goalName.trim(), target: Number(goalTarget), priority: Number(goalPriority) } });
+      logEvent('goal_set');
+      showToast('नया लक्ष्य सेट हो गया');
     }
-  }, []);
+    setGoalSheetOpen(false);
+  };
+  const deleteGoal = () => {
+    if (!editingGoal) return;
+    dispatch({ type: 'DELETE_GOAL', payload: editingGoal.id });
+    setGoalSheetOpen(false);
+    showToast('लक्ष्य हटा दिया गया');
+  };
 
-  // Handle incoming state from Decoder bridge or goal pre-fill
-  useEffect(() => {
-    if (loc.state?.openGoal) {
-      setGoalSheetOpen(true);
-    } else if (loc.state?.decoderAmount) {
-      setPendingAmt(loc.state.decoderAmount);
-      setPendingLabel('बिल');
-      setPendingType('out');
-      setDecoderBillType(loc.state.decoderBillType ?? null); // tag for decode_comparison pattern
-      setMode('add_out');
-    } else if (loc.state?.fromDecoder && loc.state?.saveable) {
-      setGoalName('बचत');
-      setGoalTarget(loc.state.saveable);
-      setGoalSheetOpen(true);
-    }
-  }, []);
-
-  // ── Commit entry + insight seam ─────────────────────────────────────────────
+  // ── Commit entry ─────────────────────────────────────────────────────────────
   const commitEntry = () => {
     const entry = {
       id:        Date.now().toString(),
@@ -298,15 +336,18 @@ export default function Passbook() {
       time:      displayTime(nowISO()),
       src:       decoderBillType ? 'decoder' : 'manual',
       source:    decoderBillType ? 'decoder' : 'manual',
-      bill_type: decoderBillType ?? null,   // enables decode_comparison pattern
+      bill_type: decoderBillType ?? null,
     };
-    setDecoderBillType(null); // clear after use — not sticky across entries
+    setDecoderBillType(null);
     dispatch({ type: 'ADD_ENTRY', payload: entry });
     logEvent('entry_logged');
 
-    // Compute insight with projected new state
+    // Insight seam
     const projectedEntries = [entry, ...entries];
-    const payload = computeInsight({ sessionDecodes, entries: projectedEntries, goal, insightFired });
+    const projBal = balance + (entry.type === 'in' ? entry.amount : -entry.amount);
+    const projGoal = computeGoalProgress(projBal, goals)[0];
+    const insightGoal = projGoal ? { label: projGoal.name, target: projGoal.target, saved: projGoal.allocated } : null;
+    const payload = computeInsight({ sessionDecodes, entries: projectedEntries, goal: insightGoal, insightFired });
     if (payload) {
       setInsight(payload);
       dispatch({ type: 'MARK_INSIGHT_FIRED' });
@@ -319,53 +360,17 @@ export default function Passbook() {
   const todayIn  = entries.filter(e => e.type === 'in').reduce((s, e)  => s + e.amount, 0);
   const todayOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
 
-  // ── Edit / delete handlers ───────────────────────────────────────────────────
-  const openEdit = (entry) => {
-    setEditEntry(entry);
-    setEditAmt(String(entry.amount));
-    setEditCat(entry.category);
-    setConfirmDelete(false);
-  };
-
-  const saveEdit = () => {
-    if (!editEntry) return;
-    dispatch({ type: 'UPDATE_ENTRY', payload: { id: editEntry.id, amount: Number(editAmt), category: editCat } });
-    logEvent('entry_edited');
-    setEditEntry(null);
-    showToast('एंट्री बदल दी गई');
-  };
-
-  const doDelete = () => {
-    if (!editEntry) return;
-    dispatch({ type: 'DELETE_ENTRY', payload: editEntry.id });
-    logEvent('entry_deleted');
-    setEditEntry(null);
-    setConfirmDelete(false);
-    showToast('एंट्री हटा दी गई');
-  };
-
-  // ── Goal handlers ────────────────────────────────────────────────────────────
-  const saveGoal = () => {
-    if (!goalName.trim() || !goalTarget) return;
-    dispatch({ type: 'SET_GOAL', payload: { label: goalName.trim(), target: Number(goalTarget), saved: goal?.saved ?? 0 } });
-    logEvent('goal_set');
-    setGoalSheetOpen(false);
-    setGoalName(''); setGoalTarget(null); setEditGoalMode(false);
-    showToast('लक्ष्य सेट हो गया');
-  };
-
-  const clearGoal = () => {
-    dispatch({ type: 'CLEAR_GOAL' });
-    setGoalSheetOpen(false);
-    setEditGoalMode(false);
-  };
+  // ── Edit/delete handlers ─────────────────────────────────────────────────────
+  const openEdit    = (e) => { setEditEntry(e); setEditAmt(String(e.amount)); setEditCat(e.category); setConfirmDelete(false); };
+  const saveEdit    = () => { if (!editEntry) return; dispatch({ type: 'UPDATE_ENTRY', payload: { id: editEntry.id, amount: Number(editAmt), category: editCat } }); logEvent('entry_edited'); setEditEntry(null); showToast('एंट्री बदल दी गई'); };
+  const doDelete    = () => { if (!editEntry) return; dispatch({ type: 'DELETE_ENTRY', payload: editEntry.id }); logEvent('entry_deleted'); setEditEntry(null); setConfirmDelete(false); showToast('एंट्री हटा दी गई'); };
 
   const handleInsightAction = (action) => {
-    if (action === 'set_goal')    { setInsight(null); setGoalSheetOpen(true); }
+    if (action === 'set_goal')    { setInsight(null); openAddGoal(); }
     if (action === 'add_to_bahi') { setInsight(null); setMode('home'); }
   };
 
-  // ── Renderers ────────────────────────────────────────────────────────────────
+  // ── Renderers ─────────────────────────────────────────────────────────────────
 
   const renderHome = () => (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -378,29 +383,47 @@ export default function Passbook() {
         {balance < 0 && <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#D85A30', marginTop: '2px' }}>खर्च ज़्यादा हो गया</div>}
       </div>
 
-      {/* Goal card */}
-      <div style={{ padding: '12px 16px' }}>
-        {goal ? (
-          <button onClick={() => { setEditGoalMode(true); setGoalName(goal.label); setGoalTarget(goal.target); setGoalSheetOpen(true); }} style={{ width: '100%', background: '#EAF3DE', borderRadius: '14px', padding: '14px 16px', border: '1.5px solid #C5E0A8', cursor: 'pointer', textAlign: 'left' }}>
-            <GoalProgressBar goal={goal} />
-          </button>
+      {/* Goals section */}
+      <div style={{ padding: '12px 16px 4px' }}>
+        {goalProgress.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {goalProgress.slice(0, 3).map(gp => (
+              <GoalCard key={gp.id} gp={gp} onTap={() => openEditGoal(gp)} />
+            ))}
+            {goals.length > 3 && (
+              <div style={{ textAlign: 'center', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#888780' }}>+ {goals.length - 3} और लक्ष्य</div>
+            )}
+            <button onClick={() => openAddGoal()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'none', border: '1.5px dashed rgba(59,109,17,0.3)', borderRadius: '10px', padding: '9px', cursor: 'pointer', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#3B6D11' }}>
+              + नया लक्ष्य जोड़ें
+            </button>
+          </div>
         ) : (
-          <button onClick={() => { setEditGoalMode(false); setGoalSheetOpen(true); }} style={{ width: '100%', background: '#F9F8FB', borderRadius: '14px', padding: '12px 16px', border: '1.5px dashed rgba(83,74,183,0.2)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button onClick={() => openAddGoal()} style={{ width: '100%', background: '#F9F8FB', borderRadius: '14px', padding: '12px 16px', border: '1.5px dashed rgba(83,74,183,0.2)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <IcTarget size={18} color="#534AB7" />
-            <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#534AB7' }}>
-              कोई लक्ष्य रखें? त्योहार, बच्चों की फ़ीस, सोना — कुछ भी।
-            </span>
+            <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#534AB7' }}>कोई लक्ष्य रखें? त्योहार, बच्चों की फ़ीस, सोना — कुछ भी।</span>
           </button>
         )}
       </div>
 
-      {/* Mukund prompt */}
-      <div style={{ padding: '0 16px 12px' }}>
+      {/* Mukund greeting */}
+      <div style={{ padding: '12px 16px 0' }}>
         <MukundBubble text={entries.length === 0 ? "आज कितना मिला? कितना खर्च हुआ?" : `आज: ${fmt(todayIn)} मिला, ${fmt(todayOut)} गया।`} bg="#EEEDFE" />
       </div>
 
+      {/* In-passbook chat messages */}
+      {chatMessages.length > 0 && (
+        <div style={{ padding: '8px 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {chatMessages.map((m, i) => (
+            m.role === 'user'
+              ? <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '80%', background: '#e8e8fc', borderRadius: '16px 16px 4px 16px', padding: '10px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#2C2C2A' }}>{m.content}</div>
+              : <MukundBubble key={i} text={m.content} bg="#EEEDFE" />
+          ))}
+          {isChatting && <MukundBubble text="..." bg="#EEEDFE" />}
+        </div>
+      )}
+
       {/* Action buttons */}
-      <div style={{ display: 'flex', gap: '10px', padding: '0 16px' }}>
+      <div style={{ display: 'flex', gap: '10px', padding: '12px 16px 0' }}>
         <BigBtn label="मिला" accent="#3B6D11" icon={<IcArrowUp size={16} color="#fff"/>} onClick={() => { setPendingType('in'); setPendingAmt(null); setPendingLabel(''); setMode('add_in'); }} />
         <BigBtn label="खर्च" accent="#D85A30" icon={<IcArrowDown size={16} color="#fff"/>} onClick={() => { setPendingType('out'); setPendingAmt(null); setPendingLabel(''); setMode('add_out'); }} />
       </div>
@@ -446,8 +469,7 @@ export default function Passbook() {
   const renderAddIn = () => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <MukundBubble text="कितना मिला? और किससे?" bg="#EAF3DE" />
-      <AmountPicker value={pendingAmt} onChange={setPendingAmt}
-        voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
+      <AmountPicker value={pendingAmt} onChange={setPendingAmt} voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
       <div>
         <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>कहाँ से मिला?</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -464,8 +486,7 @@ export default function Passbook() {
   const renderAddOut = () => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <MukundBubble text="कितना खर्च हुआ, किस पे?" bg="#FAECE7" />
-      <AmountPicker value={pendingAmt} onChange={setPendingAmt}
-        voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
+      <AmountPicker value={pendingAmt} onChange={setPendingAmt} voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
       <div>
         <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>किस पे?</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
@@ -522,16 +543,14 @@ export default function Passbook() {
         <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', marginTop: '4px' }}>🔒 सिर्फ़ amount + category</div>
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="हाँ, जोड़ें" accent="#D85A30" onClick={() => {
-          setSmsShown(true);
-          dispatch({ type: 'ADD_ENTRY', payload: { id: Date.now().toString(), type: 'out', amount: CANNED_SMS.amount, category: CANNED_SMS.category, timestamp: nowISO(), time: displayTime(nowISO()), src: 'sms' } });
-          logEvent('entry_logged');
-          setMode('home');
-        }} />
+        <BigBtn label="हाँ, जोड़ें" accent="#D85A30" onClick={() => { setSmsShown(true); dispatch({ type: 'ADD_ENTRY', payload: { id: Date.now().toString(), type: 'out', amount: CANNED_SMS.amount, category: CANNED_SMS.category, timestamp: nowISO(), time: displayTime(nowISO()), src: 'sms', source: 'sms', bill_type: null } }); logEvent('entry_logged'); setMode('home'); }} />
         <BigBtn label="नहीं" accent="#888780" outline onClick={() => { setSmsShown(true); setMode('home'); }} />
       </div>
     </div>
   );
+
+  const sheetLabelStyle = { display: 'block', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', marginBottom: '6px', fontWeight: 600 };
+  const sheetInputStyle = { width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1.5px solid #EEEDFE', background: '#FAFAFA', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', color: '#2C2C2A', outline: 'none', boxSizing: 'border-box' };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto' }}>
@@ -554,23 +573,26 @@ export default function Passbook() {
         {mode === 'sms'         && renderSms()}
       </div>
 
-      <BottomInputBar ref={inputRef} compact onSubmit={() => {}} onSpeak={toggleVoice} onPlus={() => {}} />
+      <BottomInputBar
+        ref={inputRef}
+        compact
+        onSubmit={(text) => {
+          if (mode === 'home') handleChatInput(text);
+        }}
+        onSpeak={toggleVoice}
+        onPlus={() => {}}
+      />
 
-      {/* ── Edit / Delete bottom sheet ── */}
+      {/* ── Edit/Delete entry sheet ── */}
       <BottomSheet open={!!editEntry} onClose={() => { setEditEntry(null); setConfirmDelete(false); }} title={confirmDelete ? 'एंट्री हटाएँ?' : 'एंट्री बदलें'}>
         {editEntry && !confirmDelete && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div>
-              <label style={sheetLabelStyle}>रकम (₹)</label>
-              <input type="number" value={editAmt} onChange={e => setEditAmt(e.target.value)} style={sheetInputStyle} />
-            </div>
+            <div><label style={sheetLabelStyle}>रकम (₹)</label><input type="number" value={editAmt} onChange={e => setEditAmt(e.target.value)} style={sheetInputStyle} /></div>
             <div>
               <label style={sheetLabelStyle}>कैटेगरी</label>
               <input type="text" value={editCat} onChange={e => setEditCat(e.target.value)} style={sheetInputStyle} />
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                {CATEGORIES.map(c => (
-                  <button key={c} onClick={() => setEditCat(c)} style={{ padding: '5px 10px', borderRadius: '8px', border: editCat === c ? '1.5px solid #534AB7' : '1.5px solid #EEEDFE', background: editCat === c ? '#EEEDFE' : '#FAFAFA', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: editCat === c ? '#534AB7' : '#5F5E5A', cursor: 'pointer' }}>{c}</button>
-                ))}
+                {CATEGORIES.map(c => <button key={c} onClick={() => setEditCat(c)} style={{ padding: '5px 10px', borderRadius: '8px', border: editCat === c ? '1.5px solid #534AB7' : '1.5px solid #EEEDFE', background: editCat === c ? '#EEEDFE' : '#FAFAFA', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: editCat === c ? '#534AB7' : '#5F5E5A', cursor: 'pointer' }}>{c}</button>)}
               </div>
             </div>
             <button onClick={saveEdit} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: '#534AB7', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>बदलें</button>
@@ -588,32 +610,43 @@ export default function Passbook() {
         )}
       </BottomSheet>
 
-      {/* ── Goal bottom sheet ── */}
-      <BottomSheet open={goalSheetOpen} onClose={() => { setGoalSheetOpen(false); setEditGoalMode(false); }} title={editGoalMode ? 'लक्ष्य बदलें' : 'नया लक्ष्य'}>
+      {/* ── Goal add/edit sheet ── */}
+      <BottomSheet open={goalSheetOpen} onClose={() => setGoalSheetOpen(false)} title={editingGoal ? 'लक्ष्य बदलें' : 'नया लक्ष्य'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {GOAL_CHIPS.map(g => <Chip key={g} label={g} selected={goalName === g} onClick={() => setGoalName(g)} />)}
+          {/* Quick goal name chips */}
+          {!editingGoal && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {['त्योहार','फीस','फ़ोन','बफ़र','सोना','यात्रा'].map(g => (
+                <Chip key={g} label={g} selected={goalName === g} onClick={() => setGoalName(g)} />
+              ))}
+            </div>
+          )}
+          <div><label style={sheetLabelStyle}>लक्ष्य का नाम</label><input placeholder="किसके लिए बचत?" value={goalName} onChange={e => setGoalName(e.target.value)} style={sheetInputStyle} /></div>
+          <div>
+            <label style={sheetLabelStyle}>कितने चाहिए? (₹)</label>
+            <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '10px', padding: '10px 14px', border: '1.5px solid #EEEDFE' }}>
+              <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#888780', marginRight: '4px' }}>₹</span>
+              <input type="number" placeholder="Target amount" value={goalTarget ?? ''} onChange={e => setGoalTarget(Number(e.target.value) || null)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }} />
+            </div>
           </div>
-          <input placeholder="किसके लिए बचत?" value={goalName} onChange={e => setGoalName(e.target.value)} style={sheetInputStyle} />
-          <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '10px', padding: '10px 14px' }}>
-            <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#888780', marginRight: '4px' }}>₹</span>
-            <input type="number" placeholder="कितने चाहिए?" value={goalTarget ?? ''} onChange={e => setGoalTarget(Number(e.target.value) || null)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }} />
+          <div>
+            <label style={sheetLabelStyle}>Priority (1 = सबसे ज़रूरी)</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[1,2,3,4,5].map(p => (
+                <button key={p} onClick={() => setGoalPriority(p)} style={{ flex: 1, padding: '10px 4px', borderRadius: '10px', border: goalPriority === p ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: goalPriority === p ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '14px', fontWeight: 600, color: goalPriority === p ? '#534AB7' : '#2C2C2A', cursor: 'pointer' }}>{p}</button>
+              ))}
+            </div>
           </div>
-          <button onClick={saveGoal} disabled={!goalName.trim() || !goalTarget} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: goalName.trim() && goalTarget ? '#3B6D11' : '#D8D7D4', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>लक्ष्य रखें</button>
-          {editGoalMode && <button onClick={clearGoal} style={{ width: '100%', padding: '11px', borderRadius: '12px', border: '1.5px solid #FAECE7', background: '#fff', color: '#D85A30', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>लक्ष्य हटाएँ</button>}
+          <button onClick={saveGoal} disabled={!goalName.trim() || !goalTarget} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: goalName.trim() && goalTarget ? '#3B6D11' : '#D8D7D4', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
+            {editingGoal ? 'बदलें' : 'लक्ष्य रखें'}
+          </button>
+          {editingGoal && (
+            <button onClick={deleteGoal} style={{ width: '100%', padding: '11px', borderRadius: '12px', border: '1.5px solid #FAECE7', background: '#fff', color: '#D85A30', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
+              लक्ष्य हटाएँ
+            </button>
+          )}
         </div>
       </BottomSheet>
     </div>
   );
 }
-
-const sheetLabelStyle = {
-  display: 'block', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
-  fontSize: '12px', color: '#5F5E5A', marginBottom: '6px', fontWeight: 600,
-};
-const sheetInputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: '10px',
-  border: '1.5px solid #EEEDFE', background: '#FAFAFA',
-  fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
-  fontSize: '15px', color: '#2C2C2A', outline: 'none', boxSizing: 'border-box',
-};

@@ -40,7 +40,7 @@ function MukundBubble({ text, bg = '#EEEDFE', prefix = null }) {
 export default function Home() {
   const nav = useNavigate();
   const { state } = useApp();
-  const { entries, goal, balance } = state;
+  const { entries, goals, balance } = state;
 
   const user = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); }
@@ -49,8 +49,8 @@ export default function Home() {
 
   // ── Morning summary ─────────────────────────────────────────────────────────
   const summary = useMemo(
-    () => computeMorningSummary(entries, goal, balance),
-    [entries, goal, balance],
+    () => computeMorningSummary(entries, goals, balance),
+    [entries, goals, balance],
   );
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function Home() {
     const alreadyShown = sessionStorage.getItem('pattern_shown_this_session');
     if (alreadyShown) return;
 
-    const result = computePattern(entries, goal);
+    const result = computePattern(entries, goals, balance);
     if (result) {
       setPattern(result);
       sessionStorage.setItem('pattern_shown_this_session', result.type);
@@ -135,7 +135,9 @@ export default function Home() {
           {entries.length > 0 && (
             <div style={{
               fontFamily: "'JioType',sans-serif",
-              fontSize: '13px', color: '#3B6D11', fontWeight: 700, marginTop: '8px',
+              fontSize: '13px',
+              color: balance < 0 ? '#D85A30' : '#3B6D11',
+              fontWeight: 700, marginTop: '8px',
             }}>
               {balance < 0 ? '-' : ''}₹{Math.abs(Math.round(balance)).toLocaleString('en-IN')}
             </div>
