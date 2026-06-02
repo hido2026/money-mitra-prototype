@@ -576,6 +576,7 @@ export default function Passbook() {
       <BottomInputBar
         ref={inputRef}
         compact
+        voiceStatus={voiceStatus}
         onSubmit={(text) => {
           if (mode === 'home') handleChatInput(text);
         }}

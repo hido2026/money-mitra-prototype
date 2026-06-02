@@ -1,23 +1,29 @@
-// BottomInputBar — plus button + text pill + Speak button.
-// Used on home and corridor screens.
+// BottomInputBar — plus button + text pill (with send) + Speak button.
 // Props:
-//   compact     bool — smaller plus + Speak (corridor variant)
-//   onSubmit    (text) => void  — Enter pressed in input
-//   onSpeak     () => void
-//   onPlus      () => void
-//   inputRef    React ref to focus the input from parent (escape chip)
+//   compact      bool
+//   onSubmit     (text) => void
+//   onSpeak      () => void
+//   onPlus       () => void
+//   voiceStatus  'idle'|'recording'|'processing'|'done'|'error'|'no_mic'|'no_key'
+//                — drives speak button appearance
 
 import { useState, forwardRef } from 'react';
 import { IcPlus, IcMicrophone } from './icons/Icons';
 
+// Send arrow icon
+const IcSend = () => (
+  <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
+  </svg>
+);
+
 const BottomInputBar = forwardRef(function BottomInputBar(
-  { compact = false, onSubmit, onSpeak, onPlus },
+  { compact = false, onSubmit, onSpeak, onPlus, voiceStatus = 'idle' },
   ref
 ) {
   const [text, setText] = useState('');
-  const plusSize = compact ? 40 : 42;
-  const speakPadY = compact ? 10 : 11;
-  const speakPadX = compact ? 18 : 20;
+  const plusSize  = compact ? 40 : 42;
+  const hasText   = text.trim().length > 0;
 
   const submit = () => {
     const trimmed = text.trim();
@@ -26,11 +32,24 @@ const BottomInputBar = forwardRef(function BottomInputBar(
     setText('');
   };
 
+  // Speak button appearance based on voice status
+  const speakBg =
+    voiceStatus === 'recording'  ? '#D85A30' :
+    voiceStatus === 'processing' ? '#888780' :
+    voiceStatus === 'done'       ? '#3B6D11' :
+    '#534AB7';
+
+  const speakLabel =
+    voiceStatus === 'recording'  ? '🛑 रुकें' :
+    voiceStatus === 'processing' ? '⏳' :
+    voiceStatus === 'done'       ? '✓' :
+    'बोलिए';
+
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
+      gap: '8px',
       padding: compact ? '8px 16px 16px' : '12px 16px 18px',
       borderTop: compact ? '0.5px solid rgba(0,0,0,0.05)' : 'none',
       background: '#FFFFFF',
@@ -40,33 +59,24 @@ const BottomInputBar = forwardRef(function BottomInputBar(
       <button
         type="button"
         onClick={onPlus}
-        aria-label="Add attachment"
+        aria-label="Add"
         style={{
-          width: plusSize,
-          height: plusSize,
-          minWidth: plusSize,
-          borderRadius: '50%',
-          background: '#F5F4FA',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          flexShrink: 0,
+          width: plusSize, height: plusSize, minWidth: plusSize,
+          borderRadius: '50%', background: '#F5F4FA', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', flexShrink: 0,
         }}
       >
         <IcPlus size={20} color="#534AB7" />
       </button>
 
-      {/* Text pill */}
+      {/* Text pill + send button */}
       <div style={{
-        flex: 1,
-        minWidth: 0,
+        flex: 1, minWidth: 0,
         background: '#F5F4FA',
         borderRadius: '999px',
-        padding: '11px 18px',
-        display: 'flex',
-        alignItems: 'center',
+        padding: '11px 12px 11px 18px',
+        display: 'flex', alignItems: 'center', gap: '6px',
       }}>
         <input
           ref={ref}
@@ -76,43 +86,49 @@ const BottomInputBar = forwardRef(function BottomInputBar(
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
           style={{
-            flex: 1,
-            minWidth: 0,
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
+            flex: 1, minWidth: 0,
+            background: 'transparent', border: 'none', outline: 'none',
             fontFamily: "'Noto Sans Devanagari', 'JioType', sans-serif",
-            fontSize: '14px',
-            color: '#2C2C2A',
+            fontSize: '14px', color: '#2C2C2A',
           }}
         />
+        {/* Send button — visible whenever there's text */}
+        {hasText && (
+          <button
+            type="button"
+            onClick={submit}
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              border: 'none', background: '#534AB7', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', flexShrink: 0,
+            }}
+          >
+            <IcSend />
+          </button>
+        )}
       </div>
 
-      {/* Speak button */}
+      {/* Speak button — reflects voice status */}
       <button
         type="button"
         onClick={onSpeak}
+        className={voiceStatus === 'recording' ? 'mic-recording' : ''}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          background: '#534AB7',
-          color: '#FFFFFF',
-          border: 'none',
+          display: 'flex', alignItems: 'center', gap: '5px',
+          background: speakBg, color: '#FFFFFF', border: 'none',
           borderRadius: '999px',
-          padding: `${speakPadY}px ${speakPadX}px`,
-          cursor: 'pointer',
-          flexShrink: 0,
+          padding: compact ? '10px 14px' : '11px 16px',
+          cursor: 'pointer', flexShrink: 0,
+          transition: 'background 0.2s',
         }}
       >
-        <IcMicrophone size={18} color="#FFFFFF" />
+        <IcMicrophone size={16} color="#FFFFFF" />
         <span style={{
           fontFamily: "'Noto Sans Devanagari', 'JioType', sans-serif",
-          fontSize: '15px',
-          fontWeight: 600,
-          color: '#FFFFFF',
-          lineHeight: 1,
-        }}>बोलिए</span>
+          fontSize: '14px', fontWeight: 600, color: '#FFFFFF', lineHeight: 1,
+          whiteSpace: 'nowrap',
+        }}>{speakLabel}</span>
       </button>
     </div>
   );
