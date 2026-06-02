@@ -281,7 +281,7 @@ export default function Passbook() {
       <div style={{ padding: '20px 16px 12px', textAlign: 'center', borderBottom: '1px solid #F5F4FA' }}>
         <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px' }}>बैलेंस</div>
         <div style={{ fontFamily: "'JioType',sans-serif", fontSize: balance < 0 ? '36px' : '42px', fontWeight: 700, color: balance >= 0 ? '#2C2C2A' : '#D85A30', lineHeight: 1.1, marginTop: '4px' }}>
-          {fmtFull(Math.abs(balance))}
+          {balance < 0 ? '-' : ''}{fmtFull(Math.abs(balance))}
         </div>
         {balance < 0 && <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#D85A30', marginTop: '2px' }}>खर्च ज़्यादा हो गया</div>}
       </div>

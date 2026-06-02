@@ -137,7 +137,7 @@ export default function Home() {
               fontFamily: "'JioType',sans-serif",
               fontSize: '13px', color: '#3B6D11', fontWeight: 700, marginTop: '8px',
             }}>
-              ₹{Math.abs(Math.round(balance)).toLocaleString('en-IN')}
+              {balance < 0 ? '-' : ''}₹{Math.abs(Math.round(balance)).toLocaleString('en-IN')}
             </div>
           )}
         </button>

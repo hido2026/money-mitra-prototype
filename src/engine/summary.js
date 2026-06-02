@@ -2,7 +2,8 @@
 // Pure arithmetic from localStorage entries. ZERO API calls.
 // Returns a string, or null if no data (caller shows default).
 
-const f = n => Math.abs(Math.round(n)).toLocaleString('en-IN');
+const f    = n => Math.abs(Math.round(n)).toLocaleString('en-IN');  // entry amounts (always positive)
+const fBal = n => (n < 0 ? '-₹' : '₹') + Math.abs(Math.round(n)).toLocaleString('en-IN'); // balance (signed)
 
 function dateStr(isoOrLegacy) {
   if (!isoOrLegacy) return null;
@@ -47,16 +48,16 @@ export function computeMorningSummary(entries, goal, balance) {
   if (todayE.length > 0) {
     const inc = sumEntries(todayE, 'in');
     const exp = sumEntries(todayE, 'out');
-    return `आज: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ₹${f(balance)}${goalSuffix}`;
+    return `आज: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
   }
 
   const yesterE = entries.filter(e => dateStr(e.timestamp) === yesterday);
   if (yesterE.length > 0) {
     const inc = sumEntries(yesterE, 'in');
     const exp = sumEntries(yesterE, 'out');
-    return `कल: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ₹${f(balance)}${goalSuffix}`;
+    return `कल: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
   }
 
   // Entries exist but none from today / yesterday — show balance + goal only
-  return `बैलेंस: ₹${f(balance)}${goalSuffix}`;
+  return `बैलेंस: ${fBal(balance)}${goalSuffix}`;
 }
