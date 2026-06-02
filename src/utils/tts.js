@@ -5,7 +5,7 @@
 // Supports Hindi via eleven_multilingual_v2 model.
 
 export const ELEVENLABS_API_KEY = 'sk_688942a31f08dcdf8ec4cfe3571ebe36130bbee5ab552f51';
-export const ELEVENLABS_VOICE_ID = 'REPLACE_WITH_VOICE_ID'; // paste ID here once found
+export const ELEVENLABS_VOICE_ID = 'DQuoFsZ3oda1diTerwpq'; // Aaditya Kapur - Calm Conversational Hindi
 
 const TTS_URL = (voiceId) =>
   `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
