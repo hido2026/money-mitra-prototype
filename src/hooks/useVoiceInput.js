@@ -9,7 +9,7 @@
 import { useState, useRef } from 'react';
 
 export const SARVAM_API_KEY =
-  import.meta.env.VITE_SARVAM_API_KEY || 'REPLACE_WITH_SARVAM_KEY';
+  import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
 
 const SARVAM_STT_URL = 'https://api.sarvam.ai/speech-to-text-translate';
 
