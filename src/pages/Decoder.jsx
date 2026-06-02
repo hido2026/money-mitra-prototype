@@ -12,6 +12,7 @@ import { computeInsight } from '../engine/insight';
 import { logEvent } from '../utils/analytics';
 import InsightBubble from '../components/InsightBubble';
 import { IcChevronLeft, IcDots, IcCamera, IcFileText } from '../components/icons/Icons';
+import { speakMukund } from '../utils/tts';
 
 // ── Groq client ───────────────────────────────────────────────────────────────
 const _key = import.meta.env.VITE_GROQ_API_KEY;
@@ -164,8 +165,10 @@ export default function Decoder() {
       if (!raw.trim()) throw new Error('empty response');
 
       const amt = parseAmount(raw);
-      setResult(cleanText(raw));
+      const cleanedText = cleanText(raw);
+      setResult(cleanedText);
       setParsedAmt(amt);
+      speakMukund(cleanedText); // read Mukund's bill explanation aloud
 
       // Push decode to AppContext for insight engine
       if (amt) {

@@ -6,6 +6,7 @@ import Message from '../components/Message';
 import TypingIndicator from '../components/TypingIndicator';
 import InputBar from '../components/InputBar';
 import PersonaAvatar from '../components/PersonaAvatar';
+import { speakMukund } from '../utils/tts';
 
 // ── Groq client ────────────────────────────────────────────────────────────────
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -95,6 +96,12 @@ export default function Chat() {
       });
     } finally {
       setIsStreaming(false);
+      // Speak the completed Mukund response (silent-fail if no key set)
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && last.content) speakMukund(last.content);
+        return prev;
+      });
     }
   };
 
