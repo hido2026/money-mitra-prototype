@@ -12,6 +12,7 @@ import InsightBubble from '../components/InsightBubble';
 import { useApp } from '../context/AppContext';
 import { computeInsight } from '../engine/insight';
 import { logEvent } from '../utils/analytics';
+import { useVoiceInput, parseHindiAmount, parseHindiCategory, parseHindiSource } from '../hooks/useVoiceInput';
 import {
   IcChevronLeft, IcDots, IcCheck,
   IcArrowUp, IcArrowDown, IcTarget,
@@ -109,20 +110,92 @@ function GoalProgressBar({ goal }) {
   );
 }
 
-function AmountPicker({ value, onChange }) {
+// ── AmountPicker ──────────────────────────────────────────────────────────────
+// Bug fix: chips now in 2×2 grid (was 4-in-a-row — ₹200/₹2000 overlapped).
+// Each chip: min 52px tall, full quarter-width, clear tap target.
+// Voice button above chips — records → auto-fills amount (and label if parsed).
+
+function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceToggle }) {
   const QUICK = [200, 500, 1000, 2000];
+
+  const voiceBtnStyle = (() => {
+    if (voiceStatus === 'recording')   return { bg: '#D85A30', label: '🛑  सुन रहा हूँ... (रोकें)', pulse: true };
+    if (voiceStatus === 'processing')  return { bg: '#888780', label: '⏳  समझ रहा हूँ...', pulse: false };
+    if (voiceStatus === 'done')        return { bg: '#3B6D11', label: '✓  ' + (voiceTranscript || 'हो गया'), pulse: false };
+    if (voiceStatus === 'no_key')      return { bg: '#888780', label: 'API key नहीं मिली — settings जाँचें', pulse: false };
+    if (voiceStatus === 'no_mic')      return { bg: '#888780', label: 'माइक्रोफ़ोन की इजाज़त चाहिए', pulse: false };
+    if (voiceStatus === 'error')       return { bg: '#888780', label: 'कुछ गड़बड़ हुई — दोबारा कोशिश करें', pulse: false };
+    return { bg: '#534AB7', label: '🎤  बोलिए', pulse: false };
+  })();
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+      {/* Voice button — full width, always visible */}
+      <button
+        onClick={onVoiceToggle}
+        className={voiceBtnStyle.pulse ? 'mic-recording' : ''}
+        style={{
+          width: '100%', padding: '14px 16px',
+          borderRadius: '14px', border: 'none',
+          background: voiceBtnStyle.bg, color: '#FFFFFF',
+          fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+          fontSize: '15px', fontWeight: 600,
+          cursor: 'pointer', textAlign: 'center',
+          transition: 'background 0.2s',
+        }}
+      >
+        {voiceBtnStyle.label}
+      </button>
+
+      {/* 2×2 chip grid — each chip is ≥52px tall, half-width, no overlap */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '10px',
+      }}>
         {QUICK.map(q => (
-          <button key={q} onClick={() => onChange(q)} style={{ padding: '8px 14px', borderRadius: '10px', cursor: 'pointer', border: value === q ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: value === q ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '14px', fontWeight: 600, color: value === q ? '#534AB7' : '#2C2C2A' }}>
+          <button
+            key={q}
+            onClick={() => onChange(q)}
+            style={{
+              padding: '14px 8px',
+              minHeight: '52px',          // ≥44px touch target
+              borderRadius: '12px',
+              cursor: 'pointer',
+              border:      value === q ? '2px solid #534AB7' : '1.5px solid #EEEDFE',
+              background:  value === q ? '#EEEDFE' : '#FFFFFF',
+              fontFamily: "'JioType',sans-serif",
+              fontSize: '16px',
+              fontWeight: 700,
+              color: value === q ? '#534AB7' : '#2C2C2A',
+              textAlign: 'center',
+            }}
+          >
             {fmt(q)}
           </button>
         ))}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '10px', padding: '10px 14px' }}>
-        <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#888780', marginRight: '4px' }}>₹</span>
-        <input type="number" placeholder="और रकम" value={value && ![200,500,1000,2000].includes(value) ? value : ''} onChange={e => onChange(Number(e.target.value) || null)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }} />
+
+      {/* Custom amount text input */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        background: '#F5F4FA', borderRadius: '12px',
+        padding: '13px 16px',
+        border: '1.5px solid #EEEDFE',
+      }}>
+        <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '17px', color: '#888780', marginRight: '4px' }}>₹</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder="और रकम लिखें"
+          value={value && ![200, 500, 1000, 2000].includes(value) ? value : ''}
+          onChange={e => onChange(Number(e.target.value) || null)}
+          style={{
+            flex: 1, background: 'transparent', border: 'none', outline: 'none',
+            fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A',
+          }}
+        />
       </div>
     </div>
   );
@@ -160,6 +233,25 @@ export default function Passbook() {
 
   // Decoder entry tagging — bill_type passed from Decoder navigation state
   const [decoderBillType, setDecoderBillType] = useState(null);
+
+  // ── Voice input ─────────────────────────────────────────────────────────────
+  const { status: voiceStatus, transcript: voiceTranscript, toggle: toggleVoice } =
+    useVoiceInput({
+      onResult: (text) => {
+        // Parse amount from Hindi speech
+        const amt = parseHindiAmount(text);
+        if (amt) setPendingAmt(amt);
+
+        // Parse category (expense) or source (income) from the same utterance
+        if (pendingType === 'out') {
+          const cat = parseHindiCategory(text);
+          if (cat) setPendingLabel(cat);
+        } else if (pendingType === 'in') {
+          const src = parseHindiSource(text);
+          if (src) setPendingLabel(src);
+        }
+      },
+    });
 
   // SMS opt-in
   const [smsConsent, setSmsConsent] = useState(false);
@@ -354,7 +446,8 @@ export default function Passbook() {
   const renderAddIn = () => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <MukundBubble text="कितना मिला? और किससे?" bg="#EAF3DE" />
-      <AmountPicker value={pendingAmt} onChange={setPendingAmt} />
+      <AmountPicker value={pendingAmt} onChange={setPendingAmt}
+        voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
       <div>
         <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>कहाँ से मिला?</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -371,7 +464,8 @@ export default function Passbook() {
   const renderAddOut = () => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <MukundBubble text="कितना खर्च हुआ, किस पे?" bg="#FAECE7" />
-      <AmountPicker value={pendingAmt} onChange={setPendingAmt} />
+      <AmountPicker value={pendingAmt} onChange={setPendingAmt}
+        voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
       <div>
         <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>किस पे?</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
@@ -460,7 +554,7 @@ export default function Passbook() {
         {mode === 'sms'         && renderSms()}
       </div>
 
-      <BottomInputBar ref={inputRef} compact onSubmit={() => {}} onSpeak={() => {}} onPlus={() => {}} />
+      <BottomInputBar ref={inputRef} compact onSubmit={() => {}} onSpeak={toggleVoice} onPlus={() => {}} />
 
       {/* ── Edit / Delete bottom sheet ── */}
       <BottomSheet open={!!editEntry} onClose={() => { setEditEntry(null); setConfirmDelete(false); }} title={confirmDelete ? 'एंट्री हटाएँ?' : 'एंट्री बदलें'}>
