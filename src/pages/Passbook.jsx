@@ -553,7 +553,7 @@ export default function Passbook() {
   const sheetInputStyle = { width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1.5px solid #EEEDFE', background: '#FAFAFA', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', color: '#2C2C2A', outline: 'none', boxSizing: 'border-box' };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto', overflow: 'hidden' }}>
       <TopBar onBack={() => mode === 'home' ? nav('/') : setMode('home')} />
 
       {/* Toast */}

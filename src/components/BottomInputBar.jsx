@@ -47,11 +47,17 @@ const BottomInputBar = forwardRef(function BottomInputBar(
 
   return (
     <div style={{
+      position: 'sticky',
+      bottom: 0,
+      zIndex: 50,
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      padding: compact ? '8px 16px 16px' : '12px 16px 18px',
-      borderTop: compact ? '0.5px solid rgba(0,0,0,0.05)' : 'none',
+      // extra bottom padding for iOS home indicator (safe-area-inset-bottom ≈ 34px on iPhone X+)
+      padding: compact
+        ? '8px 16px max(16px, env(safe-area-inset-bottom, 16px))'
+        : '12px 16px max(18px, env(safe-area-inset-bottom, 18px))',
+      borderTop: '0.5px solid rgba(0,0,0,0.08)',
       background: '#FFFFFF',
       flexShrink: 0,
     }}>
