@@ -8,7 +8,7 @@
 import { createContext, useContext, useReducer } from 'react';
 
 const AppContext = createContext(null);
-const STORAGE_KEY = 'mm_passbook_v3';
+const STORAGE_KEY = 'money_mitra_data'; // same key as before — preserves existing data
 
 function calcBalance(entries) {
   return entries.reduce((s, e) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
@@ -28,14 +28,19 @@ function loadSaved() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    // Migrate old single-goal format → goals[]
+    if (data.goal && !data.goals) {
+      data.goals = [{ id: 'g1', name: data.goal.label ?? data.goal.name ?? 'लक्ष्य', target: data.goal.target ?? 0, priority: 1 }];
+    }
+    return data;
   } catch { return {}; }
 }
 
 const saved = loadSaved();
 const INIT = {
   entries:           saved.entries  ?? [],
-  balance:           saved.balance  ?? 0,
+  balance:           saved.balance  ?? calcBalance(saved.entries ?? []),
   goals:             saved.goals    ?? [],
   sessionDecodes:    [],
   insightFired:      false,
