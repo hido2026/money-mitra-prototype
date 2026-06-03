@@ -60,8 +60,16 @@ function fallbackSpeak(text) {
     const utt  = new SpeechSynthesisUtterance(text);
     utt.lang   = 'hi-IN';
     utt.rate   = 0.88;
-    utt.pitch  = 1;
+    utt.pitch  = 0.85; // lower pitch = sounds more male
     utt.volume = 1;
+
+    // Try to find a male Hindi voice on the device
+    const voices      = window.speechSynthesis.getVoices();
+    const hindiVoices = voices.filter(v => v.lang?.startsWith('hi'));
+    const maleHindi   = hindiVoices.find(v => /male|man|पुरुष/i.test(v.name));
+    if (maleHindi)       utt.voice = maleHindi;
+    else if (hindiVoices[0]) utt.voice = hindiVoices[0];
+
     window.speechSynthesis.speak(utt);
   } catch {}
 }
