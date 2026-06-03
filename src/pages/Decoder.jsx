@@ -26,25 +26,57 @@ const FALLBACK_TEXT = 'यह ठीक से दिख नहीं रहा 
 
 const MUKUND_PROMPT = `You are Mukund, a 35-year-old Hindi-speaking financial helper. You speak like a smart older cousin — warm, direct, no jargon. Look at this bill, receipt, or financial document. Reply in Devanagari Hindi, 2-3 sentences max, under 80 words. Cover: 1) What is this document (bill type, from whom) 2) The key amount (total due / paid / balance) 3) One money point: is this normal, is there a saving possible, or is something wrong. End your reply with the amount on a separate line in this exact format: AMOUNT:₹[number]`;
 
-// ── PDF text extraction (PDF.js loaded on-demand) ────────────────────────────
+// ── PDF helpers (PDF.js loaded on-demand) ─────────────────────────────────────
 
-async function extractPdfText(file) {
-  // Dynamic import keeps PDF.js out of the main bundle (~420KB saving)
+async function loadPdfJs() {
   const pdfjsLib = await import('pdfjs-dist');
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  return pdfjsLib;
+}
 
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const maxPages = Math.min(pdf.numPages, 3); // first 3 pages is enough for a bill
-  const textParts = [];
+/** Extract selectable text from first 3 pages. Returns '' for scanned PDFs. */
+async function extractPdfText(pdf) {
+  const maxPages = Math.min(pdf.numPages, 3);
+  const parts = [];
   for (let i = 1; i <= maxPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items.map(item => item.str).join(' ');
-    textParts.push(pageText);
+    parts.push(content.items.map(item => item.str).join(' '));
   }
-  return textParts.join('\n').trim();
+  return parts.join('\n').trim();
+}
+
+/** Render first page of PDF to a 1024px-max JPEG base64 (for scanned PDFs). */
+async function renderPdfPageToBase64(pdf) {
+  const page     = await pdf.getPage(1);
+  const scale    = Math.min(1024 / page.getViewport({ scale: 1 }).width, 2);
+  const viewport = page.getViewport({ scale });
+  const canvas   = document.createElement('canvas');
+  canvas.width   = Math.round(viewport.width);
+  canvas.height  = Math.round(viewport.height);
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  return canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
+}
+
+/**
+ * Handle a PDF file: try text extraction first.
+ * If text is too short (scanned PDF), fall back to image rendering.
+ * Returns { mode: 'text'|'image', content: string }
+ */
+async function processPdf(file) {
+  const pdfjsLib   = await loadPdfJs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf        = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  const text = await extractPdfText(pdf);
+  // If we got meaningful text (>100 chars of non-whitespace), use text path
+  if (text.replace(/\s/g, '').length > 100) {
+    return { mode: 'text', content: text.slice(0, 3000) };
+  }
+  // Otherwise it's a scanned/image PDF — render first page as image
+  const b64 = await renderPdfPageToBase64(pdf);
+  return { mode: 'image', content: b64 };
 }
 
 // ── Image helpers ─────────────────────────────────────────────────────────────
@@ -178,19 +210,30 @@ export default function Decoder() {
       let resp;
 
       if (isPDF) {
-        // PDF path: extract text → send to text model
-        const pdfText = await extractPdfText(file);
-        if (!pdfText) throw new Error('empty pdf');
-        resp = await groq.chat.completions.create({
-          model: TEXT_MODEL,
-          messages: [{
-            role: 'user',
-            content: `${MUKUND_PROMPT}\n\nDocument text:\n${pdfText.slice(0, 3000)}`,
-          }],
-          max_tokens: 220,
-        });
+        // Auto-detect: text-based PDF → text model / scanned PDF → vision model
+        const { mode, content } = await processPdf(file);
+        if (mode === 'text') {
+          resp = await groq.chat.completions.create({
+            model: TEXT_MODEL,
+            messages: [{ role: 'user', content: `${MUKUND_PROMPT}\n\nDocument text:\n${content}` }],
+            max_tokens: 220,
+          });
+        } else {
+          // Scanned PDF rendered as image → same path as a regular photo
+          resp = await groq.chat.completions.create({
+            model: VISION_MODEL,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text',      text: MUKUND_PROMPT },
+                { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${content}` } },
+              ],
+            }],
+            max_tokens: 220,
+          });
+        }
       } else {
-        // Image path: compress → send to vision model
+        // Regular image → vision model
         const b64 = await compressToBase64(file);
         resp = await groq.chat.completions.create({
           model: VISION_MODEL,
