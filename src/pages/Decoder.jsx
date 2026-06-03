@@ -30,8 +30,9 @@ const MUKUND_PROMPT = `You are Mukund, a 35-year-old Hindi-speaking financial he
 
 async function loadPdfJs() {
   const pdfjsLib = await import('pdfjs-dist');
+  // Try CDN worker; use unpkg as fallback (more reliable for newer versions)
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
   return pdfjsLib;
 }
 
@@ -308,18 +309,18 @@ export default function Decoder() {
         <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#5F5E5A', marginTop: '1px' }}>कागज़ समझें</div>
       </div>
 
-      <MukundBubble text="जो समझ न आये — बिल, रसीद, मैसेज — उसकी फ़ोटो दिखाइए। पढ़ कर समझाता हूँ।" time="अभी" />
+      <MukundBubble text="जो समझ न आये — बिल, रसीद, मैसेज — फ़ोटो या PDF दिखाइए। पढ़ कर समझाता हूँ।" time="अभी" />
 
-      {/* Camera button — primary */}
-      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#534AB7', border: 'none', borderRadius: '14px', padding: '16px', cursor: 'pointer' }}>
-        <IcCamera size={22} color="#FFFFFF" />
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>फ़ोटो लीजिए</span>
+      {/* Gallery / PDF — PRIMARY (works on all devices) */}
+      <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#534AB7', border: 'none', borderRadius: '14px', padding: '16px', cursor: 'pointer' }}>
+        <IcFileText size={22} color="#FFFFFF" />
+        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>फ़ाइल या PDF चुनें</span>
       </button>
 
-      {/* Gallery / PDF link — secondary */}
-      <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '13px', cursor: 'pointer' }}>
-        <IcFileText size={16} color="#534AB7" />
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, color: '#534AB7' }}>गैलरी या PDF चुनें</span>
+      {/* Camera — secondary (mobile only, use capture) */}
+      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '13px', cursor: 'pointer' }}>
+        <IcCamera size={16} color="#534AB7" />
+        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, color: '#534AB7' }}>📱 फ़ोटो लीजिए (मोबाइल)</span>
       </button>
 
       <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', lineHeight: 1.4 }}>
