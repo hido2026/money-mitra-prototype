@@ -14,7 +14,9 @@ import { logEvent } from '../utils/analytics';
 import InsightBubble from '../components/InsightBubble';
 import { IcChevronLeft, IcDots, IcCamera, IcFileText } from '../components/icons/Icons';
 import { speakMukund } from '../utils/tts';
-// PDF.js is loaded on-demand inside extractPdfText() — keeps the main bundle small
+// Worker URL registered at build time by Vite (emitted as a separate asset)
+// PDF.js library itself is still loaded on-demand via dynamic import below
+import _pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 // ── Groq client ───────────────────────────────────────────────────────────────
 const _key = import.meta.env.VITE_GROQ_API_KEY;
@@ -30,9 +32,8 @@ const MUKUND_PROMPT = `You are Mukund, a 35-year-old Hindi-speaking financial he
 
 async function loadPdfJs() {
   const pdfjsLib = await import('pdfjs-dist');
-  // Try CDN worker; use unpkg as fallback (more reliable for newer versions)
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+  // Use the worker URL that Vite emitted as a static asset
+  pdfjsLib.GlobalWorkerOptions.workerSrc = _pdfWorkerUrl;
   return pdfjsLib;
 }
 
