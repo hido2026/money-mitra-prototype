@@ -8,6 +8,7 @@
 // The button in BottomInputBar reflects voiceStatus at all times.
 
 import { useState, useRef } from 'react';
+import { primeAudio } from '../utils/tts';
 
 // ── Sarvam (Tier 2 only) ──────────────────────────────────────────────────────
 export const SARVAM_API_KEY =
@@ -126,6 +127,10 @@ export function useVoiceInput({ onResult }) {
   };
 
   const toggle = async () => {
+    // Prime AudioContext at tap time (user gesture) so ElevenLabs playback
+    // works even after the async API delay — must be called synchronously here
+    primeAudio();
+
     if (status === 'recording') { stopAll(); return; }
 
     // ── Tier 1: Web Speech API (iOS Safari, Chrome) ───────────────────────────

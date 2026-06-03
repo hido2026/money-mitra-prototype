@@ -1,50 +1,78 @@
-// tts.js — ElevenLabs TTS with SpeechSynthesis fallback.
+// tts.js — ElevenLabs TTS via Web Audio API (bypasses autoplay restrictions).
 //
-// Two-tier approach (per brief C):
-//   Tier 1: ElevenLabs (Aaditya Kapur — Calm Conversational Hindi)
-//   Tier 2: browser SpeechSynthesis (hi-IN) — fires automatically if:
-//     • ElevenLabs API fails (wrong key, rate limit, network)
-//     • audio.play() is blocked by browser autoplay policy
-//       (this happens when async API delay expires the user gesture)
-//   Tier 3: silent — if neither works, text still shows.
+// Why Web Audio API instead of new Audio():
+//   new Audio().play() is blocked by browser autoplay policy when called
+//   3-5 seconds after a user gesture (the async ElevenLabs round-trip).
+//   Web Audio API's AudioContext.decodeAudioData + createBufferSource
+//   does NOT have this restriction once the context is running.
 //
-// Text always shows. Voice is enhancement only, never required.
+// Fallback chain: ElevenLabs → browser SpeechSynthesis (hi-IN) → silent.
 
 export const ELEVENLABS_API_KEY  = 'sk_688942a31f08dcdf8ec4cfe3571ebe36130bbee5ab552f51';
 export const ELEVENLABS_VOICE_ID = 'DQuoFsZ3oda1diTerwpq'; // Aaditya Kapur — Calm Conversational Hindi
 
 const TTS_URL = (id) => `https://api.elevenlabs.io/v1/text-to-speech/${id}`;
 
-let _currentAudio = null;
+// Module-level AudioContext — created once, reused for all playback
+let _ctx       = null;
+let _curSource = null;
+
+function getCtx() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!_ctx || _ctx.state === 'closed') {
+    _ctx = new AC();
+  }
+  if (_ctx.state === 'suspended') {
+    _ctx.resume().catch(() => {});
+  }
+  return _ctx;
+}
+
+/**
+ * primeAudio — call on ANY user gesture (button tap, voice toggle) to
+ * unlock the AudioContext so ElevenLabs playback works even seconds later.
+ */
+export function primeAudio() {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    // Play a 0-sample silent buffer to fully unlock the context
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+  } catch {}
+}
+
+export function stopSpeaking() {
+  try { _curSource?.stop(); } catch {}
+  _curSource = null;
+  try { window.speechSynthesis?.cancel(); } catch {}
+}
 
 // ── Tier 2: browser SpeechSynthesis ──────────────────────────────────────────
 function fallbackSpeak(text) {
   try {
     if (!window.speechSynthesis || !text?.trim()) return;
     window.speechSynthesis.cancel();
-    const utt   = new SpeechSynthesisUtterance(text);
-    utt.lang    = 'hi-IN';
-    utt.rate    = 0.88;   // slightly slower for clarity
-    utt.pitch   = 1;
-    utt.volume  = 1;
+    const utt  = new SpeechSynthesisUtterance(text);
+    utt.lang   = 'hi-IN';
+    utt.rate   = 0.88;
+    utt.pitch  = 1;
+    utt.volume = 1;
     window.speechSynthesis.speak(utt);
-  } catch { /* tier 3: silent */ }
+  } catch {}
 }
 
-export function stopSpeaking() {
-  if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
-  try { window.speechSynthesis?.cancel(); } catch {}
-}
-
-// ── Main: try ElevenLabs → fallback to SpeechSynthesis ───────────────────────
+// ── Main: ElevenLabs → fallback ───────────────────────────────────────────────
 export async function speakMukund(text) {
   if (!text?.trim()) return;
   stopSpeaking();
 
-  // If no valid ElevenLabs key, go straight to fallback
   if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes('REPLACE')) {
-    fallbackSpeak(text);
-    return;
+    fallbackSpeak(text); return;
   }
 
   try {
@@ -57,22 +85,23 @@ export async function speakMukund(text) {
         voice_settings: { stability: 0.5, similarity_boost: 0.75 },
       }),
     });
-
     if (!res.ok) throw new Error(`elevenlabs_${res.status}`);
 
-    const blob  = await res.blob();
-    const url   = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    _currentAudio = audio;
-    audio.onended = () => { URL.revokeObjectURL(url); _currentAudio = null; };
+    const arrayBuffer = await res.arrayBuffer();
+    const ctx         = getCtx();
+    if (!ctx) throw new Error('no_audio_context');
 
-    // await play() — if autoplay policy blocks it, catch and fallback immediately
-    await audio.play();
+    // decodeAudioData + createBufferSource bypasses autoplay policy entirely
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    const src         = ctx.createBufferSource();
+    src.buffer        = audioBuffer;
+    src.connect(ctx.destination);
+    src.start(0);
+    src.onended = () => { if (_curSource === src) _curSource = null; };
+    _curSource = src;
 
   } catch (err) {
-    // ElevenLabs failed OR autoplay blocked → browser TTS as fallback
-    console.warn('[tts] falling back to SpeechSynthesis:', err.message);
-    _currentAudio = null;
+    console.warn('[tts] ElevenLabs failed, using SpeechSynthesis:', err.message);
     fallbackSpeak(text);
   }
 }

@@ -1,27 +1,42 @@
-// AppContext — in-memory session state. Reload resets everything.
-// Per brief: no localStorage, no backend, no network for user data.
-// API keys (Groq, ElevenLabs, Sarvam) are build-time constants — not user data.
+// AppContext — passbook/goals persisted to localStorage; session state in-memory.
 //
-// State:
-//   entries        [{id, type, amount, category, timestamp, source?, bill_type?}]
-//   balance        number (recomputed on every entry mutation)
-//   goals          [{id, name, target, priority}]
-//   sessionDecodes [{bill_type, amount}]   — decoded bills this session
-//   insightFired   bool                    — max one insight per session
-//   lastInputModality 'voice'|'tap'|'text' — drives voice I/O matching
+// Persisted (survives reload — needed for Day 2/3 user testing):
+//   entries, balance, goals
+// Session-only (resets on reload):
+//   sessionDecodes, insightFired, lastInputModality
 
 import { createContext, useContext, useReducer } from 'react';
 
 const AppContext = createContext(null);
+const STORAGE_KEY = 'mm_passbook_v3';
 
 function calcBalance(entries) {
   return entries.reduce((s, e) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
 }
 
+function save(state) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      entries: state.entries,
+      balance: state.balance,
+      goals:   state.goals,
+    }));
+  } catch {}
+}
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch { return {}; }
+}
+
+const saved = loadSaved();
 const INIT = {
-  entries:           [],
-  balance:           0,
-  goals:             [],
+  entries:           saved.entries  ?? [],
+  balance:           saved.balance  ?? 0,
+  goals:             saved.goals    ?? [],
   sessionDecodes:    [],
   insightFired:      false,
   lastInputModality: 'tap',
@@ -32,38 +47,51 @@ function reducer(state, action) {
     // ── Entries ──────────────────────────────────────────────────────────────
     case 'ADD_ENTRY': {
       const entries = [action.payload, ...state.entries];
-      return { ...state, entries, balance: calcBalance(entries) };
+      const next = { ...state, entries, balance: calcBalance(entries) };
+      save(next); return next;
     }
     case 'UPDATE_ENTRY': {
       const { id, amount, category } = action.payload;
       const entries = state.entries.map(e => e.id === id ? { ...e, amount, category } : e);
-      return { ...state, entries, balance: calcBalance(entries) };
+      const next = { ...state, entries, balance: calcBalance(entries) };
+      save(next); return next;
     }
     case 'DELETE_ENTRY': {
       const entries = state.entries.filter(e => e.id !== action.payload);
-      return { ...state, entries, balance: calcBalance(entries) };
+      const next = { ...state, entries, balance: calcBalance(entries) };
+      save(next); return next;
     }
 
     // ── Goals ─────────────────────────────────────────────────────────────────
-    case 'ADD_GOAL':
-      return { ...state, goals: [...state.goals, action.payload] };
-    case 'UPDATE_GOAL':
-      return { ...state, goals: state.goals.map(g => g.id === action.payload.id ? { ...g, ...action.payload } : g) };
-    case 'DELETE_GOAL':
-      return { ...state, goals: state.goals.filter(g => g.id !== action.payload) };
+    case 'ADD_GOAL': {
+      const next = { ...state, goals: [...state.goals, action.payload] };
+      save(next); return next;
+    }
+    case 'UPDATE_GOAL': {
+      const next = { ...state, goals: state.goals.map(g => g.id === action.payload.id ? { ...g, ...action.payload } : g) };
+      save(next); return next;
+    }
+    case 'DELETE_GOAL': {
+      const next = { ...state, goals: state.goals.filter(g => g.id !== action.payload) };
+      save(next); return next;
+    }
 
     // Legacy single-goal shim (some callers still use SET_GOAL)
     case 'SET_GOAL': {
       const g = action.payload;
-      if (!g) return { ...state, goals: [] };
-      if (state.goals.length > 0) {
-        const goals = state.goals.map((x, i) => i === 0 ? { ...x, name: g.label ?? g.name, target: g.target } : x);
-        return { ...state, goals };
+      let next;
+      if (!g) { next = { ...state, goals: [] }; }
+      else if (state.goals.length > 0) {
+        next = { ...state, goals: state.goals.map((x, i) => i === 0 ? { ...x, name: g.label ?? g.name, target: g.target } : x) };
+      } else {
+        next = { ...state, goals: [{ id: Date.now().toString(), name: g.label ?? g.name, target: g.target, priority: 1 }] };
       }
-      return { ...state, goals: [{ id: Date.now().toString(), name: g.label ?? g.name, target: g.target, priority: 1 }] };
+      save(next); return next;
     }
-    case 'CLEAR_GOAL':
-      return { ...state, goals: [] };
+    case 'CLEAR_GOAL': {
+      const next = { ...state, goals: [] };
+      save(next); return next;
+    }
 
     // ── Decoder ───────────────────────────────────────────────────────────────
     case 'ADD_DECODE':
