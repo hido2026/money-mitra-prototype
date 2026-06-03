@@ -1,6 +1,7 @@
 // Decoder — Ghar ka Munshi  (route: /#/decoder)
-// Camera / gallery → Groq vision → Mukund's explanation → "बही में डालें"
-// Photo is NEVER stored. Process and discard immediately.
+// Accepts images (camera/gallery) AND PDFs.
+// Images → Groq vision model. PDFs → PDF.js text extraction → Groq text model.
+// Files are NEVER stored. Process and discard immediately.
 
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,15 +14,38 @@ import { logEvent } from '../utils/analytics';
 import InsightBubble from '../components/InsightBubble';
 import { IcChevronLeft, IcDots, IcCamera, IcFileText } from '../components/icons/Icons';
 import { speakMukund } from '../utils/tts';
+// PDF.js is loaded on-demand inside extractPdfText() — keeps the main bundle small
 
 // ── Groq client ───────────────────────────────────────────────────────────────
 const _key = import.meta.env.VITE_GROQ_API_KEY;
 const groq = _key ? new Groq({ apiKey: _key, dangerouslyAllowBrowser: true }) : null;
 
 const VISION_MODEL  = 'meta-llama/llama-4-scout-17b-16e-instruct';
-const FALLBACK_TEXT = 'यह ठीक से दिख नहीं रहा — दोबारा फ़ोटो लें, रोशनी में।';
+const TEXT_MODEL    = 'llama-3.3-70b-versatile';
+const FALLBACK_TEXT = 'यह ठीक से दिख नहीं रहा — दोबारा फ़ोटो लें या PDF भेजें।';
 
 const MUKUND_PROMPT = `You are Mukund, a 35-year-old Hindi-speaking financial helper. You speak like a smart older cousin — warm, direct, no jargon. Look at this bill, receipt, or financial document. Reply in Devanagari Hindi, 2-3 sentences max, under 80 words. Cover: 1) What is this document (bill type, from whom) 2) The key amount (total due / paid / balance) 3) One money point: is this normal, is there a saving possible, or is something wrong. End your reply with the amount on a separate line in this exact format: AMOUNT:₹[number]`;
+
+// ── PDF text extraction (PDF.js loaded on-demand) ────────────────────────────
+
+async function extractPdfText(file) {
+  // Dynamic import keeps PDF.js out of the main bundle (~420KB saving)
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const maxPages = Math.min(pdf.numPages, 3); // first 3 pages is enough for a bill
+  const textParts = [];
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    textParts.push(pageText);
+  }
+  return textParts.join('\n').trim();
+}
 
 // ── Image helpers ─────────────────────────────────────────────────────────────
 
@@ -149,18 +173,37 @@ export default function Decoder() {
 
     try {
       if (!groq) throw new Error('no groq key');
-      const b64 = await compressToBase64(file);
-      const resp = await groq.chat.completions.create({
-        model: VISION_MODEL,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text',      text: MUKUND_PROMPT },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } },
-          ],
-        }],
-        max_tokens: 220,
-      });
+
+      const isPDF = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
+      let resp;
+
+      if (isPDF) {
+        // PDF path: extract text → send to text model
+        const pdfText = await extractPdfText(file);
+        if (!pdfText) throw new Error('empty pdf');
+        resp = await groq.chat.completions.create({
+          model: TEXT_MODEL,
+          messages: [{
+            role: 'user',
+            content: `${MUKUND_PROMPT}\n\nDocument text:\n${pdfText.slice(0, 3000)}`,
+          }],
+          max_tokens: 220,
+        });
+      } else {
+        // Image path: compress → send to vision model
+        const b64 = await compressToBase64(file);
+        resp = await groq.chat.completions.create({
+          model: VISION_MODEL,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text',      text: MUKUND_PROMPT },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } },
+            ],
+          }],
+          max_tokens: 220,
+        });
+      }
       const raw = resp.choices[0]?.message?.content ?? '';
       if (!raw.trim()) throw new Error('empty response');
 
@@ -230,19 +273,19 @@ export default function Decoder() {
         <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>फ़ोटो लीजिए</span>
       </button>
 
-      {/* Gallery link — secondary */}
+      {/* Gallery / PDF link — secondary */}
       <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '13px', cursor: 'pointer' }}>
         <IcFileText size={16} color="#534AB7" />
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, color: '#534AB7' }}>गैलरी से चुनें</span>
+        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, color: '#534AB7' }}>गैलरी या PDF चुनें</span>
       </button>
 
       <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', lineHeight: 1.4 }}>
-        📱 फ़ोटो आपके फ़ोन पर ही रहती है — हम store नहीं करते।
+        📱 फ़ोटो/PDF आपके फ़ोन पर ही रहती है — हम store नहीं करते।
       </div>
 
       {/* Hidden inputs */}
       <input ref={cameraRef}  type="file" accept="image/*" capture="environment" onChange={onFileChange} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*"                       onChange={onFileChange} style={{ display: 'none' }} />
+      <input ref={galleryRef} type="file" accept="image/*,application/pdf"       onChange={onFileChange} style={{ display: 'none' }} />
     </div>
   );
 
