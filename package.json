@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "groq-sdk": "^1.2.0",
-    "pdfjs-dist": "^6.0.227",
+    "pdfjs-dist": "^3.11.174",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1"
