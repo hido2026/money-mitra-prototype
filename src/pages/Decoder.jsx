@@ -1,28 +1,163 @@
-// Decoder — "Ghar ka Munshi"  (route: /#/decoder)
-//
-// Simulated OCR flow (brief A.2 / I):
-//   snap(sim) → transparent "reading" narration → confirm amount →
-//   plain-Hindi line-items → concrete "save ₹X" (with HOW) → optional goal bridge
-//
-// Photo is NEVER stored. Simulated OCR returns ONLY {bill_type, amount}.
-// Badge visible at every step: "Simulated OCR — photo stays on your phone."
-//
-// Electricity: ₹1,562  (₹50 fixed + 180 × ₹8.40 = ₹1,512 + ₹50)
-// Recharge:    ₹800 saving  (₹300 × 12 = ₹3,600; yearly plan ₹2,800)
+// Decoder — Ghar ka Munshi  (route: /#/decoder)
+// Accepts images (camera/gallery) AND PDFs.
+// Images → Groq vision model. PDFs → PDF.js text extraction → Groq text model.
+// Files are NEVER stored. Process and discard immediately.
 
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Groq from 'groq-sdk';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import { useApp } from '../context/AppContext';
-import { computeInsight } from '../engine/insights';
-import { Events } from '../engine/instrumentation';
+import { computeInsight } from '../engine/insight';
+import { logEvent } from '../utils/analytics';
+import InsightBubble from '../components/InsightBubble';
+import { IcChevronLeft, IcDots, IcCamera, IcFileText } from '../components/icons/Icons';
 import { speakMukund } from '../utils/tts';
-import { SIMULATED_BILLS, BILL_OPTIONS } from '../engine/decoder-data';
-import { IcChevronLeft, IcDots, IcCamera, IcFileText, IcCheck, IcRepeat } from '../components/icons/Icons';
-import { VOICE_CONFIG } from '../config/app-config';
+// Worker URL registered at build time by Vite (emitted as a separate asset)
+// PDF.js library itself is still loaded on-demand via dynamic import below
+import _pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
+
+// ── Groq client ───────────────────────────────────────────────────────────────
+const _key = import.meta.env.VITE_GROQ_API_KEY;
+const groq = _key ? new Groq({ apiKey: _key, dangerouslyAllowBrowser: true }) : null;
+
+const VISION_MODEL  = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const TEXT_MODEL    = 'llama-3.3-70b-versatile';
+const FALLBACK_TEXT = 'यह ठीक से दिख नहीं रहा — दोबारा फ़ोटो लें या PDF भेजें।';
+
+const MUKUND_PROMPT = `You are Mukund, a 35-year-old Hindi-speaking financial helper. You speak like a smart older cousin — warm, direct, no jargon. Look at this bill, receipt, or financial document. Reply in Devanagari Hindi, 2-3 sentences max, under 80 words. Cover: 1) What is this document (bill type, from whom) 2) The key amount (total due / paid / balance) 3) One money point: is this normal, is there a saving possible, or is something wrong. End your reply with the amount on a separate line in this exact format: AMOUNT:₹[number]`;
+
+// ── PDF helpers (PDF.js loaded on-demand) ─────────────────────────────────────
+
+async function loadPdfJs() {
+  const pdfjsLib = await import('pdfjs-dist');
+  // Use the worker URL that Vite emitted as a static asset
+  pdfjsLib.GlobalWorkerOptions.workerSrc = _pdfWorkerUrl;
+  return pdfjsLib;
+}
+
+/** Extract selectable text from first 3 pages. Returns '' for scanned PDFs. */
+async function extractPdfText(pdf) {
+  const maxPages = Math.min(pdf.numPages, 3);
+  const parts = [];
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    parts.push(content.items.map(item => item.str).join(' '));
+  }
+  return parts.join('\n').trim();
+}
+
+/** Render first page of PDF to a 1024px-max JPEG base64 (for scanned PDFs). */
+async function renderPdfPageToBase64(pdf) {
+  const page     = await pdf.getPage(1);
+  const scale    = Math.min(1024 / page.getViewport({ scale: 1 }).width, 2);
+  const viewport = page.getViewport({ scale });
+  const canvas   = document.createElement('canvas');
+  canvas.width   = Math.round(viewport.width);
+  canvas.height  = Math.round(viewport.height);
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  return canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
+}
+
+/**
+ * Handle a PDF file: try text extraction first.
+ * If text is too short (scanned PDF), fall back to image rendering.
+ * Returns { mode: 'text'|'image', content: string }
+ */
+async function processPdf(file) {
+  const pdfjsLib   = await loadPdfJs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf        = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  const text = await extractPdfText(pdf);
+  // If we got meaningful text (>100 chars of non-whitespace), use text path
+  if (text.replace(/\s/g, '').length > 100) {
+    return { mode: 'text', content: text.slice(0, 3000) };
+  }
+  // Otherwise it's a scanned/image PDF — render first page as image
+  const b64 = await renderPdfPageToBase64(pdf);
+  return { mode: 'image', content: b64 };
+}
+
+// ── Image helpers ─────────────────────────────────────────────────────────────
+
+async function compressToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1024;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width >= height) { height = Math.round((height / width) * MAX); width = MAX; }
+        else                 { width  = Math.round((width  / height) * MAX); height = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', 0.82);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function parseAmount(text) {
+  const match = text.match(/AMOUNT:₹([\d,]+)/);
+  if (!match) return null;
+  return parseInt(match[1].replace(/,/g, ''), 10);
+}
+
+function cleanText(text) {
+  // Strip the AMOUNT line before displaying
+  return text.replace(/\nAMOUNT:₹[\d,]+\s*$/, '').trim();
+}
+
+/**
+ * Infer bill_type from Mukund's Devanagari/English response text.
+ * Used to tag the entry for cross-decode comparison.
+ */
+function parseBillType(text) {
+  if (!text) return 'other';
+  const t = text.toLowerCase();
+  if (t.includes('बिजली') || t.includes('electricity') || t.includes('electric') || t.includes('power') || t.includes('bijli')) {
+    return 'बिजली बिल';
+  }
+  if (t.includes('रिचार्ज') || t.includes('recharge') || t.includes('mobile') || t.includes('jio') || t.includes('airtel') || t.includes('vi ') || t.includes('bsnl')) {
+    return 'मोबाइल रिचार्ज';
+  }
+  return 'other';
+}
+
+// ── Loading dots (needs its own component to use hooks safely) ────────────────
+function ReadingStep() {
+  const [dots, setDots] = useState('.');
+  useEffect(() => {
+    const t = setInterval(() => setDots(d => d.length >= 3 ? '.' : d + '.'), 500);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div style={{ padding: '48px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+      <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <IcFileText size={32} color="#534AB7" />
+      </div>
+      <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '17px', fontWeight: 600, color: '#2C2C2A' }}>
+        मुकुंद पढ़ रहा है{dots}
+      </div>
+    </div>
+  );
+}
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
+
 function TopBar({ onBack }) {
   return (
     <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 18px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', flexShrink: 0 }}>
@@ -31,8 +166,8 @@ function TopBar({ onBack }) {
       </button>
       <PortraitAvatar size={40} online ringed />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#2C2C2A' }}>{VOICE_CONFIG.persona_name}</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A', marginTop: '1px' }}>Ghar ka Munshi · online</div>
+        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#2C2C2A' }}>Mukund</div>
+        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A', marginTop: '1px' }}>Money Mitra · online</div>
       </div>
       <button style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
         <IcDots size={22} color="#2C2C2A" />
@@ -41,285 +176,209 @@ function TopBar({ onBack }) {
   );
 }
 
-function Badge() {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '6px',
-      background: '#F0F7FF', border: '1px solid #BEE0FF',
-      borderRadius: '8px', padding: '7px 12px',
-      fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#2563EB', lineHeight: 1.4,
-    }}>
-      🔒 Simulated OCR — photo stays on your phone, only the amount is kept.
-    </div>
-  );
-}
-
 function MukundBubble({ text, bg = '#EEEDFE' }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '90%' }}>
       <div style={{ marginTop: '2px' }}><PortraitAvatar size={28} online={false} ringed={false} /></div>
-      <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.5, color: '#2C2C2A' }}>{text}</div>
-    </div>
-  );
-}
-
-function BigBtn({ label, accent, onClick, outline = false }) {
-  return (
-    <button onClick={onClick} style={{ flex: 1, padding: '14px 8px', borderRadius: '12px', border: outline ? `1.5px solid ${accent}` : 'none', background: outline ? '#FFFFFF' : accent, color: outline ? accent : '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
-      {label}
-    </button>
-  );
-}
-
-// ── Reading animation component ────────────────────────────────────────────────
-function ReadingStep({ steps }) {
-  const [shown, setShown] = useState(0);
-  const [dots, setDots]   = useState('.');
-
-  useEffect(() => {
-    const t = setInterval(() => setDots(d => d.length >= 3 ? '.' : d + '.'), 450);
-    return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    if (shown >= steps.length) return;
-    const t = setTimeout(() => setShown(s => s + 1), 900);
-    return () => clearTimeout(t);
-  }, [shown, steps.length]);
-
-  return (
-    <div style={{ padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-      <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <IcFileText size={32} color="#534AB7" />
-      </div>
-      <div style={{ textAlign: 'center', minHeight: '80px' }}>
-        {steps.slice(0, shown).map((s, i) => (
-          <div key={i} style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: i === shown - 1 ? '17px' : '14px', fontWeight: i === shown - 1 ? 600 : 400, color: i === shown - 1 ? '#2C2C2A' : '#888780', marginBottom: '6px', transition: 'all 0.3s' }}>{s}</div>
-        ))}
-        {shown < steps.length && <span style={{ color: '#888780' }}>{dots}</span>}
-      </div>
+      <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', whiteSpace: 'pre-wrap' }}>{text}</div>
     </div>
   );
 }
 
 // ── Main Decoder ───────────────────────────────────────────────────────────────
+
 export default function Decoder() {
   const nav = useNavigate();
   const { state, dispatch } = useApp();
-  const fileRef = useRef(null);
 
-  const [step, setStep]       = useState('home');   // home | reading | confirm | explain | money_point | bridge
-  const [bill, setBill]       = useState(null);
-  const [insight, setInsight] = useState(null);
-  const [t0, setT0]           = useState(null);
+  const [step, setStep]         = useState('home');   // home | reading | result | error
+  const [result, setResult]     = useState('');       // cleaned Mukund text
+  const [parsedAmt, setParsedAmt] = useState(null);
+  const [insight, setInsight]   = useState(null);
 
-  const pickBill = (id) => {
-    const b = SIMULATED_BILLS[id];
-    if (!b) return;
-    setBill(b);
-    setT0(Date.now());
-    Events.decoderStarted({ bill_type: id, input_modality: 'tap' });
+  // Hidden file inputs — one for camera, one for gallery
+  const cameraRef  = useRef(null);
+  const galleryRef = useRef(null);
+
+  const handleFile = async (file) => {
+    if (!file) return;
     setStep('reading');
-  };
+    logEvent('decoder_used');
 
-  // Auto-advance reading → confirm after narration completes
-  useEffect(() => {
-    if (step !== 'reading' || !bill) return;
-    const delay = bill.reading_steps.length * 900 + 800;
-    const t = setTimeout(() => setStep('confirm'), delay);
-    return () => clearTimeout(t);
-  }, [step, bill]);
+    try {
+      if (!groq) throw new Error('no groq key');
 
-  const onConfirmYes = () => {
-    Events.decoderExplainPlayed({ bill_type: bill.id });
-    setStep('explain');
-    speakMukund(bill.line_items.map(l => `${l.label}: ₹${l.amount.toLocaleString('en-IN')}. ${l.note}`).join(' '));
-  };
+      const isPDF = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
+      let resp;
 
-  const onConfirmNo = () => {
-    // Manual amount entry — go back to home
-    setStep('home');
-  };
+      if (isPDF) {
+        // Auto-detect: text-based PDF → text model / scanned PDF → vision model
+        const { mode, content } = await processPdf(file);
+        if (mode === 'text') {
+          resp = await groq.chat.completions.create({
+            model: TEXT_MODEL,
+            messages: [{ role: 'user', content: `${MUKUND_PROMPT}\n\nDocument text:\n${content}` }],
+            max_tokens: 220,
+          });
+        } else {
+          // Scanned PDF rendered as image → same path as a regular photo
+          resp = await groq.chat.completions.create({
+            model: VISION_MODEL,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text',      text: MUKUND_PROMPT },
+                { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${content}` } },
+              ],
+            }],
+            max_tokens: 220,
+          });
+        }
+      } else {
+        // Regular image → vision model
+        const b64 = await compressToBase64(file);
+        resp = await groq.chat.completions.create({
+          model: VISION_MODEL,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text',      text: MUKUND_PROMPT },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } },
+            ],
+          }],
+          max_tokens: 220,
+        });
+      }
+      const raw = resp.choices[0]?.message?.content ?? '';
+      if (!raw.trim()) throw new Error('empty response');
 
-  const onExplainNext = () => {
-    Events.decoderMoneyPoint({ bill_type: bill.id, savings: bill.money_point.savings });
-    speakMukund(bill.money_point.text);
-    setStep('money_point');
-  };
+      const amt = parseAmount(raw);
+      const cleanedText = cleanText(raw);
+      setResult(cleanedText);
+      setParsedAmt(amt);
+      speakMukund(cleanedText); // read Mukund's bill explanation aloud
 
-  const onReplay = () => {
-    Events.decoderReplay({ bill_type: bill.id, segment: 'explain' });
-    speakMukund(bill.line_items.map(l => `${l.label}: ₹${l.amount.toLocaleString('en-IN')}. ${l.note}`).join(' '));
-  };
+      // Push decode to AppContext for insight engine
+      if (amt) {
+        dispatch({ type: 'ADD_DECODE', payload: {
+          bill_type:         'unknown',
+          labelHi:           'रसीद',
+          amount:             amt,
+          recurring:          false,
+          saveable:           0,
+          monthly_saving:     0,
+          annual_plan_cost:   null,
+        }});
+      }
 
-  const onBahiAdd = () => {
-    // Push decode to AppContext and check for insight
-    dispatch({ type: 'ADD_DECODE', payload: { bill_type: bill.id, amount: bill.amount } });
-    const payload = computeInsight({ ...state, sessionDecodes: [...state.sessionDecodes, { bill_type: bill.id, amount: bill.amount }] }, null);
-    if (payload && !state.insightFired) {
-      setInsight(payload);
-      dispatch({ type: 'MARK_INSIGHT_FIRED' });
-      Events.insightShown({ type: payload.type, savings_amount: payload.savings_amount, had_goal: !!state.goals.length });
-      speakMukund(payload.text);
+      // Insight seam — check after decode
+      const payload = computeInsight(state);
+      if (payload) {
+        setInsight(payload);
+        dispatch({ type: 'MARK_INSIGHT_FIRED' });
+        logEvent('insight_shown');
+      }
+
+      setStep('result');
+    } catch {
+      setResult(FALLBACK_TEXT);
+      setParsedAmt(null);
+      setStep('error');
     }
-    setStep('bridge');
   };
+
+  const onFileChange = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
 
   const goToPassbook = () => {
-    nav('/passbook', { state: { decoderAmount: bill.amount, decoderBillType: bill.id } });
+    const billType = parseBillType(result);
+    nav('/passbook', { state: {
+      decoderAmount:   parsedAmt,
+      decoderBillType: billType,
+    }});
   };
 
-  // ── Step: home ──────────────────────────────────────────────────────────────
+  const handleInsightAction = (action) => {
+    if (action === 'add_to_bahi') goToPassbook();
+    if (action === 'set_goal')    nav('/passbook', { state: { openGoal: true } });
+  };
+
+  // ── Step: home ───────────────────────────────────────────────────────────────
   const renderHome = () => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div style={{ padding: '4px 0' }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#534AB7' }}>GHAR KA MUNSHI</div>
+      <div style={{ padding: '4px 4px 0' }}>
+        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#534AB7' }}>SAMJHO</div>
         <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#5F5E5A', marginTop: '1px' }}>कागज़ समझें</div>
       </div>
 
-      <MukundBubble text="जो समझ न आये — बिल, रसीद — दिखाइए। पढ़ कर समझाता हूँ।" />
+      <MukundBubble text="जो समझ न आये — बिल, रसीद, मैसेज — फ़ोटो या PDF दिखाइए। पढ़ कर समझाता हूँ।" time="अभी" />
 
-      <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '10.5px', fontWeight: 600, color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
-        कौन सा बिल है?
-      </div>
+      {/* Gallery / PDF — PRIMARY (works on all devices) */}
+      <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#534AB7', border: 'none', borderRadius: '14px', padding: '16px', cursor: 'pointer' }}>
+        <IcFileText size={22} color="#FFFFFF" />
+        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>फ़ाइल या PDF चुनें</span>
+      </button>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {BILL_OPTIONS.map(opt => (
-          <button key={opt.id} onClick={() => pickBill(opt.id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#FFFFFF', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '12px 14px', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-            <span style={{ fontSize: '22px', flexShrink: 0 }}>{opt.icon}</span>
-            <div>
-              <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 600, color: '#2C2C2A' }}>{opt.label}</div>
-              <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', marginTop: '2px' }}>{opt.sub}</div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Camera stub */}
-      <button onClick={() => fileRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '13px', cursor: 'pointer' }}>
+      {/* Camera — secondary (mobile only, use capture) */}
+      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '13px', cursor: 'pointer' }}>
         <IcCamera size={16} color="#534AB7" />
         <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, color: '#534AB7' }}>📱 फ़ोटो लीजिए (मोबाइल)</span>
       </button>
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
-        onChange={() => pickBill('electricity')} /* sim: camera → default to electricity */ />
 
-      <Badge />
+      <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', lineHeight: 1.4 }}>
+        📱 फ़ोटो/PDF आपके फ़ोन पर ही रहती है — हम store नहीं करते।
+      </div>
+
+      {/* Hidden inputs */}
+      <input ref={cameraRef}  type="file" accept="image/*" capture="environment" onChange={onFileChange} style={{ display: 'none' }} />
+      <input ref={galleryRef} type="file" accept="image/*,.pdf,application/pdf"   onChange={onFileChange} style={{ display: 'none' }} />
     </div>
   );
 
-  // ── Step: reading ───────────────────────────────────────────────────────────
-  const renderReading = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <ReadingStep steps={bill.reading_steps} />
-      <div style={{ padding: '0 16px 16px' }}><Badge /></div>
-    </div>
-  );
+  // renderReading is now <ReadingStep /> — extracted above to obey rules of hooks
 
-  // ── Step: confirm ───────────────────────────────────────────────────────────
-  const renderConfirm = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <MukundBubble text={`यह ${bill.labelHi} है — ₹${bill.amount.toLocaleString('en-IN')} का। सही है?`} />
+  // ── Step: result ──────────────────────────────────────────────────────────────
+  const renderResult = (isError = false) => (
+    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <MukundBubble text={result || FALLBACK_TEXT} bg={isError ? '#FAECE7' : '#EEEDFE'} />
 
-      <div style={{ background: '#FAFAFA', borderRadius: '16px', padding: '24px', textAlign: 'center', border: '1px solid #EEEDFE' }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{bill.labelHi}</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '44px', fontWeight: 700, color: '#2C2C2A', marginTop: '8px', lineHeight: 1 }}>₹{bill.amount.toLocaleString('en-IN')}</div>
+      {/* Privacy badge */}
+      <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780' }}>
+        📱 फ़ोटो आपके फ़ोन पर ही रहती है
       </div>
 
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="हाँ, सही है" accent="#3B6D11" onClick={onConfirmYes} />
-        <BigBtn label="नहीं — बदलें" accent="#D85A30" onClick={onConfirmNo} outline />
-      </div>
-      <Badge />
-    </div>
-  );
-
-  // ── Step: explain ───────────────────────────────────────────────────────────
-  const renderExplain = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <MukundBubble text="देखो — यह बिल इस तरह बना है:" />
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {bill.line_items.map((line, i) => (
-          <div key={i} style={{ background: '#FFFFFF', border: '1px solid #F0EFF8', borderRadius: '12px', padding: '12px 14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 600, color: '#2C2C2A', flex: 1, marginRight: '8px' }}>{line.label}</div>
-              <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '14px', fontWeight: 700, color: '#534AB7', flexShrink: 0 }}>₹{line.amount.toLocaleString('en-IN')}</div>
-            </div>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '11.5px', color: '#5F5E5A', marginTop: '4px', lineHeight: 1.4 }}>{line.note}</div>
-          </div>
-        ))}
-        <div style={{ background: '#EEEDFE', borderRadius: '12px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 700, color: '#534AB7' }}>कुल</div>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#534AB7' }}>₹{bill.amount.toLocaleString('en-IN')}</div>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button onClick={onReplay} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#534AB7' }}>
-          <IcRepeat size={14} color="#534AB7" /> फिर सुनें
-        </button>
-        <button onClick={onExplainNext} style={{ flex: 1, padding: '11px', borderRadius: '10px', border: 'none', background: '#534AB7', color: '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
-          आगे → पैसे बचाएं
-        </button>
-      </div>
-    </div>
-  );
-
-  // ── Step: money_point ────────────────────────────────────────────────────────
-  const renderMoneyPoint = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <MukundBubble text={bill.money_point.text} bg="#EAF3DE" />
-
-      {bill.money_point.savings > 0 && (
-        <div style={{ background: '#EAF3DE', border: '1.5px solid #C5E0A8', borderRadius: '14px', padding: '16px' }}>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#3B6D11', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>बच सकते हैं</div>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '32px', fontWeight: 700, color: '#3B6D11', lineHeight: 1 }}>₹{bill.money_point.savings.toLocaleString('en-IN')}</div>
-          <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', marginTop: '6px' }}>{bill.money_point.how}</div>
-        </div>
+      {/* Insight bubble */}
+      {insight && (
+        <InsightBubble payload={insight} onAction={handleInsightAction} onDismiss={() => setInsight(null)} />
       )}
 
-      {/* decoderSelfReport fires here via the onBahiAdd handler */}
-      <div style={{ display: 'flex', gap: '10px' }}>
-        {bill.money_point.savings > 0 && (
-          <BigBtn label="बही में जोड़ें →" accent="#3B6D11" onClick={onBahiAdd} />
-        )}
-        <BigBtn label="ठीक है, शुक्रिया" accent="#534AB7" onClick={() => nav('/')} outline={bill.money_point.savings > 0} />
-      </div>
-    </div>
-  );
-
-  // ── Step: bridge ─────────────────────────────────────────────────────────────
-  const renderBridge = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      {insight ? (
-        <MukundBubble text={insight.text} bg="#FFFBEA" />
-      ) : (
-        <MukundBubble text={`बही में ₹${bill.amount.toLocaleString('en-IN')} जोड़ दें?`} bg="#EEEDFE" />
+      {/* Bridge button */}
+      {!isError && parsedAmt && (
+        <button onClick={goToPassbook} style={{ width: '100%', padding: '14px', borderRadius: '13px', border: 'none', background: '#3B6D11', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
+          बही में डालें — {fmt(parsedAmt)}
+        </button>
       )}
 
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="बही में जाएं →" accent="#3B6D11" onClick={goToPassbook} />
-        <BigBtn label="घर" accent="#534AB7" onClick={() => nav('/')} outline />
-      </div>
-
-      <button onClick={() => { setBill(null); setInsight(null); setStep('home'); }} style={{ background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '12px', cursor: 'pointer', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#534AB7' }}>
-        दोबारा पढ़ें
+      {/* Take another photo */}
+      <button onClick={() => { setStep('home'); setResult(''); setParsedAmt(null); setInsight(null); }} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', color: '#534AB7', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
+        दोबारा फ़ोटो लें
       </button>
     </div>
   );
 
+  function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto', overflow: 'hidden' }}>
-      <TopBar onBack={() => step === 'home' ? nav('/') : setStep('home')} />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto' }}>
+      <TopBar onBack={() => step !== 'reading' ? nav('/') : undefined} />
+
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {step === 'home'        && renderHome()}
-        {step === 'reading'     && bill && renderReading()}
-        {step === 'confirm'     && bill && renderConfirm()}
-        {step === 'explain'     && bill && renderExplain()}
-        {step === 'money_point' && bill && renderMoneyPoint()}
-        {step === 'bridge'      && bill && renderBridge()}
+        {step === 'home'    && renderHome()}
+        {step === 'reading' && <ReadingStep />}
+        {step === 'result'  && renderResult(false)}
+        {step === 'error'   && renderResult(true)}
       </div>
-      <BottomInputBar compact voiceStatus="idle" onSubmit={() => {}} onSpeak={() => {}} onPlus={() => {}} />
+
+      <BottomInputBar compact onSubmit={() => {}} onSpeak={() => {}} onPlus={() => {}} />
     </div>
   );
 }
