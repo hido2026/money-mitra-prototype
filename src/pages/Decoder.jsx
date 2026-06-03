@@ -328,7 +328,7 @@ export default function Decoder() {
 
       {/* Hidden inputs */}
       <input ref={cameraRef}  type="file" accept="image/*" capture="environment" onChange={onFileChange} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*,application/pdf"       onChange={onFileChange} style={{ display: 'none' }} />
+      <input ref={galleryRef} type="file" accept="image/*,.pdf,application/pdf"   onChange={onFileChange} style={{ display: 'none' }} />
     </div>
   );
 
