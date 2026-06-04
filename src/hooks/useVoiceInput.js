@@ -159,6 +159,7 @@ export function useVoiceInput({ onResult }) {
       setTranscript('');
 
       recognition.onresult = (e) => {
+        clearTimeout(timerRef.current);
         const tx = e.results[0]?.[0]?.transcript?.trim() || '';
         setTranscript(tx);
         if (tx) onResult(tx);
@@ -186,6 +187,12 @@ export function useVoiceInput({ onResult }) {
 
       try {
         recognition.start();
+        // Auto-stop after 5 s — don't wait for browser's slow silence detection
+        timerRef.current = setTimeout(() => {
+          if (srRef.current === recognition) {
+            try { recognition.stop(); } catch {}
+          }
+        }, 5000);
       } catch (err) {
         console.error('[speech start]', err);
         setStatus('error');

@@ -42,8 +42,8 @@ const BottomInputBar = forwardRef(function BottomInputBar(
     '#534AB7';
 
   const speakLabel =
-    voiceStatus === 'recording'  ? '🛑 रुकें' :
-    voiceStatus === 'processing' ? '⏳ सुना...' :
+    voiceStatus === 'recording'  ? '🛑 बंद करें' :   // tap to stop early
+    voiceStatus === 'processing' ? '⏳ समझ रहा...' :
     voiceStatus === 'done'       ? '✓ हो गया' :
     voiceStatus === 'no_mic'     ? '⚠️ इजाज़त दें' :
     voiceStatus === 'error'      ? '⚠️ फिर कोशिश' :
