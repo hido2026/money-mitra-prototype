@@ -314,6 +314,14 @@ Respond in Devanagari Hindi script. Be the cousin, not the chatbot.`;
       },
     });
 
+  // Show recording toast whenever voice status changes — unmissable feedback
+  useEffect(() => {
+    if (voiceStatus === 'recording') showToast('🎤 सुन रहा हूँ...');
+    if (voiceStatus === 'no_mic')    showToast('⚠️ माइक्रोफ़ोन की इजाज़त दें');
+    if (voiceStatus === 'error')     showToast('आवाज़ नहीं सुनी — फिर कोशिश करें');
+    if (voiceStatus === 'done' && voiceTranscript) showToast(`✓ "${voiceTranscript}"`);
+  }, [voiceStatus]);
+
   // ── Goal sheet helpers ───────────────────────────────────────────────────────
   const openAddGoal = (prefillTarget = null) => {
     setEditingGoal(null);

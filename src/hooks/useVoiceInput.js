@@ -156,9 +156,15 @@ export function useVoiceInput({ onResult }) {
       };
 
       recognition.onerror = (e) => {
-        console.error('[speech]', e.error);
+        console.error('[speech error]', e.error);
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
           setStatus('no_mic');
+          // Show browser-level alert so user knows exactly what to do
+          alert('माइक्रोफ़ोन की इजाज़त चाहिए।\n\nChrome: address bar → lock icon → Microphone → Allow\nSafari: Settings → Safari → Microphone → Allow');
+        } else if (e.error === 'network') {
+          setStatus('error');
+          // Network error = browser can't reach speech servers
+          console.warn('[speech] network error — check internet connection');
         } else {
           setStatus('error');
         }
@@ -166,14 +172,16 @@ export function useVoiceInput({ onResult }) {
       };
 
       recognition.onend = () => {
-        // If still 'recording' after end (no result, no error), go idle
         setStatus(s => s === 'recording' ? 'idle' : s);
       };
 
       try {
+        // Abort any previous instance before starting
+        try { srRef.current?.abort(); } catch {}
         recognition.start();
+        console.log('[speech] started, lang=hi-IN');
       } catch (err) {
-        console.error('[speech start]', err);
+        console.error('[speech start error]', err);
         setStatus('error');
         setTimeout(() => setStatus('idle'), 2500);
       }
