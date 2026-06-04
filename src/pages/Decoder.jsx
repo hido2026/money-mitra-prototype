@@ -9,7 +9,7 @@ import Groq from 'groq-sdk';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import { useApp } from '../context/AppContext';
-import { computeInsight } from '../engine/insight';
+import { computeInsight, computeConnectDotsInsight } from '../engine/insight';
 import { logEvent } from '../utils/analytics';
 import InsightBubble from '../components/InsightBubble';
 import { IcChevronLeft, IcDots, IcCamera, IcFileText } from '../components/icons/Icons';
@@ -191,10 +191,13 @@ export default function Decoder() {
   const nav = useNavigate();
   const { state, dispatch } = useApp();
 
-  const [step, setStep]         = useState('home');   // home | reading | result | error
-  const [result, setResult]     = useState('');       // cleaned Mukund text
+  const [step, setStep]           = useState('home');   // home | reading | result | error
+  const [result, setResult]       = useState('');       // cleaned Mukund text
   const [parsedAmt, setParsedAmt] = useState(null);
-  const [insight, setInsight]   = useState(null);
+  const [insight, setInsight]     = useState(null);
+  // Connect-dots insight: ties decoded bill → last same-category entry → active goal.
+  // Shown as a plain Mukund bubble above "बही में डालें"; suppresses general InsightBubble.
+  const [connectDots, setConnectDots] = useState(null);
 
   // Hidden file inputs — one for camera, one for gallery
   const cameraRef  = useRef(null);
@@ -258,25 +261,46 @@ export default function Decoder() {
       setParsedAmt(amt);
       speakMukund(cleanedText); // read Mukund's bill explanation aloud
 
-      // Push decode to AppContext for insight engine
+      // Determine bill type from Mukund's response text (Hindi category label)
+      const detectedBillType = parseBillType(cleanedText);
+
+      // Push decode to AppContext for insight engine (tagged with detected category)
       if (amt) {
         dispatch({ type: 'ADD_DECODE', payload: {
-          bill_type:         'unknown',
-          labelHi:           'रसीद',
+          bill_type:         detectedBillType,
+          labelHi:           detectedBillType !== 'other' ? detectedBillType : 'रसीद',
           amount:             amt,
-          recurring:          false,
+          recurring:          detectedBillType !== 'other',
           saveable:           0,
           monthly_saving:     0,
           annual_plan_cost:   null,
         }});
       }
 
-      // Insight seam — check after decode
-      const payload = computeInsight(state);
-      if (payload) {
-        setInsight(payload);
-        dispatch({ type: 'MARK_INSIGHT_FIRED' });
-        logEvent('insight_shown');
+      // ── Priority 1: Connect-dots insight (bill vs last entry → goal) ──────────
+      // Uses entries already in state (not the dispatch above — that's sessionDecodes).
+      if (amt && detectedBillType !== 'other') {
+        const cd = computeConnectDotsInsight(
+          detectedBillType,
+          amt,
+          state.entries,
+          state.goals,
+          state.balance,
+        );
+        if (cd) {
+          setConnectDots(cd);
+          logEvent('connect_dots_insight_shown', { bill_type: detectedBillType });
+        }
+      }
+
+      // ── General insight seam (T0–T3 engine) — suppressed if connect-dots fired ─
+      if (!connectDots) {
+        const payload = computeInsight(state);
+        if (payload) {
+          setInsight(payload);
+          dispatch({ type: 'MARK_INSIGHT_FIRED' });
+          logEvent('insight_shown', { tier: payload.tier });
+        }
       }
 
       setStep('result');
@@ -346,9 +370,14 @@ export default function Decoder() {
         📱 फ़ोटो आपके फ़ोन पर ही रहती है
       </div>
 
-      {/* Insight bubble */}
-      {insight && (
+      {/* General insight bubble (T0–T3) — shown only when connect-dots didn't fire */}
+      {insight && !connectDots && (
         <InsightBubble payload={insight} onAction={handleInsightAction} onDismiss={() => setInsight(null)} />
+      )}
+
+      {/* Connect-dots insight — shown above "बही में डालें"; observation only, no CTA */}
+      {connectDots && (
+        <MukundBubble text={`💡 ${connectDots.text}`} bg="#FFFBEA" />
       )}
 
       {/* Bridge button */}
@@ -359,7 +388,7 @@ export default function Decoder() {
       )}
 
       {/* Take another photo */}
-      <button onClick={() => { setStep('home'); setResult(''); setParsedAmt(null); setInsight(null); }} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', color: '#534AB7', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
+      <button onClick={() => { setStep('home'); setResult(''); setParsedAmt(null); setInsight(null); setConnectDots(null); }} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', color: '#534AB7', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
         दोबारा फ़ोटो लें
       </button>
     </div>

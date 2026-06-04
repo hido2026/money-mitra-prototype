@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import PortraitAvatar from '../components/PortraitAvatar';
 import DevPanel from '../components/DevPanel';
 import { useApp } from '../context/AppContext';
-import { Events } from '../engine/instrumentation';
+import { Events, logEvent } from '../engine/instrumentation';
 import { computeMorningSummary } from '../engine/summary';
 import { computeInsight } from '../engine/insights';
 import { IcBookOpen, IcCamera } from '../components/icons/Icons';
@@ -27,7 +27,7 @@ export default function Home() {
 
   const summary = useMemo(() => computeMorningSummary(entries, goals, balance), [entries, goals, balance]);
 
-  // Pattern insight on home
+  // Pattern insight on home — one per session, fires distinct analytics event per type
   const [pattern, setPattern] = useState(null);
   useEffect(() => {
     if (sessionStorage.getItem('pattern_shown')) return;
@@ -35,6 +35,14 @@ export default function Home() {
     if (result) {
       setPattern(result);
       sessionStorage.setItem('pattern_shown', result.type);
+      // Distinct events per insight type — ties to North Star: Trusted Money Actions
+      if (result.type === 'goal_pacing') {
+        logEvent('goal_pacing_insight_shown', { flow: 'home', had_goal: true });
+      } else if (result.type === 'biggest_mover') {
+        logEvent('spending_pattern_insight_shown', { flow: 'home', had_goal: result.had_goal });
+      } else {
+        logEvent('insight_shown', { flow: 'home', insight_type: result.type, had_goal: result.had_goal });
+      }
     }
   }, [entries, goals]);
 

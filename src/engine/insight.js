@@ -100,6 +100,96 @@ function tryT3(decode, surplus, weeks, goal) {
   return { tier: 3, text, action: 'add_to_bahi' };
 }
 
+// ── Connect-dots: decoder bill vs last same-category entry → goal ─────────────
+
+/**
+ * computeConnectDotsInsight
+ * Ties a just-decoded bill to the last known entry of the same category,
+ * then expresses the delta as a fraction of the top active goal's remaining amount.
+ *
+ * Pure arithmetic — ZERO API calls. Every number is code-computed.
+ *
+ * Compliance: observation only — describes what IS, never what to DO.
+ *   OK:  "यह बिजली बिल पिछली बार से ₹300 ज़्यादा है। इतने में दिवाली का आधा लक्ष्य पूरा हो जाता।"
+ *   NOT: "आपको ज़्यादा बचाना चाहिए।"
+ *
+ * @param {string} billType  Hindi label, e.g. 'बिजली बिल', 'मोबाइल रिचार्ज'
+ * @param {number} newAmount Amount from the just-decoded bill
+ * @param {Array}  entries   AppContext entries[]
+ * @param {Array}  goals     AppContext goals[] — [{id,name,target,priority}]
+ * @param {number} balance   Current running balance
+ * @returns {{ text: string } | null}
+ */
+export function computeConnectDotsInsight(billType, newAmount, entries, goals, balance) {
+  if (!billType || billType === 'other' || !newAmount || newAmount <= 0) return null;
+  if (!entries?.length) return null;
+
+  // Find the most recent previous entry of the same bill category
+  // Entries can be tagged with bill_type (decoder-sourced) or just category (manual)
+  const prev = [...entries]
+    .filter(e =>
+      e.type === 'out' &&
+      e.timestamp &&
+      ((e.bill_type && e.bill_type === billType) || e.category === billType)
+    )
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
+  if (!prev || prev.amount == null || prev.amount <= 0) return null;
+
+  const delta    = newAmount - prev.amount;
+  const absDelta = Math.abs(Math.round(delta));
+
+  // Suppress if delta is trivially small (< ₹50) — no meaningful signal
+  if (absDelta < 50) return null;
+
+  const r = n => Math.abs(Math.round(n)).toLocaleString('en-IN');
+  const direction = delta > 0 ? 'ज़्यादा' : 'कम';
+
+  // Try to connect to the top active goal (highest priority with remaining > 0)
+  const topGoal = goals?.length
+    ? [...goals]
+        .sort((a, b) => (a.priority ?? 9) - (b.priority ?? 9))
+        .find(g => Math.max(0, g.target - Math.max(0, balance)) > 0)
+    : null;
+
+  if (topGoal) {
+    const remaining = Math.max(0, topGoal.target - Math.max(0, balance));
+
+    if (remaining > 0) {
+      // Express absDelta as a natural fraction of remaining
+      const ratio = absDelta / remaining;
+
+      let fractionText = null;
+      if (ratio >= 0.90) fractionText = 'लगभग पूरा';
+      else if (ratio >= 0.45) fractionText = 'आधा';
+      else if (ratio >= 0.28) fractionText = 'एक-तिहाई';
+      else if (ratio >= 0.18) fractionText = 'एक-चौथाई';
+
+      if (fractionText) {
+        return {
+          text: `यह ${billType} पिछली बार से ₹${r(absDelta)} ${direction} है। इतने में ${topGoal.name} का ${fractionText} लक्ष्य पूरा हो जाता।`,
+        };
+      }
+
+      // Fraction too small for a clean expression — show remaining distance instead
+      if (absDelta >= 100) {
+        return {
+          text: `यह ${billType} पिछली बार से ₹${r(absDelta)} ${direction} है। ${topGoal.name} अभी ₹${r(remaining)} दूर है।`,
+        };
+      }
+    }
+  }
+
+  // No active goal — just the bill-to-bill comparison
+  if (absDelta >= 100) {
+    return {
+      text: `यह ${billType} पिछली बार से ₹${r(absDelta)} ${direction} है।`,
+    };
+  }
+
+  return null;
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 /**

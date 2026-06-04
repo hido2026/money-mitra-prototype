@@ -1,25 +1,26 @@
-// insights.js — "where to save money" engine.
+// insights.js — home-screen spending-pattern + goal-pacing engine.
 //
 // Computes from the user's OWN in-memory data:
 //   entries      [{type:in|out, amount, category, timestamp}]
 //   sessionDecodes [{bill_type, amount}]
-//   goals        [{name, target, priority}]
+//   goals        [{id, name, target, priority}]
 //   balance      number
 //
 // RULES:
 //   - Every number arithmetically verified — never hardcoded totals.
-//   - "Save ₹X" always shows HOW (public-pricing or behaviour-change).
+//   - Observations only — no prescriptive language ("save more", "you should").
 //   - Never recommend a specific product or brand.
 //   - If not enough data → return null (better silent than wrong).
 //   - Max one insight per session (caller enforces).
 //   - Fire AFTER an input (contextual) — never on open.
 //
-// Five types (priority order — first match returned):
-//   1. RECURRING_SAVING  — strongest: detect recurring expense, show public-price saving
+// Six types (priority order — first match returned):
+//   1. RECURRING_SAVING  — detect recurring expense, show public-price comparison
 //   2. GOAL_CONNECTION   — tie a saving opportunity to an active goal
-//   3. LEAK              — category spike vs its own recent norm
-//   4. TOP_SPEND         — largest category this week
-//   5. INCOME_MOMENT     — on large income, gentle save prompt
+//   3. GOAL_PACING       — days-to-goal from recent daily savings rate (observation only)
+//   4. BIGGEST_MOVER     — single biggest week-over-week category delta (>₹100 AND >20%)
+//   5. TOP_SPEND         — largest category this week (with week-over-week comparison)
+//   6. INCOME_MOMENT     — on large income, contextual note about active goal
 
 const r = n => Math.abs(Math.round(n)).toLocaleString('en-IN');
 
@@ -114,25 +115,72 @@ function goalConnection(sessionDecodes, goals, balance) {
   return null;
 }
 
-// ── 3. LEAK / SPIKE ───────────────────────────────────────────────────────────
-function leakDetect(entries) {
-  const now = Date.now();
+// ── 3. GOAL PACING ────────────────────────────────────────────────────────────
+// Observation: "दिवाली का लक्ष्य अभी ₹200 दूर — इसी रफ़्तार से करीब 5 दिन और लगेंगे।"
+// Never prescriptive. Suppressed if days < 1 or > 365 or rate ≤ 0.
+function goalPacing(entries, goals, balance) {
+  if (!goals?.length) return null;
+
+  // Top-priority goal with remaining amount
+  const sorted    = [...goals].sort((a, b) => (a.priority ?? 9) - (b.priority ?? 9));
+  const topGoal   = sorted.find(g => Math.max(0, g.target - Math.max(0, balance)) > 0);
+  if (!topGoal) return null;
+
+  const remaining = Math.max(0, topGoal.target - Math.max(0, balance));
+  if (remaining <= 0) return null;
+
+  // Daily savings rate from last 7 days
+  const now      = Date.now();
+  const last7    = entries.filter(e => e.timestamp && inRange(e, now - WEEK, now));
+  if (last7.length < 2) return null; // not enough data to project honestly
+
+  const totalIn  = last7.filter(e => e.type === 'in' ).reduce((s, e) => s + (e.amount ?? 0), 0);
+  const totalOut = last7.filter(e => e.type === 'out').reduce((s, e) => s + (e.amount ?? 0), 0);
+  const dailyRate = (totalIn - totalOut) / 7;
+
+  if (dailyRate <= 0) return null;
+
+  const days = Math.ceil(remaining / dailyRate);
+  if (days < 1 || days > 365) return null; // suppress if implausible
+
+  return {
+    type: 'goal_pacing',
+    text: `${topGoal.name} का लक्ष्य अभी ₹${r(remaining)} दूर — इसी रफ़्तार से करीब ${days} दिन और लगेंगे।`,
+    savings_amount: null,
+    had_goal: true,
+  };
+}
+
+// ── 4. BIGGEST MOVER ──────────────────────────────────────────────────────────
+// Finds the single category with the LARGEST week-over-week spend increase.
+// Threshold: delta > ₹100 AND > 20% increase. Returns null if nothing notable.
+// This replaces the old leakDetect which returned the first match (not the biggest).
+function biggestMover(entries) {
+  const now  = Date.now();
   const cats = [...new Set(entries.filter(e => e.type === 'out').map(e => e.category))];
 
+  let best = null;
   for (const cat of cats) {
-    const thisWeek  = sumOut(entries, cat, now - WEEK, now);
-    const lastWeek  = sumOut(entries, cat, now - 2 * WEEK, now - WEEK);
-    const diff      = thisWeek - lastWeek;
-    if (lastWeek > 0 && thisWeek > 1.5 * lastWeek && diff > 200) {
-      return {
-        type: 'leak',
-        text: `Is hafte '${cat}' pe ₹${r(thisWeek)} — pichhle hafte se ₹${r(diff)} zyada. Dekh lijiye.`,
-        savings_amount: null,
-        had_goal: false,
-      };
+    const thisWeek = sumOut(entries, cat, now - WEEK, now);
+    const lastWeek = sumOut(entries, cat, now - 2 * WEEK, now - WEEK);
+    const delta    = thisWeek - lastWeek;
+
+    // Must exceed BOTH thresholds: absolute ₹100 AND relative 20%
+    if (lastWeek > 0 && delta > 100 && thisWeek > lastWeek * 1.2) {
+      if (!best || delta > best.delta) {
+        best = { cat, thisWeek, lastWeek, delta };
+      }
     }
   }
-  return null;
+
+  if (!best) return null;
+
+  return {
+    type: 'biggest_mover',
+    text: `इस हफ़्ते ${best.cat} पे पिछले हफ़्ते से ₹${r(best.delta)} ज़्यादा गए।`,
+    savings_amount: null,
+    had_goal: false,
+  };
 }
 
 // ── 4. TOP SPEND ──────────────────────────────────────────────────────────────
@@ -175,6 +223,16 @@ function incomeMoment(lastEntry, goals) {
  * computeInsight — call AFTER a user input. Returns first matching insight or null.
  * Caller enforces the "max one per session" gate.
  *
+ * Priority order (first match wins):
+ *   1. recurring_saving  — strongest: recurring cost with public-price comparison
+ *   2. goal_connection   — ties a saving opportunity to active goal
+ *   3. goal_pacing       — days-to-goal observation from daily savings rate
+ *   4. biggest_mover     — single biggest week-over-week category delta (>₹100 AND >20%)
+ *   5. top_spend         — largest category this week with week-over-week comparison
+ *   6. income_moment     — contextual note on large income entry
+ *
+ * No insight beats a manufactured one — returns null if nothing is notable.
+ *
  * @param {object} state      AppContext state slice
  * @param {object} lastEntry  the entry just committed (for income_moment)
  * @returns {{ type, text, savings_amount, had_goal } | null}
@@ -185,7 +243,8 @@ export function computeInsight(state, lastEntry = null) {
   const checks = [
     () => recurringSaving(entries, sessionDecodes),
     () => goalConnection(sessionDecodes, goals, balance),
-    () => leakDetect(entries),
+    () => goalPacing(entries, goals, balance),
+    () => biggestMover(entries),
     () => topSpend(entries),
     () => incomeMoment(lastEntry, goals),
   ];

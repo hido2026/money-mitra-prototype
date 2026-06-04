@@ -77,9 +77,13 @@ export const Events = {
   decoderMoneyPoint:    (p = {}) => logEvent('decoder_money_point_reached',{ flow: 'decoder', ...p }),
   decoderSelfReport:    (p = {}) => logEvent('decoder_self_report',        { flow: 'decoder', ...p }),
 
-  // Insights
-  insightShown:         (p = {}) => logEvent('insight_shown',  { flow: 'insight', ...p }),
-  insightActed:         (p = {}) => logEvent('insight_acted',  { flow: 'insight', ...p }),
+  // Insights — general
+  insightShown:              (p = {}) => logEvent('insight_shown',                { flow: 'insight', ...p }),
+  insightActed:              (p = {}) => logEvent('insight_acted',                { flow: 'insight', ...p }),
+  // Insights — typed (tie to North Star: Trusted Money Actions)
+  connectDotsInsightShown:   (p = {}) => logEvent('connect_dots_insight_shown',   { flow: 'decoder', ...p }),
+  spendingPatternInsightShown:(p = {}) => logEvent('spending_pattern_insight_shown',{ flow: 'home',   ...p }),
+  goalPacingInsightShown:    (p = {}) => logEvent('goal_pacing_insight_shown',    { flow: 'home',   ...p }),
 
   // Products
   productsDiscoveryShown:      (p = {}) => logEvent('products_discovery_shown',      { flow: 'products', ...p }),
