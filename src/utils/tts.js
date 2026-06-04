@@ -67,20 +67,30 @@ function fallbackSpeak(text) {
   try {
     if (!window.speechSynthesis || !text?.trim()) return;
     window.speechSynthesis.cancel();
-    const utt  = new SpeechSynthesisUtterance(text);
-    utt.lang   = 'hi-IN';
-    utt.rate   = 0.88;
-    utt.pitch  = 0.85; // lower pitch = sounds more male
-    utt.volume = 1;
 
-    // Try to find a male Hindi voice on the device
-    const voices      = window.speechSynthesis.getVoices();
-    const hindiVoices = voices.filter(v => v.lang?.startsWith('hi'));
-    const maleHindi   = hindiVoices.find(v => /male|man|पुरुष/i.test(v.name));
-    if (maleHindi)       utt.voice = maleHindi;
-    else if (hindiVoices[0]) utt.voice = hindiVoices[0];
+    const speak = () => {
+      const utt  = new SpeechSynthesisUtterance(text);
+      utt.lang   = 'hi-IN';
+      utt.rate   = 0.85;
+      utt.pitch  = 0.6;  // noticeably lower = more male-sounding
+      utt.volume = 1;
 
-    window.speechSynthesis.speak(utt);
+      const voices      = window.speechSynthesis.getVoices();
+      const hindiVoices = voices.filter(v => v.lang?.startsWith('hi'));
+      // Priority: explicit male > any Hindi > default
+      const maleHindi = hindiVoices.find(v => /male|man|पुरुष/i.test(v.name));
+      if (maleHindi)           utt.voice = maleHindi;
+      else if (hindiVoices[0]) utt.voice = hindiVoices[0];
+
+      window.speechSynthesis.speak(utt);
+    };
+
+    // Voices may not be loaded yet on first call — wait for them
+    if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => { speak(); };
+    } else {
+      speak();
+    }
   } catch {}
 }
 

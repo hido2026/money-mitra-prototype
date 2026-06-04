@@ -116,8 +116,9 @@ export function useVoiceInput({ onResult }) {
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef  = useRef(null);
-  // Tier 1 ref
-  const srRef     = useRef(null);
+  // Tier 1 refs
+  const srRef      = useRef(null);
+  const interimRef = useRef(''); // latest interim transcript (captured as you speak)
 
   const stopAll = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -138,10 +139,9 @@ export function useVoiceInput({ onResult }) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SR();
       recognition.lang            = 'hi-IN';
-      recognition.interimResults  = false;
       recognition.maxAlternatives = 1;
-      // iOS Safari only supports single-shot, so continuous = false is fine
-      recognition.continuous = false;
+      recognition.continuous      = false;
+      // interimResults set to true inside the handler block below
 
       // Nullify + abort the PREVIOUS recognition (not the new one)
       // so its onend callback doesn't reset status after we set 'recording'
@@ -154,21 +154,40 @@ export function useVoiceInput({ onResult }) {
       }
 
       // Register new recognition
-      srRef.current = recognition;
+      srRef.current   = recognition;
+      interimRef.current = '';
       setStatus('recording');
       setTranscript('');
 
+      // Enable interim results so we capture speech AS you talk.
+      // When you tap Stop, onend fires immediately and we use whatever was captured.
+      recognition.interimResults = true;
+
       recognition.onresult = (e) => {
         clearTimeout(timerRef.current);
-        const tx = e.results[0]?.[0]?.transcript?.trim() || '';
-        setTranscript(tx);
-        if (tx) onResult(tx);
-        setStatus('done');
-        setTimeout(() => setStatus('idle'), 2000);
+        let finalTx = '';
+        let interimTx = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) finalTx  += e.results[i][0].transcript;
+          else                       interimTx += e.results[i][0].transcript;
+        }
+        // Store latest interim so onend can use it if needed
+        if (interimTx) interimRef.current = interimTx;
+
+        if (finalTx.trim()) {
+          // Final result arrived — fire immediately
+          interimRef.current = '';
+          const tx = finalTx.trim();
+          setTranscript(tx);
+          onResult(tx);
+          setStatus('done');
+          setTimeout(() => setStatus('idle'), 2000);
+        }
       };
 
       recognition.onerror = (e) => {
         console.error('[speech error]', e.error);
+        interimRef.current = '';
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
           setStatus('no_mic');
           alert('माइक्रोफ़ोन की इजाज़त चाहिए।\n\nChrome: address bar → lock icon → Microphone → Allow\nSafari: Settings → Safari → Microphone → Allow');
@@ -179,8 +198,17 @@ export function useVoiceInput({ onResult }) {
       };
 
       recognition.onend = () => {
-        // Only reset if THIS recognition is still the current one
-        if (srRef.current === recognition) {
+        if (srRef.current !== recognition) return;
+        clearTimeout(timerRef.current);
+        // Use stored interim if no final result fired yet (happens when user taps Stop early)
+        const pending = interimRef.current?.trim();
+        if (pending) {
+          interimRef.current = '';
+          setTranscript(pending);
+          onResult(pending);
+          setStatus('done');
+          setTimeout(() => setStatus('idle'), 2000);
+        } else {
           setStatus(s => s === 'recording' ? 'idle' : s);
         }
       };
