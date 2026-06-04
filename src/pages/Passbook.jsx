@@ -617,7 +617,7 @@ export default function Passbook() {
           {/* Quick goal name chips */}
           {!editingGoal && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {['त्योहार','फीस','फ़ोन','बफ़र','सोना','यात्रा'].map(g => (
+              {['त्योहार','फीस','फ़ोन','इमरजेंसी','सोना','यात्रा'].map(g => (
                 <Chip key={g} label={g} selected={goalName === g} onClick={() => setGoalName(g)} />
               ))}
             </div>

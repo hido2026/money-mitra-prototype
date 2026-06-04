@@ -17,7 +17,7 @@ const f = n => (n < 0 ? '-' : '') + '₹' + Math.abs(Math.round(n)).toLocaleStri
 
 export default function Home() {
   const nav = useNavigate();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const { entries, goals, balance } = state;
 
   const user = useMemo(() => {
@@ -27,24 +27,30 @@ export default function Home() {
 
   const summary = useMemo(() => computeMorningSummary(entries, goals, balance), [entries, goals, balance]);
 
-  // Pattern insight on home — one per session, fires distinct analytics event per type
-  const [pattern, setPattern] = useState(null);
+  // Pattern insight — derived value, computed synchronously on every render.
+  // useMemo (not useState+useEffect) so it is NEVER null after a navigation remount:
+  //   - useState resets to null on remount; effect fires async → bubble disappears briefly
+  //   - useMemo runs synchronously before paint, always reflects current state
+  // Deps include sessionDecodes so a fresh decode on return also updates the bubble.
+  const pattern = useMemo(
+    () => computeInsight(state, null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entries, goals, balance, state.sessionDecodes],
+  );
+
+  // Analytics — fire once per distinct insight type shown, not on every render.
+  const lastLoggedType = useRef(null);
   useEffect(() => {
-    if (sessionStorage.getItem('pattern_shown')) return;
-    const result = computeInsight(state, null);
-    if (result) {
-      setPattern(result);
-      sessionStorage.setItem('pattern_shown', result.type);
-      // Distinct events per insight type — ties to North Star: Trusted Money Actions
-      if (result.type === 'goal_pacing') {
-        logEvent('goal_pacing_insight_shown', { flow: 'home', had_goal: true });
-      } else if (result.type === 'biggest_mover') {
-        logEvent('spending_pattern_insight_shown', { flow: 'home', had_goal: result.had_goal });
-      } else {
-        logEvent('insight_shown', { flow: 'home', insight_type: result.type, had_goal: result.had_goal });
-      }
+    if (!pattern || pattern.type === lastLoggedType.current) return;
+    lastLoggedType.current = pattern.type;
+    if (pattern.type === 'goal_pacing') {
+      logEvent('goal_pacing_insight_shown', { flow: 'home', had_goal: true });
+    } else if (pattern.type === 'biggest_mover') {
+      logEvent('spending_pattern_insight_shown', { flow: 'home', had_goal: pattern.had_goal });
+    } else {
+      logEvent('insight_shown', { flow: 'home', insight_type: pattern.type, had_goal: pattern.had_goal });
     }
-  }, [entries, goals]);
+  }, [pattern]);
 
   // Dev panel: tap portrait 5×
   const tapCount = useRef(0);
@@ -64,7 +70,7 @@ export default function Home() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto', padding: '0 0 28px' }}>
-      {showDev && <DevPanel onClose={() => setShowDev(false)} />}
+      {showDev && <DevPanel onClose={() => setShowDev(false)} dispatch={dispatch} />}
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '28px 22px 16px' }}>

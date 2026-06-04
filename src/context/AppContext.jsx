@@ -98,6 +98,15 @@ function reducer(state, action) {
       save(next); return next;
     }
 
+    // ── Seed data (DevPanel only, gated to authorised phone) ─────────────────
+    case 'SEED_DATA': {
+      const { entries, goals } = action.payload;
+      const balance = calcBalance(entries);
+      const next = { ...state, entries, goals, balance, sessionDecodes: [], insightFired: false };
+      save(next);
+      return next;
+    }
+
     // ── Decoder ───────────────────────────────────────────────────────────────
     case 'ADD_DECODE':
       return { ...state, sessionDecodes: [...state.sessionDecodes, action.payload] };

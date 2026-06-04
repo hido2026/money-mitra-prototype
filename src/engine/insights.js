@@ -145,7 +145,7 @@ function goalPacing(entries, goals, balance) {
 
   return {
     type: 'goal_pacing',
-    text: `${topGoal.name} का लक्ष्य अभी ₹${r(remaining)} दूर — इसी रफ़्तार से करीब ${days} दिन और लगेंगे।`,
+    text: `${topGoal.name} के लिए बस ₹${r(remaining)} और बचाने हैं — इसी रफ़्तार से करीब ${days} दिन में हो जाएगा।`,
     savings_amount: null,
     had_goal: true,
   };

@@ -1,8 +1,10 @@
 // DevPanel — tap Mukund portrait 5× on home to reveal.
 // Shows last 20 events, North Star metric, guardrail counts.
+// Seed button visible only for phone 7977099345.
 // In-memory only — clears on reload. Never shown in production.
 
 import { EVENT_LOG } from '../engine/instrumentation';
+import { loadSunitaSeed } from '../data/sunita-seed';
 
 const NORTH_STAR_EVENTS = new Set(['passbook_log_saved', 'decoder_money_point_reached']);
 const GUARDRAIL_EVENTS  = new Set([
@@ -17,11 +19,20 @@ function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-export default function DevPanel({ onClose }) {
+export default function DevPanel({ onClose, dispatch }) {
   const last20      = [...EVENT_LOG].reverse().slice(0, 20);
   const northStar   = EVENT_LOG.filter(e => NORTH_STAR_EVENTS.has(e.event)).length;
   const guardrailHits = EVENT_LOG.filter(e => GUARDRAIL_EVENTS.has(e.event));
   const disclosureSkips = guardrailHits.filter(e => e.event === 'guardrail_disclosure_skipped').length;
+
+  const user = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; } })();
+  const canSeed = user.phone === '7977099345';
+
+  const handleSeed = () => {
+    if (!dispatch) return;
+    const ok = loadSunitaSeed(dispatch);
+    if (ok) { onClose(); }
+  };
 
   return (
     <div style={{
@@ -44,6 +55,16 @@ export default function DevPanel({ onClose }) {
           <span style={{ color: '#7eb8f7', fontWeight: 700, fontSize: '13px' }}>🛠 Dev Panel</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '16px' }}>✕</button>
         </div>
+
+        {/* Sunita seed — gated to Himen's test phone */}
+        {canSeed && dispatch && (
+          <button
+            onClick={handleSeed}
+            style={{ width: '100%', marginBottom: '10px', padding: '10px', borderRadius: '8px', border: 'none', background: '#1a472a', color: '#4ade80', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            🌱 Sunita data लोड करें — दिवाली ₹2,000 · ₹169 बाकी
+          </button>
+        )}
 
         {/* North Star */}
         <div style={{ background: '#0d3b66', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px' }}>
