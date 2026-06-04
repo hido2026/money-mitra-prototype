@@ -143,6 +143,17 @@ export function useVoiceInput({ onResult }) {
       // iOS Safari only supports single-shot, so continuous = false is fine
       recognition.continuous = false;
 
+      // Nullify + abort the PREVIOUS recognition (not the new one)
+      // so its onend callback doesn't reset status after we set 'recording'
+      const prevSr = srRef.current;
+      if (prevSr) {
+        prevSr.onresult = null;
+        prevSr.onerror  = null;
+        prevSr.onend    = null;
+        try { prevSr.abort(); } catch {}
+      }
+
+      // Register new recognition
       srRef.current = recognition;
       setStatus('recording');
       setTranscript('');
@@ -159,12 +170,7 @@ export function useVoiceInput({ onResult }) {
         console.error('[speech error]', e.error);
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
           setStatus('no_mic');
-          // Show browser-level alert so user knows exactly what to do
           alert('माइक्रोफ़ोन की इजाज़त चाहिए।\n\nChrome: address bar → lock icon → Microphone → Allow\nSafari: Settings → Safari → Microphone → Allow');
-        } else if (e.error === 'network') {
-          setStatus('error');
-          // Network error = browser can't reach speech servers
-          console.warn('[speech] network error — check internet connection');
         } else {
           setStatus('error');
         }
@@ -172,16 +178,16 @@ export function useVoiceInput({ onResult }) {
       };
 
       recognition.onend = () => {
-        setStatus(s => s === 'recording' ? 'idle' : s);
+        // Only reset if THIS recognition is still the current one
+        if (srRef.current === recognition) {
+          setStatus(s => s === 'recording' ? 'idle' : s);
+        }
       };
 
       try {
-        // Abort any previous instance before starting
-        try { srRef.current?.abort(); } catch {}
         recognition.start();
-        console.log('[speech] started, lang=hi-IN');
       } catch (err) {
-        console.error('[speech start error]', err);
+        console.error('[speech start]', err);
         setStatus('error');
         setTimeout(() => setStatus('idle'), 2500);
       }
