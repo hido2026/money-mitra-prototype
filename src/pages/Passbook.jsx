@@ -65,11 +65,22 @@ function TopBar({ onBack }) {
   );
 }
 
-function MukundBubble({ text, bg = '#EEEDFE' }) {
+function MukundBubble({ text, bg = '#EEEDFE', speakable = false }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '90%' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '92%' }}>
       <div style={{ marginTop: '2px' }}><PortraitAvatar size={28} online={false} ringed={false} /></div>
-      <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.5, color: '#2C2C2A' }}>{text}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.5, color: '#2C2C2A' }}>{text}</div>
+        {speakable && (
+          <button
+            onClick={() => speakMukund(text)}
+            style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}
+            title="सुनिए"
+          >
+            🔊 सुनिए
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -475,7 +486,7 @@ Respond in Devanagari Hindi script. Be the cousin, not the chatbot.`;
           {chatMessages.map((m, i) => (
             m.role === 'user'
               ? <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '80%', background: '#e8e8fc', borderRadius: '16px 16px 4px 16px', padding: '10px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#2C2C2A' }}>{m.content}</div>
-              : <MukundBubble key={i} text={m.content} bg="#EEEDFE" />
+              : <MukundBubble key={i} text={m.content} bg="#EEEDFE" speakable />
           ))}
           {isChatting && <MukundBubble text="..." bg="#EEEDFE" />}
         </div>
