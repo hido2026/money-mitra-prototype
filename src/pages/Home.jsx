@@ -124,7 +124,7 @@ export default function Home() {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#534AB7', lineHeight: 1.2 }}>समझो</div>
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#7B72D4', marginTop: '1px' }}>SIP · Scheme · Fraud · PMSBY</div>
+            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#7B72D4', marginTop: '1px' }}>योजना · पैसे कटे · बेटी की बचत</div>
             <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#534AB7', marginTop: '4px', opacity: 0.8 }}>कुछ भी पूछो — मुकुंद समझाएगा</div>
           </div>
           <div style={{ flexShrink: 0, fontFamily: "'JioType',sans-serif", fontSize: '18px', color: '#7B72D4' }}>›</div>

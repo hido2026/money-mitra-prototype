@@ -53,9 +53,9 @@ function recurringSaving(entries, sessionDecodes) {
     if (saving > 0) {
       return {
         type: 'recurring_saving',
-        text: `Aap har mahine ₹${r(monthly)} recharge karti hain — saal ka ₹${r(annual)}. Saal bhar ka plan ₹${r(yearlyPlan)} — ₹${r(saving)} bachte hain.`,
+        text: `हर महीने ₹${r(monthly)} रिचार्ज — साल का ₹${r(annual)}। सालाना plan ₹${r(yearlyPlan)} में आता है।`,
         savings_amount: saving,
-        had_goal: false, // caller updates
+        had_goal: false,
       };
     }
   }
@@ -71,7 +71,7 @@ function recurringSaving(entries, sessionDecodes) {
       if (saving > 0) {
         return {
           type: 'recurring_saving',
-          text: `Har mahine lagbhag ₹${r(Math.round(avg))} phone pe jata hai — saal ka ₹${r(annual)}. Saal bhar ka plan ₹${r(yearlyPlan)} aata hai — ₹${r(saving)} bachte hain.`,
+          text: `हर महीने करीब ₹${r(Math.round(avg))} फ़ोन पे जाता है — साल का ₹${r(annual)}। सालाना plan ₹${r(yearlyPlan)} में आता है।`,
           savings_amount: saving,
           had_goal: false,
         };
@@ -95,7 +95,7 @@ function goalConnection(sessionDecodes, goals, balance) {
     if (saving > 0) {
       return {
         type: 'goal_connection',
-        text: `Yeh ₹${r(saving)} jo recharge se bach sakta hai — aapke ${top.name} goal ko paas le aata hai.`,
+        text: `रिचार्ज से बचे पैसे ${top.name} लक्ष्य के करीब ले जाते।`,
         savings_amount: saving,
         had_goal: true,
       };
@@ -107,7 +107,7 @@ function goalConnection(sessionDecodes, goals, balance) {
     const saving = 168; // 20 units × ₹8.40/month
     return {
       type: 'goal_connection',
-      text: `Bijli mein jo ₹${r(saving)}/mahine bach sakta hai — woh ${top.name} goal ki taraf rakhein?`,
+      text: `बिजली में करीब ₹${r(saving)}/महीना बच सकता है — ${top.name} लक्ष्य के करीब।`,
       savings_amount: saving,
       had_goal: true,
     };
@@ -198,9 +198,9 @@ function topSpend(entries) {
   let text;
   if (lastWeekTotal > 0) {
     const diff = total - lastWeekTotal;
-    text = `Is hafte sabse zyada ${cat} pe gaya — ₹${r(total)}. Pichhle hafte se ₹${r(Math.abs(diff))} ${diff > 0 ? 'zyada' : 'kam'}.`;
+    text = `इस हफ़्ते सबसे ज़्यादा ${cat} पे गया — ₹${r(total)}। पिछले हफ़्ते से ₹${r(Math.abs(diff))} ${diff > 0 ? 'ज़्यादा' : 'कम'}।`;
   } else {
-    text = `Is hafte sabse zyada ${cat} pe gaya — ₹${r(total)}.`;
+    text = `इस हफ़्ते सबसे ज़्यादा ${cat} पे गया — ₹${r(total)}।`;
   }
 
   return { type: 'top_spend', text, savings_amount: null, had_goal: false };
@@ -211,8 +211,8 @@ function incomeMoment(lastEntry, goals) {
   if (!lastEntry || lastEntry.type !== 'in' || lastEntry.amount < 1000) return null;
 
   const text = goals?.length
-    ? `Aaj ₹${r(lastEntry.amount)} aaya — thoda alag rakh dein apne ${goals[0].name} goal ke liye?`
-    : `Aaj ₹${r(lastEntry.amount)} aaya — thoda alag rakh dein kisi goal ke liye?`;
+    ? `आज ₹${r(lastEntry.amount)} आया — थोड़ा अलग रख सकती हैं ${goals[0].name} के लिए।`
+    : `आज ₹${r(lastEntry.amount)} आया।`;
 
   return { type: 'income_moment', text, savings_amount: null, had_goal: !!goals?.length };
 }
