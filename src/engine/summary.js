@@ -50,14 +50,19 @@ export function computeMorningSummary(entries, goals, balance) {
   if (todayE.length > 0) {
     const inc = sumEntries(todayE, 'in');
     const exp = sumEntries(todayE, 'out');
-    return `आज: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
+    // Suppress zero-income line — showing "₹0 मिले" invisibilises unpaid household work
+    if (inc > 0 && exp > 0) return `आज: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
+    if (inc > 0)             return `आज: ₹${f(inc)} मिले। बैलेंस: ${fBal(balance)}${goalSuffix}`;
+    if (exp > 0)             return `आज: ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
   }
 
   const yesterE = entries.filter(e => dateStr(e.timestamp) === yesterday);
   if (yesterE.length > 0) {
     const inc = sumEntries(yesterE, 'in');
     const exp = sumEntries(yesterE, 'out');
-    return `कल: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
+    if (inc > 0 && exp > 0) return `कल: ₹${f(inc)} मिले, ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
+    if (inc > 0)             return `कल: ₹${f(inc)} मिले। बैलेंस: ${fBal(balance)}${goalSuffix}`;
+    if (exp > 0)             return `कल: ₹${f(exp)} गए। बैलेंस: ${fBal(balance)}${goalSuffix}`;
   }
 
   return `बैलेंस: ${fBal(balance)}${goalSuffix}`;

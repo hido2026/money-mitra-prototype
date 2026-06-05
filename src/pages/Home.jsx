@@ -12,7 +12,7 @@ import { computeMorningSummary } from '../engine/summary';
 import { computeInsight } from '../engine/insights';
 import { IcBookOpen, IcCamera, IcBulb } from '../components/icons/Icons';
 import { VOICE_CONFIG } from '../config/app-config';
-import { speakMukund } from '../utils/tts';
+// speakMukund removed from home — TTS is embedded inside समझो and insight flows, not home buttons
 
 const f = n => (n < 0 ? '-' : '') + '₹' + Math.abs(Math.round(n)).toLocaleString('en-IN');
 
@@ -83,51 +83,43 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Morning summary bubble */}
-      <div style={{ padding: '0 20px 12px' }}>
+      {/* Single Mukund voice card — one avatar, goal-first, insight threaded below.
+          Fixes: two-avatar confusion, two सुनिए buttons, spending-before-goal framing. */}
+      <div style={{ padding: '0 20px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
           <PortraitAvatar size={32} online={false} ringed={false} />
-          <div style={{ flex: 1 }}>
-            <div style={{ background: '#EEEDFE', borderRadius: '4px 16px 16px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ background: '#EEEDFE', borderRadius: '4px 16px 12px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', marginBottom: pattern ? '5px' : 0 }}>
               {summary ?? `${VOICE_CONFIG.persona_name} यहाँ है — पैसों में मदद के लिए।`}
             </div>
-            {summary && <button onClick={() => speakMukund(summary)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}>🔊 सुनिए</button>}
+            {pattern && (
+              <div style={{ background: '#FFFBEA', borderRadius: '12px 16px 16px 4px', padding: '10px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', lineHeight: 1.5, color: '#2C2C2A', borderLeft: '3px solid #F5C842' }}>
+                💡 {pattern.text}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Pattern insight bubble */}
-      {pattern && (
-        <div style={{ padding: '0 20px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <PortraitAvatar size={32} online={false} ringed={false} />
-            <div style={{ flex: 1 }}>
-              <div style={{ background: '#FFFBEA', borderRadius: '4px 16px 16px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A' }}>
-                💡 {pattern.text}
-              </div>
-              <button onClick={() => speakMukund(pattern.text)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}>🔊 सुनिए</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── समझो hero card (full-width) ── */}
+      {/* ── समझो hero card — solid purple, white text, clear primary CTA.
+          Research finding: light purple blends in; solid #534AB7 reads as THE action.
+          Competitive finding: Groww never puts education before action — समझो IS the action. */}
       <div style={{ padding: '0 20px 12px' }}>
         <button onClick={() => nav('/samjho-entry')} style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
-          padding: '16px 18px', background: '#EEEDFE',
-          border: '1.5px solid #D5D1FA', borderRadius: '18px',
+          padding: '16px 18px', background: '#534AB7',
+          border: 'none', borderRadius: '18px',
           cursor: 'pointer', textAlign: 'left',
         }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <IcBulb size={22} color="#FFFFFF" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#534AB7', lineHeight: 1.2 }}>समझो</div>
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#7B72D4', marginTop: '1px' }}>योजना · पैसे कटे · बेटी की बचत</div>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#534AB7', marginTop: '4px', opacity: 0.8 }}>कुछ भी पूछो — मुकुंद समझाएगा</div>
+            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.2 }}>समझो</div>
+            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>पैसे कटे · सरकारी योजना · बेटी की बचत</div>
+            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.9)', marginTop: '5px' }}>कुछ भी पूछो — मुकुंद समझाएगा</div>
           </div>
-          <div style={{ flexShrink: 0, fontFamily: "'JioType',sans-serif", fontSize: '18px', color: '#7B72D4' }}>›</div>
+          <div style={{ flexShrink: 0, fontFamily: "'JioType',sans-serif", fontSize: '20px', color: 'rgba(255,255,255,0.7)' }}>›</div>
         </button>
       </div>
 
