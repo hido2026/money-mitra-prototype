@@ -10,7 +10,7 @@ import { useApp } from '../context/AppContext';
 import { Events, logEvent } from '../engine/instrumentation';
 import { computeMorningSummary } from '../engine/summary';
 import { computeInsight } from '../engine/insights';
-import { IcBookOpen, IcCamera } from '../components/icons/Icons';
+import { IcBookOpen, IcCamera, IcBulb } from '../components/icons/Icons';
 import { VOICE_CONFIG } from '../config/app-config';
 import { speakMukund } from '../utils/tts';
 
@@ -111,7 +111,27 @@ export default function Home() {
         </div>
       )}
 
-      {/* Two cards */}
+      {/* ── समझो hero card (full-width) ── */}
+      <div style={{ padding: '0 20px 12px' }}>
+        <button onClick={() => nav('/samjho-entry')} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
+          padding: '16px 18px', background: '#EEEDFE',
+          border: '1.5px solid #D5D1FA', borderRadius: '18px',
+          cursor: 'pointer', textAlign: 'left',
+        }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <IcBulb size={22} color="#FFFFFF" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#534AB7', lineHeight: 1.2 }}>समझो</div>
+            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#7B72D4', marginTop: '1px' }}>SIP · Scheme · Fraud · PMSBY</div>
+            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#534AB7', marginTop: '4px', opacity: 0.8 }}>कुछ भी पूछो — मुकुंद समझाएगा</div>
+          </div>
+          <div style={{ flexShrink: 0, fontFamily: "'JioType',sans-serif", fontSize: '18px', color: '#7B72D4' }}>›</div>
+        </button>
+      </div>
+
+      {/* ── कागज़ समझें + बही (secondary row) ── */}
       <div style={{ display: 'flex', gap: '12px', padding: '0 20px' }}>
         <button onClick={() => nav('/decoder')} style={cardStyle('#EEEDFE')}>
           <div style={iconBox('#EEEDFE')}><IcCamera size={22} color="#534AB7" /></div>

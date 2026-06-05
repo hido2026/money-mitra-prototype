@@ -14,7 +14,10 @@ import ConversationShowcase from './pages/ConversationShowcase';
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 import { samjhoCorridor, bachaoCorridor, aageBadhoCorridor } from './data/corridors';
-import { samjhaoPriya, bachaoRavi, aageBadhoRavi } from './data/conversations';
+import {
+  samjhaoPriya, bachaoRavi, aageBadhoRavi,
+  samjhaoSchemeStatus, samjhaoPaisaKata, samjhaoBinaBataye, samjhaoBeti,
+} from './data/conversations';
 
 // ── Registration gate ─────────────────────────────────────────────────────────
 // On every load: check localStorage for "user" key.
@@ -51,6 +54,12 @@ export default function App() {
           <Route path="/samjhao-priya"      element={<ConversationShowcase conversation={samjhaoPriya} />} />
           <Route path="/bachao-ravi"        element={<ConversationShowcase conversation={bachaoRavi} />} />
           <Route path="/aage-badho-ravi"    element={<ConversationShowcase conversation={aageBadhoRavi} />} />
+
+          {/* ── Samjhao seed cards v2 — compliance-checked (Jun 2026) ── */}
+          <Route path="/samjhao-scheme-status" element={<ConversationShowcase conversation={samjhaoSchemeStatus} />} />
+          <Route path="/samjhao-paisa-kata"    element={<ConversationShowcase conversation={samjhaoPaisaKata} />} />
+          <Route path="/samjhao-bina-bataye"   element={<ConversationShowcase conversation={samjhaoBinaBataye} />} />
+          <Route path="/samjhao-beti"          element={<ConversationShowcase conversation={samjhaoBeti} />} />
         </Routes>
       </HashRouter>
     </AppProvider>

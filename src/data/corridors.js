@@ -1,5 +1,6 @@
-// Cold-entry corridor configs. Each routes 3 preset chips into existing
-// deep-flow showcase. Chip 2/3 currently funnel to same target — TODO branch.
+// Cold-entry corridor configs.
+// samjhoCorridor chips updated Jun 2026 — 4 non-overlapping topics,
+// each routes to its own scripted three-beat conversation.
 
 export const samjhoCorridor = {
   route: 'samjho-entry',
@@ -7,29 +8,35 @@ export const samjhoCorridor = {
   bannerHi: 'समझो',
   accent: '#534AB7',
   accentLight: '#EEEDFE',
-  bubbleText: 'कोई भी सवाल पूछो — छोटा-बड़ा नहीं देखता। बताओ, क्या समझना है?',
+  bubbleText: 'कोई भी सवाल पूछो — योजना हो, पैसे कटे हों, बेटी की बचत हो। बताओ, क्या समझना है?',
   chips: [
     {
-      iconKey: 'chart-line',
-      devanagari: 'SIP कैसे काम करती है?',
-      hinglish: 'SIP kaise kaam karti hai?',
-      route: '/samjhao-priya',
-    },
-    {
-      iconKey: 'scale',
-      devanagari: 'FD vs Mutual Fund — कौन सा?',
-      hinglish: 'FD vs Mutual Fund — kaun sa?',
-      route: '/samjhao-priya', // TODO: branch — FD/MF compare
-    },
-    {
       iconKey: 'stamp',
-      devanagari: 'PMSBY, MSSC, सुकन्या क्या हैं?',
-      hinglish: 'PMSBY, MSSC, Sukanya kya hain?',
-      route: '/samjhao-priya',
+      devanagari: 'सरकारी योजना का पैसा आया या नहीं — कैसे देखूँ?',
+      hinglish: 'Sarkari yojana ka paisa aaya ya nahi — kaise dekhu?',
+      route: '/samjhao-scheme-status',
+    },
+    {
+      iconKey: 'shield',
+      devanagari: 'पैसे कट गए — अब क्या करूँ?',
+      hinglish: 'Paise kat gaye — ab kya karu?',
+      route: '/samjhao-paisa-kata',
+    },
+    {
+      iconKey: 'coin-off',
+      devanagari: 'बिना बताए खाते से पैसा क्यों कटा?',
+      hinglish: 'Bina bataye khate se paisa kyun kata?',
+      route: '/samjhao-bina-bataye',
+    },
+    {
+      iconKey: 'school',
+      devanagari: 'बेटी के लिए सबसे अच्छी बचत कौन सी?',
+      hinglish: 'Beti ke liye sabse acchi bachat kaun si?',
+      route: '/samjhao-beti',
     },
   ],
   escape: {
-    text: 'कुछ और पूछना है',
+    text: 'कुछ और पूछो',
     dashed: 'rgba(83, 74, 183, 0.4)',
   },
 };

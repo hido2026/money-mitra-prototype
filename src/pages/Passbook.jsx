@@ -179,11 +179,16 @@ function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceTo
       <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '12px', padding: '13px 16px', border: `1.5px solid ${inputVal ? '#534AB7' : '#EEEDFE'}` }}>
         <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '17px', color: '#888780', marginRight: '4px' }}>₹</span>
         <input
-          type="number"
+          type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           placeholder="और रकम लिखें"
           value={inputVal}
-          onChange={handleInput}
+          onChange={e => {
+            const raw = e.target.value.replace(/[^0-9]/g, ''); // digits only, no browser interception
+            setInputVal(raw);
+            onChange(raw ? Number(raw) : null);
+          }}
           style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }}
         />
       </div>

@@ -9,7 +9,7 @@ import {
   IcChevronLeft, IcDots,
   IcChartLine, IcScale, IcStamp, IcPencil,
   IcAlertOctagon, IcCoinOff, IcFileDollar,
-  IcSchool, IcConfetti, IcHome,
+  IcSchool, IcConfetti, IcHome, IcShield,
 } from '../components/icons/Icons';
 
 // Map iconKey → component (keeps corridor data plain JSON).
@@ -23,6 +23,7 @@ const ICON_MAP = {
   'school':        IcSchool,
   'confetti':      IcConfetti,
   'home':          IcHome,
+  'shield':        IcShield,
 };
 
 function currentTime() {
