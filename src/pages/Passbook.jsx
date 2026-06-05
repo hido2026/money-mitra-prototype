@@ -292,7 +292,13 @@ export default function Passbook() {
       const userName = user.name || null;
       const systemContent = `You are Mukund. You are NOT a generic AI chatbot — you are a specific person.
 
-WHO YOU ARE: A 35-year-old Indian man. Glasses. Light shirt. You speak like a smart older cousin or older brother — someone who has read the fine print on every financial document he's ever signed and now helps the rest of the family avoid mistakes. Warm, empathetic, and supportive. You never judge, never shame, never lecture, never condescend.${userName ? ` You are talking to ${userName}.` : ''}
+WHO YOU ARE: A 35-year-old Indian man. Glasses. Light shirt. You speak like a warm, respectful older brother (bhaiya) — protective, caring, never lecturing. You use simple spoken Hindi, not formal written Hindi. Warm, empathetic, and supportive. You never judge, never shame, never condescend.${userName ? ` You are talking to ${userName}.` : ''}
+
+VOICE REGISTER — use these words naturally:
+✓ Use: "अरे", "देख", "चिंता मत कर", "सही किया", "बस इतना", "हो जाएगा"
+✗ Never: "यार" (too casual, disrespectful to a 35-year-old who runs a household)
+✗ Never: sarcasm, roasting, or teasing — it humiliates, not motivates
+✗ Never: formal/stiff language like "आपको चाहिए कि" or "कृपया ध्यान दें"
 
 THIS PERSON'S MONEY RIGHT NOW:
 - Balance: ${balance < 0 ? '-' : ''}₹${Math.abs(Math.round(balance)).toLocaleString('en-IN')}${balance < 0 ? ' (expenses are more than income right now)' : ''}
@@ -455,12 +461,18 @@ Respond in Devanagari Hindi script. Be the cousin who notices what you missed, n
     dispatch({ type: 'ADD_ENTRY', payload: entry });
     logEvent('entry_logged');
 
-    // Insight seam
+    // Projected state after this entry
     const projectedEntries = [entry, ...entries];
-    const projBal = balance + (entry.type === 'in' ? entry.amount : -entry.amount);
-    const projGoal = computeGoalProgress(projBal, goals)[0];
+    const projBal          = balance + (entry.type === 'in' ? entry.amount : -entry.amount);
+    const projGoalProgress = computeGoalProgress(projBal, goals);
+
+    // Check for micro-celebration
+    checkCelebration(entry, projectedEntries, projGoalProgress);
+
+    // Insight seam
+    const projGoal    = projGoalProgress[0];
     const insightGoal = projGoal ? { label: projGoal.name, target: projGoal.target, saved: projGoal.allocated } : null;
-    const payload = computeInsight({ sessionDecodes, entries: projectedEntries, goal: insightGoal, insightFired });
+    const payload     = computeInsight({ sessionDecodes, entries: projectedEntries, goal: insightGoal, insightFired });
     if (payload) {
       setInsight(payload);
       dispatch({ type: 'MARK_INSIGHT_FIRED' });
@@ -472,6 +484,46 @@ Respond in Devanagari Hindi script. Be the cousin who notices what you missed, n
 
   const todayIn  = entries.filter(e => e.type === 'in').reduce((s, e)  => s + e.amount, 0);
   const todayOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+
+  // ── Weekly tally — how many distinct days logged in last 7 days ──────────────
+  const weeklyTally = useMemo(() => {
+    const cutoff = Date.now() - 7 * 86400000;
+    const days = new Set(
+      entries
+        .filter(e => e.timestamp && new Date(e.timestamp).getTime() > cutoff)
+        .map(e => e.timestamp.split('T')[0])
+    );
+    return days.size;
+  }, [entries]);
+
+  // ── Micro-celebration — shown once after an entry, then dismissed ─────────────
+  const [celebration, setCelebration] = useState(null);
+  const dismissCelebration = () => setCelebration(null);
+
+  const checkCelebration = (newEntry, newEntries, newGoalProgress) => {
+    // First entry ever
+    if (entries.length === 0) {
+      setCelebration('पहला कदम हो गया — अब दिखेगा पैसा कहाँ जा रहा है।');
+      return;
+    }
+    // Goal milestones (check first goal that changed)
+    for (const gp of newGoalProgress) {
+      const oldGp = goalProgress.find(g => g.id === gp.id);
+      if (!oldGp) continue;
+      if (!oldGp.achieved && gp.achieved) {
+        setCelebration(`देख, ${gp.name} हो गया। तूने खुद करके दिखाया। 🎉`);
+        return;
+      }
+      if (oldGp.pct < 50 && gp.pct >= 50) {
+        setCelebration(`आधा रास्ता तय — ${gp.name} पास आ रहा है।`);
+        return;
+      }
+    }
+    // Full week logged
+    if (weeklyTally >= 6) {
+      setCelebration('इस हफ़्ते हर दिन का हिसाब रखा — अब पूरा हफ़्ता साफ़ दिखता है।');
+    }
+  };
 
   // ── Edit/delete handlers ─────────────────────────────────────────────────────
   const openEdit    = (e) => { setEditEntry(e); setEditAmt(String(e.amount)); setEditCat(e.category); setConfirmDelete(false); };
@@ -494,7 +546,22 @@ Respond in Devanagari Hindi script. Be the cousin who notices what you missed, n
           {balance < 0 ? '-' : ''}{fmtFull(Math.abs(balance))}
         </div>
         {balance < 0 && <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#D85A30', marginTop: '2px' }}>खर्च ज़्यादा हो गया</div>}
+
+        {/* Weekly tally */}
+        {weeklyTally > 0 && (
+          <div style={{ marginTop: '8px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#888780' }}>
+            इस हफ़्ते {weeklyTally} बार लिखा{weeklyTally >= 5 ? ' 🌟' : ''}
+          </div>
+        )}
       </div>
+
+      {/* Micro-celebration banner */}
+      {celebration && (
+        <div style={{ margin: '8px 16px 0', background: '#EAF3DE', border: '1px solid #C5E0A8', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#3B6D11', flex: 1 }}>{celebration}</span>
+          <button onClick={dismissCelebration} style={{ background: 'none', border: 'none', color: '#888780', cursor: 'pointer', fontSize: '16px', padding: '0 0 0 8px', flexShrink: 0 }}>✕</button>
+        </div>
+      )}
 
       {/* Goals section */}
       <div style={{ padding: '12px 16px 4px' }}>
