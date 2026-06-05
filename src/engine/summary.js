@@ -40,7 +40,7 @@ export function computeMorningSummary(entries, goals, balance) {
   const goalSuffix = top
     ? top.achieved
       ? ` · ${top.name} पूरा! 🎉`
-      : ` · ${top.name} में ₹${f(top.remaining)} बाकी।`
+      : ` · ${top.name} के लिए ₹${f(top.remaining)} और चाहिए।`
     : '';
 
   const today     = daysAgoStr(0);
