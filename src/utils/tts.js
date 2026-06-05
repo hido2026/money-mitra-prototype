@@ -78,13 +78,13 @@ async function sarvamSpeak(text) {
     body: JSON.stringify({
       inputs:               [input],
       target_language_code: 'hi-IN',
-      speaker:              'amol',   // warm male Hindi voice
+      speaker:              'abhilash', // male Hindi voice (bulbul:v2 compatible)
       pitch:                0,
       pace:                 0.9,
       loudness:             1.5,
       speech_sample_rate:   22050,
       enable_preprocessing: true,
-      model:                'bulbul:v1',
+      model:                'bulbul:v2',
     }),
   });
 
