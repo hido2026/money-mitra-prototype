@@ -123,6 +123,26 @@ function GoalCard({ gp, onTap }) {
 // ── AmountPicker with voice button ────────────────────────────────────────────
 function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceToggle }) {
   const QUICK = [200, 500, 1000, 2000];
+
+  // Local input state — completely independent from QUICK buttons.
+  // Bug fixed: previously the input value was derived from `value`, so typing "200"
+  // or "2000" would match a QUICK amount and clear the field, selecting the button instead.
+  const [inputVal, setInputVal] = useState('');
+
+  const handleQuick = (q) => {
+    setInputVal('');   // clear freeform when a quick button is tapped
+    onChange(q);
+  };
+
+  const handleInput = (e) => {
+    const raw = e.target.value;
+    setInputVal(raw);
+    onChange(Number(raw) || null);
+  };
+
+  // A QUICK button is highlighted only when it was explicitly tapped (inputVal is empty)
+  const quickSelected = (q) => value === q && inputVal === '';
+
   const voiceBtn = (() => {
     if (voiceStatus === 'recording')  return { bg: '#D85A30', label: '🛑  सुन रहा हूँ... (रोकें)', pulse: true };
     if (voiceStatus === 'processing') return { bg: '#888780', label: '⏳  समझ रहा हूँ...', pulse: false };
@@ -132,6 +152,7 @@ function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceTo
     if (voiceStatus === 'error')      return { bg: '#888780', label: 'कुछ गड़बड़ हुई — दोबारा कोशिश करें', pulse: false };
     return { bg: '#534AB7', label: '🎤  बोलिए', pulse: false };
   })();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <button onClick={onVoiceToggle} className={voiceBtn.pulse ? 'mic-recording' : ''} style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', border: 'none', background: voiceBtn.bg, color: '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer', textAlign: 'center', transition: 'background 0.2s' }}>
@@ -139,14 +160,21 @@ function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceTo
       </button>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
         {QUICK.map(q => (
-          <button key={q} onClick={() => onChange(q)} style={{ padding: '14px 8px', minHeight: '52px', borderRadius: '12px', cursor: 'pointer', border: value === q ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: value === q ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: value === q ? '#534AB7' : '#2C2C2A', textAlign: 'center' }}>
+          <button key={q} onClick={() => handleQuick(q)} style={{ padding: '14px 8px', minHeight: '52px', borderRadius: '12px', cursor: 'pointer', border: quickSelected(q) ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: quickSelected(q) ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: quickSelected(q) ? '#534AB7' : '#2C2C2A', textAlign: 'center' }}>
             {fmt(q)}
           </button>
         ))}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '12px', padding: '13px 16px', border: '1.5px solid #EEEDFE' }}>
+      <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '12px', padding: '13px 16px', border: `1.5px solid ${inputVal ? '#534AB7' : '#EEEDFE'}` }}>
         <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '17px', color: '#888780', marginRight: '4px' }}>₹</span>
-        <input type="number" inputMode="numeric" placeholder="और रकम लिखें" value={value && ![200,500,1000,2000].includes(value) ? value : ''} onChange={e => onChange(Number(e.target.value) || null)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }} />
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder="और रकम लिखें"
+          value={inputVal}
+          onChange={handleInput}
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }}
+        />
       </div>
     </div>
   );
