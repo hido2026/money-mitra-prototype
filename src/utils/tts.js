@@ -18,7 +18,7 @@ const SARVAM_SPEAKER = 'amol';   // Male, conversational Hindi — closest to Mu
 const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
 
 // ElevenLabs (secondary fallback)
-export const ELEVENLABS_API_KEY  = 'sk_688942a31f08dcdf8ec4cfe3571ebe36130bbee5ab552f51';
+export const ELEVENLABS_API_KEY  = 'sk_e1dc620d37ddec3a3b798d2936f392820043824d89e085ca';
 export const ELEVENLABS_VOICE_ID = 'DQuoFsZ3oda1diTerwpq'; // Aaditya Kapur — Calm Conversational Hindi
 
 const TTS_URL = (id) => `https://api.elevenlabs.io/v1/text-to-speech/${id}`;
