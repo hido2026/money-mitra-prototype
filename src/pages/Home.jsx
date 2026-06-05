@@ -12,6 +12,7 @@ import { computeMorningSummary } from '../engine/summary';
 import { computeInsight } from '../engine/insights';
 import { IcBookOpen, IcCamera } from '../components/icons/Icons';
 import { VOICE_CONFIG } from '../config/app-config';
+import { speakMukund } from '../utils/tts';
 
 const f = n => (n < 0 ? '-' : '') + '₹' + Math.abs(Math.round(n)).toLocaleString('en-IN');
 
@@ -86,8 +87,11 @@ export default function Home() {
       <div style={{ padding: '0 20px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
           <PortraitAvatar size={32} online={false} ringed={false} />
-          <div style={{ background: '#EEEDFE', borderRadius: '4px 16px 16px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', flex: 1 }}>
-            {summary ?? `${VOICE_CONFIG.persona_name} यहाँ है — पैसों में मदद के लिए।`}
+          <div style={{ flex: 1 }}>
+            <div style={{ background: '#EEEDFE', borderRadius: '4px 16px 16px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A' }}>
+              {summary ?? `${VOICE_CONFIG.persona_name} यहाँ है — पैसों में मदद के लिए।`}
+            </div>
+            {summary && <button onClick={() => speakMukund(summary)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}>🔊 सुनिए</button>}
           </div>
         </div>
       </div>
@@ -97,8 +101,11 @@ export default function Home() {
         <div style={{ padding: '0 20px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <PortraitAvatar size={32} online={false} ringed={false} />
-            <div style={{ background: '#FFFBEA', borderRadius: '4px 16px 16px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', flex: 1 }}>
-              💡 {pattern.text}
+            <div style={{ flex: 1 }}>
+              <div style={{ background: '#FFFBEA', borderRadius: '4px 16px 16px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A' }}>
+                💡 {pattern.text}
+              </div>
+              <button onClick={() => speakMukund(pattern.text)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}>🔊 सुनिए</button>
             </div>
           </div>
         </div>

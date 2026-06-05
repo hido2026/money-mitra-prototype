@@ -176,11 +176,18 @@ function TopBar({ onBack }) {
   );
 }
 
-function MukundBubble({ text, bg = '#EEEDFE' }) {
+function MukundBubble({ text, bg = '#EEEDFE', speakable = false }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '90%' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '92%' }}>
       <div style={{ marginTop: '2px' }}><PortraitAvatar size={28} online={false} ringed={false} /></div>
-      <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', whiteSpace: 'pre-wrap' }}>{text}</div>
+      <div>
+        <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', whiteSpace: 'pre-wrap' }}>{text}</div>
+        {speakable && (
+          <button onClick={() => speakMukund(text)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}>
+            🔊 सुनिए
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -363,7 +370,7 @@ export default function Decoder() {
   // ── Step: result ──────────────────────────────────────────────────────────────
   const renderResult = (isError = false) => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <MukundBubble text={result || FALLBACK_TEXT} bg={isError ? '#FAECE7' : '#EEEDFE'} />
+      <MukundBubble text={result || FALLBACK_TEXT} speakable={!isError} bg={isError ? '#FAECE7' : '#EEEDFE'} />
 
       {/* Privacy badge */}
       <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780' }}>
@@ -377,7 +384,7 @@ export default function Decoder() {
 
       {/* Connect-dots insight — shown above "बही में डालें"; observation only, no CTA */}
       {connectDots && (
-        <MukundBubble text={`💡 ${connectDots.text}`} bg="#FFFBEA" />
+        <MukundBubble text={`💡 ${connectDots.text}`} speakable bg="#FFFBEA" />
       )}
 
       {/* Bridge button */}
