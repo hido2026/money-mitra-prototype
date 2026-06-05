@@ -116,8 +116,8 @@ export default function Home() {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.2 }}>समझो</div>
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>पैसे कटे · सरकारी योजना · बेटी की बचत</div>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.9)', marginTop: '5px' }}>कुछ भी पूछो — मुकुंद समझाएगा</div>
+            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>पैसे कटे · सरकारी योजना · बेटी के लिए बचत</div>
+            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.9)', marginTop: '5px' }}>कुछ भी पूछो — मुकुंद बताएगा</div>
           </div>
           <div style={{ flexShrink: 0, fontFamily: "'JioType',sans-serif", fontSize: '20px', color: 'rgba(255,255,255,0.7)' }}>›</div>
         </button>

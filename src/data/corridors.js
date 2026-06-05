@@ -8,7 +8,7 @@ export const samjhoCorridor = {
   bannerHi: 'समझो',
   accent: '#534AB7',
   accentLight: '#EEEDFE',
-  bubbleText: 'कोई भी सवाल पूछो — योजना हो, पैसे कटे हों, बेटी की बचत हो। बताओ, क्या समझना है?',
+  bubbleText: 'कोई भी सवाल पूछो — सरकारी योजना हो, पैसे कटे हों, बेटी के लिए बचाना हो। बताओ, क्या जानना है?',
   chips: [
     {
       iconKey: 'stamp',
@@ -84,8 +84,8 @@ export const aageBadhoCorridor = {
   chips: [
     {
       iconKey: 'school',
-      devanagari: 'बेटी/बेटे की पढ़ाई के लिए',
-      hinglish: 'Beti/bete ki padhai ke liye',
+      devanagari: 'बेटी की पढ़ाई के लिए पैसे जोड़ने हैं',
+      hinglish: 'Beti ki padhai ke liye paisa jodna hai',
       route: '/aage-badho-ravi',
     },
     {
