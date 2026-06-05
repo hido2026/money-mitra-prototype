@@ -1,53 +1,28 @@
-// tts.js — Sarvam AI TTS (primary) → ElevenLabs (secondary) → browser SpeechSynthesis
+// tts.js — Sarvam AI TTS (Hindi-native) with SpeechSynthesis fallback.
 //
-// Why Sarvam first:
-//   Native Indian-language TTS, better Hindi prosody than ElevenLabs.
-//   Same API key already used for STT in useVoiceInput.js.
-//
-// Why Web Audio API instead of new Audio():
-//   new Audio().play() is blocked by browser autoplay policy when called
-//   3-5 seconds after a user gesture (the async TTS round-trip).
-//   Web Audio API's AudioContext.decodeAudioData + createBufferSource
-//   does NOT have this restriction once the context is running.
-//
-// Fallback chain: Sarvam TTS → ElevenLabs TTS → browser SpeechSynthesis (hi-IN) → silent.
+// Tier 1: Sarvam bulbul:v1 — "amol" (warm male Hindi voice)
+// Tier 2: browser SpeechSynthesis (hi-IN, low pitch) — if Sarvam fails
+// Tier 3: silent — text always shows
 
-// Sarvam (primary) — same key as STT in useVoiceInput.js
+const SARVAM_API_KEY = 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
 const SARVAM_TTS_URL = 'https://api.sarvam.ai/text-to-speech';
-const SARVAM_SPEAKER = 'amol';   // Male, conversational Hindi — closest to Mukund's voice
-const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
 
-// ElevenLabs (secondary fallback)
-export const ELEVENLABS_API_KEY  = 'sk_e1dc620d37ddec3a3b798d2936f392820043824d89e085ca';
-export const ELEVENLABS_VOICE_ID = 'DQuoFsZ3oda1diTerwpq'; // Aaditya Kapur — Calm Conversational Hindi
-
-const TTS_URL = (id) => `https://api.elevenlabs.io/v1/text-to-speech/${id}`;
-
-// Module-level AudioContext — created once, reused for all playback
+// Web Audio API context — unlocked at user gesture time via primeAudio()
 let _ctx       = null;
 let _curSource = null;
 
 function getCtx() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
-  if (!_ctx || _ctx.state === 'closed') {
-    _ctx = new AC();
-  }
-  if (_ctx.state === 'suspended') {
-    _ctx.resume().catch(() => {});
-  }
+  if (!_ctx || _ctx.state === 'closed') _ctx = new AC();
+  if (_ctx.state === 'suspended') _ctx.resume().catch(() => {});
   return _ctx;
 }
 
-/**
- * primeAudio — call on ANY user gesture (button tap, voice toggle) to
- * unlock the AudioContext so ElevenLabs playback works even seconds later.
- */
 export function primeAudio() {
   try {
     const ctx = getCtx();
     if (!ctx) return;
-    // Play a 0-sample silent buffer to fully unlock the context
     const buf = ctx.createBuffer(1, 1, 22050);
     const src = ctx.createBufferSource();
     src.buffer = buf;
@@ -62,121 +37,88 @@ export function stopSpeaking() {
   try { window.speechSynthesis?.cancel(); } catch {}
 }
 
-// ── Tier 2: browser SpeechSynthesis ──────────────────────────────────────────
+// ── Tier 2: SpeechSynthesis ───────────────────────────────────────────────────
 function fallbackSpeak(text) {
   try {
     if (!window.speechSynthesis || !text?.trim()) return;
     window.speechSynthesis.cancel();
-
     const speak = () => {
       const utt  = new SpeechSynthesisUtterance(text);
       utt.lang   = 'hi-IN';
       utt.rate   = 0.85;
-      utt.pitch  = 0.6;  // noticeably lower = more male-sounding
+      utt.pitch  = 0.6;
       utt.volume = 1;
-
       const voices      = window.speechSynthesis.getVoices();
       const hindiVoices = voices.filter(v => v.lang?.startsWith('hi'));
-      // Priority: explicit male > any Hindi > default
-      const maleHindi = hindiVoices.find(v => /male|man|पुरुष/i.test(v.name));
+      const maleHindi   = hindiVoices.find(v => /male|man|पुरुष/i.test(v.name));
       if (maleHindi)           utt.voice = maleHindi;
       else if (hindiVoices[0]) utt.voice = hindiVoices[0];
-
       window.speechSynthesis.speak(utt);
     };
-
-    // Voices may not be loaded yet on first call — wait for them
     if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => { speak(); };
+      window.speechSynthesis.onvoiceschanged = speak;
     } else {
       speak();
     }
   } catch {}
 }
 
-// ── Shared: play an ArrayBuffer via Web Audio API ────────────────────────────
-async function playArrayBuffer(arrayBuffer) {
-  const ctx = getCtx();
-  if (!ctx) throw new Error('no_audio_context');
-  const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
-  const src         = ctx.createBufferSource();
-  src.buffer        = audioBuffer;
-  src.connect(ctx.destination);
-  src.start(0);
-  src.onended = () => { if (_curSource === src) _curSource = null; };
-  _curSource = src;
-}
-
-// ── Tier 1: Sarvam TTS ───────────────────────────────────────────────────────
+// ── Tier 1: Sarvam TTS ────────────────────────────────────────────────────────
 async function sarvamSpeak(text) {
+  // Sarvam accepts up to ~500 chars per request — trim if needed
+  const input = text.trim().slice(0, 500);
+  if (!input) return;
+
   const res = await fetch(SARVAM_TTS_URL, {
     method:  'POST',
     headers: {
       'api-subscription-key': SARVAM_API_KEY,
-      'Content-Type': 'application/json',
+      'Content-Type':         'application/json',
     },
     body: JSON.stringify({
-      inputs:               [text],
+      inputs:               [input],
       target_language_code: 'hi-IN',
-      speaker:              SARVAM_SPEAKER,
+      speaker:              'amol',   // warm male Hindi voice
       pitch:                0,
-      pace:                 1.0,
+      pace:                 0.9,
       loudness:             1.5,
       speech_sample_rate:   22050,
       enable_preprocessing: true,
       model:                'bulbul:v1',
     }),
   });
-  if (!res.ok) throw new Error(`sarvam_tts_${res.status}`);
-  const data = await res.json();
-  // Sarvam returns base64-encoded WAV in data.audios[0]
-  const b64  = data.audios?.[0];
-  if (!b64) throw new Error('sarvam_tts_empty');
-  const binary = atob(b64);
+
+  if (!res.ok) throw new Error(`sarvam_${res.status}`);
+
+  const data      = await res.json();
+  const b64Audio  = data.audios?.[0];
+  if (!b64Audio) throw new Error('sarvam_no_audio');
+
+  // Decode base64 → ArrayBuffer → Web Audio (bypasses autoplay restrictions)
+  const binary = atob(b64Audio);
   const bytes  = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  await playArrayBuffer(bytes.buffer);
+
+  const ctx = getCtx();
+  if (!ctx) throw new Error('no_audio_context');
+
+  const audioBuffer = await ctx.decodeAudioData(bytes.buffer.slice(0));
+  const source      = ctx.createBufferSource();
+  source.buffer     = audioBuffer;
+  source.connect(ctx.destination);
+  source.start(0);
+  source.onended = () => { if (_curSource === source) _curSource = null; };
+  _curSource = source;
 }
 
-// ── Tier 2: ElevenLabs TTS ───────────────────────────────────────────────────
-async function elevenLabsSpeak(text) {
-  if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes('REPLACE')) {
-    throw new Error('no_elevenlabs_key');
-  }
-  const res = await fetch(TTS_URL(ELEVENLABS_VOICE_ID), {
-    method:  'POST',
-    headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
-    body:    JSON.stringify({
-      text,
-      model_id:       'eleven_multilingual_v2',
-      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-    }),
-  });
-  if (!res.ok) throw new Error(`elevenlabs_${res.status}`);
-  await playArrayBuffer(await res.arrayBuffer());
-}
-
-// ── Main: Sarvam → ElevenLabs → browser SpeechSynthesis ─────────────────────
+// ── Main export ───────────────────────────────────────────────────────────────
 export async function speakMukund(text) {
   if (!text?.trim()) return;
   stopSpeaking();
-
-  // Tier 1: Sarvam (native Indian language TTS)
   try {
     await sarvamSpeak(text);
-    return;
   } catch (err) {
-    console.warn('[tts] Sarvam failed, trying ElevenLabs:', err.message);
+    console.warn('[tts] Sarvam failed, using SpeechSynthesis:', err.message);
+    fallbackSpeak(text);
   }
-
-  // Tier 2: ElevenLabs
-  try {
-    await elevenLabsSpeak(text);
-    return;
-  } catch (err) {
-    console.warn('[tts] ElevenLabs failed, using SpeechSynthesis:', err.message);
-  }
-
-  // Tier 3: browser SpeechSynthesis
-  fallbackSpeak(text);
 }
