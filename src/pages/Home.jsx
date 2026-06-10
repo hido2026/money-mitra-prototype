@@ -1,163 +1,205 @@
-// Home — two tools only: Ghar ka Munshi (Decoder) + बही (Passbook).
-// Products NOT on home — per brief B: reveal only after habit forms.
-// Tap Mukund portrait 5× to open dev panel.
+// Home — Finance hub v2.
+// समझो (purple hero) + कागज़ समझें (full-width white tile) only.
+// No बही / Passbook. No balance bubble. Human-face avatar (avatar.jpg) throughout.
+// Mukund's bill-memory bubble replaces the old balance/goal nudge.
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PortraitAvatar from '../components/PortraitAvatar';
-import DevPanel from '../components/DevPanel';
-import { useApp } from '../context/AppContext';
-import { Events, logEvent } from '../engine/instrumentation';
-import { computeMorningSummary } from '../engine/summary';
-import { computeInsight } from '../engine/insights';
-import { IcBookOpen, IcCamera, IcBulb } from '../components/icons/Icons';
-import { VOICE_CONFIG } from '../config/app-config';
-// speakMukund removed from home — TTS is embedded inside समझो and insight flows, not home buttons
+import BottomInputBar from '../components/BottomInputBar';
+import { IcBulb, IcCamera } from '../components/icons/Icons';
 
-const f = n => (n < 0 ? '-' : '') + '₹' + Math.abs(Math.round(n)).toLocaleString('en-IN');
+const AVATAR = `${import.meta.env.BASE_URL}assets/avatar.jpg`;
+
+// Round avatar with optional presence dot
+function HumanAvatar({ size = 44, presence = false, ring = false }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <div style={{
+        width: size, height: size, borderRadius: '50%', overflow: 'hidden',
+        background: '#EEEDFE',
+        outline: ring ? '2px solid #e4dbff' : 'none',
+        outlineOffset: ring ? '2px' : '0',
+        boxSizing: 'border-box',
+      }}>
+        {err ? (
+          <div style={{
+            width: '100%', height: '100%', background: '#6d17ce',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 700, fontSize: size * 0.36,
+          }}>H</div>
+        ) : (
+          <img
+            src={AVATAR}
+            alt="Himen"
+            loading="eager"
+            onError={() => setErr(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+          />
+        )}
+      </div>
+      {presence && (
+        <div style={{
+          position: 'absolute', bottom: 1, right: 1,
+          width: size >= 44 ? 13 : 11,
+          height: size >= 44 ? 13 : 11,
+          borderRadius: '50%', background: '#25ab21',
+          border: '2.5px solid #fff', boxSizing: 'border-box', zIndex: 2,
+        }} />
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const nav = useNavigate();
-  const { state, dispatch } = useApp();
-  const { entries, goals, balance } = state;
 
   const user = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); }
     catch { return {}; }
   }, []);
 
-  const summary = useMemo(() => computeMorningSummary(entries, goals, balance), [entries, goals, balance]);
-
-  // Pattern insight — derived value, computed synchronously on every render.
-  // useMemo (not useState+useEffect) so it is NEVER null after a navigation remount:
-  //   - useState resets to null on remount; effect fires async → bubble disappears briefly
-  //   - useMemo runs synchronously before paint, always reflects current state
-  // Deps include sessionDecodes so a fresh decode on return also updates the bubble.
-  const pattern = useMemo(
-    () => computeInsight(state, null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [entries, goals, balance, state.sessionDecodes],
-  );
-
-  // Analytics — fire once per distinct insight type shown, not on every render.
-  const lastLoggedType = useRef(null);
-  useEffect(() => {
-    if (!pattern || pattern.type === lastLoggedType.current) return;
-    lastLoggedType.current = pattern.type;
-    if (pattern.type === 'goal_pacing') {
-      logEvent('goal_pacing_insight_shown', { flow: 'home', had_goal: true });
-    } else if (pattern.type === 'biggest_mover') {
-      logEvent('spending_pattern_insight_shown', { flow: 'home', had_goal: pattern.had_goal });
-    } else {
-      logEvent('insight_shown', { flow: 'home', insight_type: pattern.type, had_goal: pattern.had_goal });
-    }
-  }, [pattern]);
-
-  // Dev panel: tap portrait 5×
-  const tapCount = useRef(0);
-  const tapTimer = useRef(null);
-  const [showDev, setShowDev] = useState(false);
-  const onPortraitTap = () => {
-    tapCount.current += 1;
-    clearTimeout(tapTimer.current);
-    tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 1200);
-    if (tapCount.current >= 5) { tapCount.current = 0; setShowDev(true); }
-  };
-
-  useEffect(() => {
-    Events.appOpened({ flow: 'home' });
-    if (summary) Events.summarySeen({ flow: 'home' });
-  }, []);
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto', padding: '0 0 28px' }}>
-      {showDev && <DevPanel onClose={() => setShowDev(false)} dispatch={dispatch} />}
+    <div style={{
+      display: 'flex', flexDirection: 'column', minHeight: '100dvh',
+      background: '#f6f5fb', maxWidth: '420px', margin: '0 auto',
+    }}>
+      {/* Scrollable body */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 0 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px 16px 4px' }}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '28px 22px 16px' }}>
-        <div onClick={onPortraitTap} style={{ cursor: 'default' }}>
-          <PortraitAvatar size={48} online ringed />
-        </div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '20px', fontWeight: 700, color: '#2C2C2A', lineHeight: 1.25 }}>
-          नमस्ते{user.name ? `, ${user.name}` : ''}!
-        </div>
-      </div>
+          {/* Greeting — human face */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              aria-label="Back"
+              onClick={() => (window.location.href = '/')}
+              style={{
+                width: 36, height: 36, borderRadius: '50%', background: '#fff',
+                border: 'none', cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={18} height={18}>
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <HumanAvatar size={46} presence ring />
+            <h1 style={{
+              fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+              fontSize: '22px', fontWeight: 900, color: '#1a1a1a',
+              margin: 0, letterSpacing: '-0.3px',
+            }}>
+              नमस्ते, {user.name || 'Himen'}!
+            </h1>
+          </div>
 
-      {/* Single Mukund voice card — one avatar, goal-first, insight threaded below.
-          Fixes: two-avatar confusion, two सुनिए buttons, spending-before-goal framing. */}
-      <div style={{ padding: '0 20px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-          <PortraitAvatar size={32} online={false} ringed={false} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ background: '#EEEDFE', borderRadius: '4px 16px 12px 16px', padding: '12px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', marginBottom: pattern ? '5px' : 0 }}>
-              {summary ?? `${VOICE_CONFIG.persona_name} यहाँ है — पैसों में मदद के लिए।`}
+          {/* Mukund's bill-memory bubble */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <HumanAvatar size={36} />
+            <p style={{
+              background: '#f0e8fa', borderRadius: '4px 16px 16px 16px',
+              padding: '12px 16px', margin: 0,
+              fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+              fontSize: '14px', lineHeight: 1.6, color: '#1a1a1a', maxWidth: '85%',
+            }}>
+              पिछला बिजली बिल{' '}
+              <span style={{ fontWeight: 700, color: '#6d17ce' }}>₹1,240</span>{' '}
+              था। नया बिल आया हो तो फ़ोटो दिखाइए — बढ़ा क्यों, समझा दूँगा।
+            </p>
+          </div>
+
+          {/* समझो — purple hero tile */}
+          <button
+            type="button"
+            onClick={() => nav('/samjho-entry')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '16px',
+              padding: '18px', width: '100%', boxSizing: 'border-box',
+              background: 'linear-gradient(135deg, #6d17ce 0%, #5a12ab 100%)',
+              border: 'none', borderRadius: '20px', cursor: 'pointer', textAlign: 'left',
+              boxShadow: '0 6px 24px rgba(109,23,206,0.25)',
+            }}
+          >
+            <div style={{
+              width: 48, height: 48, borderRadius: '14px', flexShrink: 0,
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <IcBulb size={24} color="#fff" />
             </div>
-            {pattern && (
-              <div style={{ background: '#FFFBEA', borderRadius: '12px 16px 16px 4px', padding: '10px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', lineHeight: 1.5, color: '#2C2C2A', borderLeft: '3px solid #F5C842' }}>
-                💡 {pattern.text}
-              </div>
-            )}
-          </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+                fontSize: '18px', fontWeight: 800, color: '#fff', lineHeight: 1.2,
+              }}>समझो</div>
+              <div style={{
+                fontFamily: "'JioType',sans-serif",
+                fontSize: '11px', color: 'rgba(255,255,255,0.85)', marginTop: '3px',
+              }}>पैसे कटे · सरकारी योजना · बेटी के लिए बचत</div>
+              <div style={{
+                fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+                fontSize: '13px', color: 'rgba(255,255,255,0.9)', marginTop: '6px',
+              }}>कुछ भी पूछो — मुकुंद बताएगा</div>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={20} height={20} style={{ flexShrink: 0 }}>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          {/* कागज़ समझें — full-width white tile */}
+          <button
+            type="button"
+            onClick={() => nav('/decoder')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '16px',
+              padding: '18px', width: '100%', boxSizing: 'border-box',
+              background: '#fff', border: 'none', borderRadius: '20px',
+              cursor: 'pointer', textAlign: 'left',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+          >
+            <div style={{
+              width: 48, height: 48, borderRadius: '14px', flexShrink: 0,
+              background: '#f0e8fa',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <IcCamera size={24} color="#6d17ce" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+                fontSize: '16px', fontWeight: 700, color: '#6d17ce', lineHeight: 1.2,
+              }}>कागज़ समझें</div>
+              <div style={{
+                fontFamily: "'JioType',sans-serif",
+                fontSize: '11px', color: '#888780', marginTop: '3px',
+              }}>Ghar ka Munshi · Document Decoder</div>
+              <div style={{
+                fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+                fontSize: '13px', color: '#444', marginTop: '6px',
+              }}>बिल की फ़ोटो लें — मैं समझा दूँगा</div>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={20} height={20} style={{ flexShrink: 0 }}>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          <p style={{
+            fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
+            fontSize: '12px', color: '#b0adb8', textAlign: 'center', margin: '4px 0 0',
+          }}>
+            और सेवाएँ — जल्द आ रही हैं
+          </p>
         </div>
       </div>
 
-      {/* ── समझो hero card — solid purple, white text, clear primary CTA.
-          Research finding: light purple blends in; solid #534AB7 reads as THE action.
-          Competitive finding: Groww never puts education before action — समझो IS the action. */}
-      <div style={{ padding: '0 20px 12px' }}>
-        <button onClick={() => nav('/samjho-entry')} style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
-          padding: '16px 18px', background: '#534AB7',
-          border: 'none', borderRadius: '18px',
-          cursor: 'pointer', textAlign: 'left',
-        }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <IcBulb size={22} color="#FFFFFF" />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.2 }}>समझो</div>
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>पैसे कटे · सरकारी योजना · बेटी के लिए बचत</div>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.9)', marginTop: '5px' }}>कुछ भी पूछो — मुकुंद बताएगा</div>
-          </div>
-          <div style={{ flexShrink: 0, fontFamily: "'JioType',sans-serif", fontSize: '20px', color: 'rgba(255,255,255,0.7)' }}>›</div>
-        </button>
-      </div>
-
-      {/* ── कागज़ समझें + बही (secondary row) ── */}
-      <div style={{ display: 'flex', gap: '12px', padding: '0 20px' }}>
-        <button onClick={() => nav('/decoder')} style={cardStyle('#EEEDFE')}>
-          <div style={iconBox('#EEEDFE')}><IcCamera size={22} color="#534AB7" /></div>
-          <div style={cardTitle('#534AB7')}>कागज़ समझें</div>
-          <div style={cardSub}>Ghar ka Munshi</div>
-          <div style={cardHint}>बिल की फ़ोटो लें</div>
-        </button>
-
-        <button onClick={() => nav('/passbook')} style={cardStyle('#EAF3DE')}>
-          <div style={iconBox('#EAF3DE')}><IcBookOpen size={22} color="#3B6D11" /></div>
-          <div style={cardTitle('#3B6D11')}>बही</div>
-          <div style={cardSub}>Money Passbook</div>
-          {entries.length > 0 && (
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '13px', color: balance < 0 ? '#D85A30' : '#3B6D11', fontWeight: 700, marginTop: '6px' }}>
-              {f(balance)}
-            </div>
-          )}
-        </button>
-      </div>
-
-      <div style={{ flex: 1 }} />
-      <div style={{ textAlign: 'center', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#C0BFBC' }}>
-        और सेवाएँ — जल्द आ रही हैं
-      </div>
+      {/* Bottom chat input */}
+      <BottomInputBar
+        onSubmit={(text) => nav('/chat', { state: { initialMessage: text } })}
+        onSpeak={() => nav('/chat')}
+        onPlus={() => nav('/decoder')}
+      />
     </div>
   );
 }
-
-const cardStyle = (border) => ({
-  flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-  padding: '16px 14px', background: '#FFFFFF', border: `1.5px solid ${border}`,
-  borderRadius: '18px', cursor: 'pointer', textAlign: 'left', minHeight: '120px',
-});
-const iconBox = (bg) => ({ width: '40px', height: '40px', borderRadius: '12px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' });
-const cardTitle = (c) => ({ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 700, color: c, lineHeight: 1.2 });
-const cardSub  = { fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', marginTop: '2px' };
-const cardHint = { fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '11px', color: '#888780', marginTop: '4px' };
