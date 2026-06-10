@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          node-version-file: ""
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -37,13 +39,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Set VITE_ANTHROPIC_API_KEY in repo Settings → Secrets → Actions
-          # to enable live Claude API calls in the deployed prototype.
-          # Without it the app uses v2-faithful mock responses (safe for sharing).
+          # Set VITE_GROQ_API_KEY in repo Settings → Secrets → Actions
+          # to enable live Groq/Claude API calls in the deployed prototype.
           VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
