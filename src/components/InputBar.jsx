@@ -1,7 +1,8 @@
-// InputBar — text input primary, mic icon secondary (voice Phase 2)
-// Text input auto-focused on load.
+// InputBar — text input + WORKING mic (Web Speech primary, Sarvam STT fallback).
+// Text input auto-focused on load. Tap mic → speak → transcript is sent.
 
 import { useState, useRef, useEffect } from 'react';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 
 const IcMic = () => (
   <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -12,22 +13,47 @@ const IcMic = () => (
   </svg>
 );
 
+const IcStop = () => (
+  <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+    <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+  </svg>
+);
+
 const IcSend = () => (
   <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
   </svg>
 );
 
-export default function InputBar({ onSend, disabled }) {
+export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
   const [text, setText] = useState('');
-  const [voiceTip, setVoiceTip] = useState(false);
   const inputRef = useRef(null);
+
+  // ── Voice input — Web Speech (Chrome/Safari) → Sarvam STT fallback ──────────
+  const { status: voiceStatus, toggle: toggleVoice } = useVoiceInput({
+    onResult: (transcript) => {
+      const t = (transcript || '').trim();
+      if (t) onSend(t);
+    },
+  });
+  const isRecording  = voiceStatus === 'recording';
+  const isProcessing = voiceStatus === 'processing';
 
   // Auto-focus on load so cursor is immediately visible
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 100);
     return () => clearTimeout(t);
   }, []);
+
+  // If we arrived here from the home "बोलिए" button, start recording once.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartVoice && !autoStartedRef.current) {
+      autoStartedRef.current = true;
+      const t = setTimeout(() => toggleVoice(), 350);
+      return () => clearTimeout(t);
+    }
+  }, [autoStartVoice, toggleVoice]);
 
   const handleSubmit = () => {
     const trimmed = text.trim();
@@ -43,6 +69,16 @@ export default function InputBar({ onSend, disabled }) {
       handleSubmit();
     }
   };
+
+  // Mic button appearance reflects live voice status
+  const micBg =
+    isRecording  ? '#8B2C2C' :
+    isProcessing ? 'rgba(139,44,44,0.12)' :
+    'transparent';
+  const micColor =
+    isRecording  ? '#fff' :
+    isProcessing ? '#8B2C2C' :
+    '#8B2C2C';
 
   return (
     <div style={{
@@ -69,7 +105,7 @@ export default function InputBar({ onSend, disabled }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Kuch poochhiye Mukund se…"
+          placeholder={isRecording ? 'सुन रहा हूँ… बोलिए' : isProcessing ? 'समझ रहा हूँ…' : 'Kuch poochhiye Mukund se…'}
           disabled={disabled}
           style={{
             flex: 1,
@@ -83,59 +119,29 @@ export default function InputBar({ onSend, disabled }) {
           }}
         />
 
-        {/* Mic — secondary, greyed out with "Coming soon" tooltip */}
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <button
-            onClick={() => { setVoiceTip(true); setTimeout(() => setVoiceTip(false), 2500); }}
-            title="Voice jald aa raha hai"
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              border: '1.5px solid rgba(139,44,44,0.18)',
-              background: 'transparent',
-              color: 'rgba(139,44,44,0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,44,44,0.06)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <IcMic />
-          </button>
-
-          {/* Tooltip on tap */}
-          {voiceTip && (
-            <div style={{
-              position: 'absolute',
-              bottom: 'calc(100% + 8px)',
-              right: 0,
-              background: '#1F1F1F',
-              color: '#fff',
-              fontFamily: "'JioType', sans-serif",
-              fontSize: '12px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              zIndex: 20,
-            }}>
-              Voice jald aa raha hai
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: '14px',
-                borderLeft: '5px solid transparent',
-                borderRight: '5px solid transparent',
-                borderTop: '5px solid #1F1F1F',
-              }} />
-            </div>
-          )}
-        </div>
+        {/* Mic — WORKING. Tap to record, tap again to stop. */}
+        <button
+          onClick={toggleVoice}
+          aria-label={isRecording ? 'Stop recording' : 'Speak'}
+          title={isRecording ? 'बंद करें' : 'बोलिए'}
+          className={isRecording ? 'mic-recording' : ''}
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            border: isRecording ? 'none' : '1.5px solid rgba(139,44,44,0.28)',
+            background: micBg,
+            color: micColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+            transition: 'background 0.15s',
+          }}
+        >
+          {isRecording ? <IcStop /> : <IcMic />}
+        </button>
 
         {/* Send — only visible when there's text */}
         {text.trim() && (

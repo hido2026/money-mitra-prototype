@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Groq from 'groq-sdk';
 import { MUKUND_PROMPT } from '../config/system-prompts.js';
 import TopBar from '../components/TopBar';
@@ -40,6 +41,8 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const bottomRef = useRef(null);
+  const location = useLocation();
+  const autoSentRef = useRef(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -108,6 +111,17 @@ export default function Chat() {
       setIsStreaming(false); // triggers the useEffect above which calls speakMukund
     }
   };
+
+  // Auto-send a message passed from the home screen's text box (initialMessage).
+  // Guard prevents StrictMode's double-effect from sending twice.
+  useEffect(() => {
+    const init = location.state?.initialMessage;
+    if (init && !autoSentRef.current) {
+      autoSentRef.current = true;
+      sendMessage(init);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isEmpty = messages.length === 0;
 
@@ -179,9 +193,9 @@ export default function Chat() {
                 width: '100%',
               }}>
                 {[
-                  'SIP kya hai?',
-                  'Beti ki college ke liye plan banao',
-                  'Yeh message scam hai kya?',
+                  'Sarkari yojana ka paisa aaya ya nahi?',
+                  'Mere paise kat gaye — ab kya karu?',
+                  'Beti ke liye sabse achhi bachat kaun si?',
                 ].map((pill) => (
                   <button
                     key={pill}
@@ -240,7 +254,7 @@ export default function Chat() {
         </div>
       </div>
 
-      <InputBar onSend={sendMessage} disabled={isStreaming} />
+      <InputBar onSend={sendMessage} disabled={isStreaming} autoStartVoice={location.state?.autoVoice} />
     </div>
   );
 }

@@ -109,10 +109,10 @@ export default function Home() {
             </p>
           </div>
 
-          {/* समझो — purple hero tile */}
+          {/* समझो — purple hero tile → live Mukund chat */}
           <button
             type="button"
-            onClick={() => nav('/samjho-entry')}
+            onClick={() => nav('/chat')}
             style={{
               display: 'flex', alignItems: 'center', gap: '16px',
               padding: '18px', width: '100%', boxSizing: 'border-box',
@@ -197,7 +197,7 @@ export default function Home() {
       {/* Bottom chat input */}
       <BottomInputBar
         onSubmit={(text) => nav('/chat', { state: { initialMessage: text } })}
-        onSpeak={() => nav('/chat')}
+        onSpeak={() => nav('/chat', { state: { autoVoice: true } })}
         onPlus={() => nav('/decoder')}
       />
     </div>

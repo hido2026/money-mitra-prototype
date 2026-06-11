@@ -1,72 +1,130 @@
-// tts.js — SpeechSynthesis with voice availability detection.
+// tts.js — Mukund's voice.
 //
-// Key insight: setting lang='hi-IN' when no Hindi voice is installed
-// causes Chrome to silently queue but never play the utterance.
-// Fix: only set lang/voice if a compatible voice exists; otherwise
-// speak with default voice (any voice is better than silence).
+// PRIMARY: Sarvam AI TTS (bulbul:v2, male speaker "abhilash") → returns base64
+//          WAV, played via an <audio> element. Works on EVERY device (incl. Macs
+//          with no Hindi voice installed) and Sarvam allows browser CORS.
+// FALLBACK: browser SpeechSynthesis — only used if Sarvam fails (network/quota).
+//
+// All callers use speakMukund(text) / stopSpeaking() / primeAudio() — unchanged.
 
-export function primeAudio() {}
-export function stopSpeaking() {
-  try { window.speechSynthesis?.cancel(); } catch {}
+const SARVAM_API_KEY =
+  import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
+const SARVAM_TTS_URL = 'https://api.sarvam.ai/text-to-speech';
+const SPEAKER        = 'abhilash';   // calm male Hindi voice
+const MODEL          = 'bulbul:v2';
+
+let currentAudio   = null;   // the <audio> element currently playing
+let audioUnlocked  = false;  // becomes true after the first user gesture
+
+// ── primeAudio — call inside a user gesture (tap) so later programmatic
+//    .play() is permitted by the browser's autoplay policy. ──────────────────
+export function primeAudio() {
+  if (audioUnlocked) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) {
+      const ctx = new Ctx();
+      ctx.resume?.();
+      ctx.close?.();
+    }
+    audioUnlocked = true;
+  } catch { /* non-fatal */ }
 }
 
-export function speakMukund(text) {
-  if (!text?.trim() || !window.speechSynthesis) {
-    showNoVoiceToast();
+export function stopSpeaking() {
+  try { window.speechSynthesis?.cancel(); } catch {}
+  try {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = '';
+      currentAudio = null;
+    }
+  } catch {}
+}
+
+// ── speakMukund — Sarvam first, browser fallback ─────────────────────────────
+export async function speakMukund(text) {
+  const clean = (text || '').trim();
+  if (!clean) return;
+
+  stopSpeaking();
+
+  try {
+    const res = await fetch(SARVAM_TTS_URL, {
+      method:  'POST',
+      headers: {
+        'api-subscription-key': SARVAM_API_KEY,
+        'Content-Type':         'application/json',
+      },
+      // Mukund's replies are capped ~80 words; one segment (<500 chars) is plenty.
+      body: JSON.stringify({
+        inputs:               [clean.slice(0, 480)],
+        target_language_code: 'hi-IN',
+        speaker:              SPEAKER,
+        model:                MODEL,
+        speech_sample_rate:   22050,
+      }),
+    });
+
+    if (!res.ok) throw new Error(`sarvam_${res.status}`);
+
+    const data = await res.json();
+    const b64  = data?.audios?.[0];
+    if (!b64) throw new Error('sarvam_empty');
+
+    const audio  = new Audio(`data:audio/wav;base64,${b64}`);
+    currentAudio = audio;
+    audio.onended = () => { if (currentAudio === audio) currentAudio = null; };
+
+    // .play() returns a promise that rejects if the browser blocks autoplay.
+    // After any prior tap on the page it's allowed; the 🔊 button is always a
+    // direct gesture so it always works.
+    await audio.play();
     return;
+  } catch (err) {
+    console.warn('[tts] Sarvam failed → browser fallback:', err?.message || err);
+    browserSpeak(clean);
   }
+}
+
+// ── Fallback: browser SpeechSynthesis (silent on Macs w/o Hindi voice) ───────
+function browserSpeak(text) {
+  if (!window.speechSynthesis) { showNoVoiceToast(); return; }
 
   const doSpeak = () => {
     window.speechSynthesis.cancel();
+    const utt  = new SpeechSynthesisUtterance(text);
+    utt.rate   = 0.9;
+    utt.volume = 1;
 
-    const utt    = new SpeechSynthesisUtterance(text.trim());
-    utt.rate     = 0.85;
-    utt.volume   = 1;
-
-    const voices      = window.speechSynthesis.getVoices();
-    const hindiVoice  = voices.find(v => v.lang?.startsWith('hi'));
-    const anyVoice    = voices[0];
-
-    if (hindiVoice) {
-      utt.voice = hindiVoice;
-      utt.lang  = 'hi-IN';
-    } else if (anyVoice) {
-      // No Hindi voice — use default voice without restricting lang
-      utt.voice = anyVoice;
-      // Don't set lang; letting it default avoids silent-fail
-    }
-    // If no voices at all, just speak with no voice set (browser picks)
+    const voices     = window.speechSynthesis.getVoices();
+    const hindiVoice = voices.find(v => v.lang?.startsWith('hi'));
+    if (hindiVoice) { utt.voice = hindiVoice; utt.lang = 'hi-IN'; }
+    else if (voices[0]) { utt.voice = voices[0]; }   // don't force hi-IN → avoids silent-fail
 
     let started = false;
     utt.onstart = () => { started = true; };
-
-    // If speech hasn't started within 1s, it silently failed
-    setTimeout(() => {
-      if (!started) showNoVoiceToast();
-    }, 1000);
+    setTimeout(() => { if (!started) showNoVoiceToast(); }, 1200);
 
     window.speechSynthesis.speak(utt);
   };
 
-  // Voices list may not be populated yet on first call
   if (window.speechSynthesis.getVoices().length === 0) {
-    const onLoaded = () => {
+    window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.onvoiceschanged = null;
       doSpeak();
     };
-    window.speechSynthesis.onvoiceschanged = onLoaded;
-    setTimeout(doSpeak, 800); // safety fallback
+    setTimeout(doSpeak, 800);
   } else {
     doSpeak();
   }
 }
 
-// Show a brief toast explaining voice isn't available
 function showNoVoiceToast() {
-  if (document.getElementById('tts-toast')) return; // don't stack
+  if (document.getElementById('tts-toast')) return;
   const toast = document.createElement('div');
   toast.id = 'tts-toast';
-  toast.textContent = '🔇 आवाज़ नहीं — Mac पर Hindi TTS install नहीं है';
+  toast.textContent = '🔇 आवाज़ अभी उपलब्ध नहीं — दोबारा कोशिश करें';
   Object.assign(toast.style, {
     position: 'fixed', bottom: '96px', left: '50%',
     transform: 'translateX(-50%)',
