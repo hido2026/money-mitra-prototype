@@ -1,22 +1,24 @@
-// useVoiceInput — speech-to-text with two-tier fallback:
+// useVoiceInput — speech-to-text via Sarvam AI.
 //
-//  Tier 1: Web Speech API (webkitSpeechRecognition / SpeechRecognition)
-//          → native iOS Safari + Chrome, no API key, instant, reliable
-//  Tier 2: MediaRecorder → Sarvam AI STT
-//          → fallback when Web Speech unavailable (some Android browsers)
+// We record mic audio with MediaRecorder, decode it with the Web Audio API,
+// re-encode to a clean mono 16-bit WAV in the browser, and POST it to Sarvam's
+// speech-to-text endpoint. This is reliable on EVERY browser.
 //
-// The button in BottomInputBar reflects voiceStatus at all times.
+// Why not the browser's webkitSpeechRecognition? It is silently broken on
+// desktop Safari (mic activates but no transcript is ever returned). Sarvam STT
+// works uniformly on Safari, Chrome, Android, and iOS — and CORS is open.
 
 import { useState, useRef } from 'react';
 import { primeAudio } from '../utils/tts';
 
-// ── Sarvam (Tier 2 only) ──────────────────────────────────────────────────────
 export const SARVAM_API_KEY =
   import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
 
-const SARVAM_STT_URL = 'https://api.sarvam.ai/speech-to-text-translate';
+const SARVAM_STT_URL = 'https://api.sarvam.ai/speech-to-text';
+const SARVAM_MODEL   = 'saarika:v2.5';
+const MAX_RECORD_MS  = 7000;   // auto-stop so users don't have to find the button
 
-// ── Hindi number / category parsers (unchanged) ───────────────────────────────
+// ── Hindi number / category parsers (unchanged — used by Passbook) ────────────
 
 const UNITS = {
   'शून्य':0,'एक':1,'दो':2,'तीन':3,'चार':4,'पाँच':5,'पांच':5,
@@ -81,21 +83,60 @@ export function parseHindiSource(text) {
   return null;
 }
 
-// ── Tier 1: Web Speech API ────────────────────────────────────────────────────
-
-function hasWebSpeech() {
-  return typeof window !== 'undefined' &&
-    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-}
-
-// ── Tier 2: MediaRecorder → Sarvam ───────────────────────────────────────────
+// ── Audio helpers ─────────────────────────────────────────────────────────────
 
 function getSupportedMimeType() {
-  if (typeof MediaRecorder === 'undefined') return null;
+  if (typeof MediaRecorder === 'undefined') return '';
   for (const t of ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/mpeg','audio/ogg']) {
     try { if (MediaRecorder.isTypeSupported(t)) return t; } catch {}
   }
   return '';
+}
+
+// Decode the recorded blob (webm/opus on Chrome, mp4/aac on Safari) and
+// re-encode to a mono 16-bit PCM WAV that Sarvam accepts everywhere.
+async function blobToWav(blob) {
+  const arrayBuf = await blob.arrayBuffer();
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  let audioBuf;
+  try {
+    audioBuf = await ctx.decodeAudioData(arrayBuf);
+  } finally {
+    try { ctx.close?.(); } catch {}
+  }
+  return encodeWav(audioBuf);
+}
+
+function encodeWav(audioBuffer) {
+  const sampleRate = audioBuffer.sampleRate;
+  const data = audioBuffer.getChannelData(0); // mono (first channel)
+  const len  = data.length;
+  const buf  = new ArrayBuffer(44 + len * 2);
+  const view = new DataView(buf);
+  const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + len * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);          // PCM chunk size
+  view.setUint16(20, 1, true);           // PCM format
+  view.setUint16(22, 1, true);           // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); // byte rate
+  view.setUint16(32, 2, true);           // block align
+  view.setUint16(34, 16, true);          // bits per sample
+  writeStr(36, 'data');
+  view.setUint32(40, len * 2, true);
+
+  let off = 44;
+  for (let i = 0; i < len; i++) {
+    const s = Math.max(-1, Math.min(1, data[i]));
+    view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    off += 2;
+  }
+  return new Blob([view], { type: 'audio/wav' });
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -104,162 +145,58 @@ function getSupportedMimeType() {
  * useVoiceInput
  * @param {{ onResult: (transcript: string) => void }} opts
  * @returns {{ status, transcript, toggle }}
- *
  * status: 'idle'|'recording'|'processing'|'done'|'error'|'no_mic'
  */
 export function useVoiceInput({ onResult }) {
   const [status,     setStatus]     = useState('idle');
   const [transcript, setTranscript] = useState('');
 
-  // Tier 2 refs
   const mrRef     = useRef(null);
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
+  const mimeRef   = useRef('');
   const timerRef  = useRef(null);
-  // Tier 1 refs
-  const srRef      = useRef(null);
-  const interimRef = useRef(''); // latest interim transcript (captured as you speak)
 
-  const stopAll = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    try { mrRef.current?.state === 'recording' && mrRef.current.stop(); } catch {}
-    try { srRef.current?.stop(); } catch {}
-    try { streamRef.current?.getTracks().forEach(t => t.stop()); } catch {}
+  const stopRecorder = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    try { if (mrRef.current?.state === 'recording') mrRef.current.stop(); } catch {}
   };
 
   const toggle = async () => {
-    // Prime AudioContext at tap time (user gesture) so ElevenLabs playback
-    // works even after the async API delay — must be called synchronously here
-    primeAudio();
+    primeAudio(); // unlock audio for Mukund's voice reply (same user gesture)
 
-    if (status === 'recording') { stopAll(); return; }
+    // Second tap → stop early and transcribe what we have
+    if (status === 'recording') { stopRecorder(); return; }
 
-    // ── Tier 1: Web Speech API (iOS Safari, Chrome) ───────────────────────────
-    if (hasWebSpeech()) {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SR();
-      recognition.lang            = 'hi-IN';
-      recognition.maxAlternatives = 1;
-      recognition.continuous      = false;
-      // interimResults set to true inside the handler block below
-
-      // Nullify + abort the PREVIOUS recognition (not the new one)
-      // so its onend callback doesn't reset status after we set 'recording'
-      const prevSr = srRef.current;
-      if (prevSr) {
-        prevSr.onresult = null;
-        prevSr.onerror  = null;
-        prevSr.onend    = null;
-        try { prevSr.abort(); } catch {}
-      }
-
-      // Register new recognition
-      srRef.current   = recognition;
-      interimRef.current = '';
-      setStatus('recording');
-      setTranscript('');
-
-      // Enable interim results so we capture speech AS you talk.
-      // When you tap Stop, onend fires immediately and we use whatever was captured.
-      recognition.interimResults = true;
-
-      recognition.onresult = (e) => {
-        clearTimeout(timerRef.current);
-        let finalTx = '';
-        let interimTx = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) finalTx  += e.results[i][0].transcript;
-          else                       interimTx += e.results[i][0].transcript;
-        }
-        // Store latest interim so onend can use it if needed
-        if (interimTx) interimRef.current = interimTx;
-
-        if (finalTx.trim()) {
-          // Final result arrived — fire immediately
-          interimRef.current = '';
-          const tx = finalTx.trim();
-          setTranscript(tx);
-          onResult(tx);
-          setStatus('done');
-          setTimeout(() => setStatus('idle'), 2000);
-        }
-      };
-
-      recognition.onerror = (e) => {
-        console.error('[speech error]', e.error);
-        interimRef.current = '';
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-          setStatus('no_mic');
-          alert('माइक्रोफ़ोन की इजाज़त चाहिए।\n\nChrome: address bar → lock icon → Microphone → Allow\nSafari: Settings → Safari → Microphone → Allow');
-        } else {
-          setStatus('error');
-        }
-        setTimeout(() => setStatus('idle'), 3000);
-      };
-
-      recognition.onend = () => {
-        if (srRef.current !== recognition) return;
-        clearTimeout(timerRef.current);
-        // Use stored interim if no final result fired yet (happens when user taps Stop early)
-        const pending = interimRef.current?.trim();
-        if (pending) {
-          interimRef.current = '';
-          setTranscript(pending);
-          onResult(pending);
-          setStatus('done');
-          setTimeout(() => setStatus('idle'), 2000);
-        } else {
-          setStatus(s => s === 'recording' ? 'idle' : s);
-        }
-      };
-
-      try {
-        recognition.start();
-        // Auto-stop after 5 s — don't wait for browser's slow silence detection
-        timerRef.current = setTimeout(() => {
-          if (srRef.current === recognition) {
-            try { recognition.stop(); } catch {}
-          }
-        }, 5000);
-      } catch (err) {
-        console.error('[speech start]', err);
-        setStatus('error');
-        setTimeout(() => setStatus('idle'), 2500);
-      }
-      return;
-    }
-
-    // ── Tier 2: MediaRecorder → Sarvam (fallback) ─────────────────────────────
-    if (typeof MediaRecorder === 'undefined') {
+    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       setStatus('no_mic');
       setTimeout(() => setStatus('idle'), 3000);
       return;
     }
 
-    setStatus('recording');
-    setTranscript('');
-    chunksRef.current = [];
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const mimeType  = getSupportedMimeType();
-      const mrOptions = mimeType ? { mimeType } : {};
-      const mr        = new MediaRecorder(stream, mrOptions);
+      const mime = getSupportedMimeType();
+      mimeRef.current = mime;
+      const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
       mrRef.current   = mr;
+      chunksRef.current = [];
 
       mr.ondataavailable = (e) => { if (e.data?.size > 0) chunksRef.current.push(e.data); };
 
       mr.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
+        try { stream.getTracks().forEach(t => t.stop()); } catch {}
         setStatus('processing');
         try {
-          const blobType = mimeType || 'audio/mp4';
-          const ext      = blobType.includes('webm') ? 'webm' : blobType.includes('ogg') ? 'ogg' : 'mp4';
-          const blob     = new Blob(chunksRef.current, { type: blobType });
-          const form     = new FormData();
-          form.append('file', blob, `audio.${ext}`);
+          const recorded = new Blob(chunksRef.current, { type: mimeRef.current || 'audio/mp4' });
+          if (recorded.size < 1000) throw new Error('empty_recording');
+
+          const wav  = await blobToWav(recorded);
+          const form = new FormData();
+          form.append('file', wav, 'audio.wav');
+          form.append('model', SARVAM_MODEL);
           form.append('language_code', 'hi-IN');
 
           const res = await fetch(SARVAM_STT_URL, {
@@ -272,23 +209,27 @@ export function useVoiceInput({ onResult }) {
           const data = await res.json();
           const tx   = (data.transcript || '').trim();
           setTranscript(tx);
-          if (tx) onResult(tx);
-          setStatus('done');
-          setTimeout(() => setStatus('idle'), 2200);
+          if (tx) {
+            onResult(tx);
+            setStatus('done');
+            setTimeout(() => setStatus('idle'), 1800);
+          } else {
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 2500);
+          }
         } catch (err) {
-          console.error('[sarvam]', err);
+          console.error('[sarvam stt]', err?.message || err);
           setStatus('error');
           setTimeout(() => setStatus('idle'), 2500);
         }
       };
 
-      mr.start(250);
-      timerRef.current = setTimeout(() => {
-        if (mr.state === 'recording') mr.stop();
-      }, 5000);
-
+      mr.start();
+      setStatus('recording');
+      setTranscript('');
+      timerRef.current = setTimeout(() => stopRecorder(), MAX_RECORD_MS);
     } catch (err) {
-      console.error('[mic]', err);
+      console.error('[mic]', err?.message || err);
       setStatus('no_mic');
       setTimeout(() => setStatus('idle'), 3000);
     }
