@@ -88,6 +88,29 @@ function speakableAmounts(text) {
   });
 }
 
+// Transliterate Latin/English words to Devanagari so the Hindi voice pronounces
+// them correctly ("Chicken Biryani" → "चिकन बिरयानी"). Existing Devanagari — incl.
+// our Hindi number words — is preserved. Falls back to the input on ANY error so
+// the voice can never break.
+const SARVAM_TRANSLIT_URL = 'https://api.sarvam.ai/transliterate';
+async function sarvamTransliterate(text) {
+  try {
+    const res = await fetch(SARVAM_TRANSLIT_URL, {
+      method:  'POST',
+      headers: { 'api-subscription-key': SARVAM_API_KEY, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        input:                text,
+        source_language_code: 'en-IN',
+        target_language_code: 'hi-IN',
+        spoken_form:          true,
+      }),
+    });
+    if (!res.ok) return text;
+    const data = await res.json();
+    return data?.transliterated_text || text;
+  } catch { return text; }
+}
+
 // ── speakMukund — Sarvam first, browser fallback. onEnd() fires when playback
 //    finishes (used for the "बोल रहा है…" cue + speaking bubbles in sequence). ─
 export async function speakMukund(text, onEnd) {
@@ -102,6 +125,9 @@ export async function speakMukund(text, onEnd) {
   stopSpeaking();          // stops anything playing AND bumps playSeq
   const myTurn = playSeq;  // this call's claim on the speaker
 
+  // Transliterate English words → Devanagari so they're spoken correctly.
+  const spoken = (await sarvamTransliterate(clean)).slice(0, 480);
+
   try {
     const res = await fetch(SARVAM_TTS_URL, {
       method:  'POST',
@@ -110,7 +136,7 @@ export async function speakMukund(text, onEnd) {
         'Content-Type':         'application/json',
       },
       body: JSON.stringify({
-        inputs:               [clean],
+        inputs:               [spoken],
         target_language_code: 'hi-IN',
         speaker:              SPEAKER,
         model:                MODEL,
