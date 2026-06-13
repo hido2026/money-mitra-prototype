@@ -15,6 +15,7 @@ const MODEL          = 'bulbul:v2';
 
 let currentAudio   = null;   // the <audio> element currently playing
 let audioUnlocked  = false;  // becomes true after the first user gesture
+let playSeq        = 0;       // bumps on every call/stop; only the latest may play (no echo)
 
 // ── primeAudio — call inside a user gesture (tap) so later programmatic
 //    .play() is permitted by the browser's autoplay policy. ──────────────────
@@ -32,6 +33,7 @@ export function primeAudio() {
 }
 
 export function stopSpeaking() {
+  playSeq++; // invalidate any in-flight speakMukund so it won't play when its fetch resolves
   try { window.speechSynthesis?.cancel(); } catch {}
   try {
     if (currentAudio) {
@@ -44,10 +46,12 @@ export function stopSpeaking() {
 
 // ── speakMukund — Sarvam first, browser fallback ─────────────────────────────
 export async function speakMukund(text) {
-  const clean = (text || '').trim();
+  // Strip stray markdown, collapse whitespace, cap to Sarvam's 500-char limit.
+  const clean = (text || '').replace(/[*_#`>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 480);
   if (!clean) return;
 
-  stopSpeaking();
+  stopSpeaking();          // stops anything playing AND bumps playSeq
+  const myTurn = playSeq;  // this call's claim on the speaker
 
   try {
     const res = await fetch(SARVAM_TTS_URL, {
@@ -56,9 +60,8 @@ export async function speakMukund(text) {
         'api-subscription-key': SARVAM_API_KEY,
         'Content-Type':         'application/json',
       },
-      // Mukund's replies are capped ~80 words; one segment (<500 chars) is plenty.
       body: JSON.stringify({
-        inputs:               [clean.slice(0, 480)],
+        inputs:               [clean],
         target_language_code: 'hi-IN',
         speaker:              SPEAKER,
         model:                MODEL,
@@ -72,16 +75,17 @@ export async function speakMukund(text) {
     const b64  = data?.audios?.[0];
     if (!b64) throw new Error('sarvam_empty');
 
+    // A newer speakMukund (or stopSpeaking) ran while we were fetching → abandon,
+    // else two clips overlap and you hear an echo.
+    if (myTurn !== playSeq) return;
+
     const audio  = new Audio(`data:audio/wav;base64,${b64}`);
     currentAudio = audio;
     audio.onended = () => { if (currentAudio === audio) currentAudio = null; };
-
-    // .play() returns a promise that rejects if the browser blocks autoplay.
-    // After any prior tap on the page it's allowed; the 🔊 button is always a
-    // direct gesture so it always works.
     await audio.play();
     return;
   } catch (err) {
+    if (myTurn !== playSeq) return; // superseded — don't fall back either
     console.warn('[tts] Sarvam failed → browser fallback:', err?.message || err);
     browserSpeak(clean);
   }

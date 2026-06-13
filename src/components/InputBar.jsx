@@ -105,7 +105,7 @@ export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isRecording ? 'सुन रहा हूँ… बोलिए' : isProcessing ? 'समझ रहा हूँ…' : 'Kuch poochhiye Mukund se…'}
+          placeholder={isRecording ? 'सुन रहा हूँ… बोलिए' : isProcessing ? 'समझ रहा हूँ…' : 'मुकुंद से कुछ भी पूछिए…'}
           disabled={disabled}
           style={{
             flex: 1,

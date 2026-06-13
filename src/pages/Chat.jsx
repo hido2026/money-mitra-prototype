@@ -169,7 +169,7 @@ export default function Chat() {
                 color: '#1F1F1F',
                 maxWidth: '300px',
               }}>
-                Namaste! Main Mukund hoon. Aapka paise ka companion. Paise ke baare mein kuch poochhna hai?
+                नमस्ते! मैं मुकुंद हूँ, आपका पैसे का साथी। पैसे के बारे में कुछ भी पूछिए।
               </p>
 
               {/* Pill label */}
@@ -181,7 +181,7 @@ export default function Chat() {
                 color: 'rgba(25,27,30,0.55)',
                 alignSelf: 'flex-start',
               }}>
-                Aise puchh sakte ho:
+                ऐसे पूछ सकते हैं:
               </p>
 
               {/* Prompt pills — left-aligned, stacked */}
@@ -193,9 +193,9 @@ export default function Chat() {
                 width: '100%',
               }}>
                 {[
-                  'Sarkari yojana ka paisa aaya ya nahi?',
-                  'Mere paise kat gaye — ab kya karu?',
-                  'Beti ke liye sabse achhi bachat kaun si?',
+                  'सरकारी योजना का पैसा आया या नहीं?',
+                  'मेरे पैसे कट गए — अब क्या करूँ?',
+                  'बेटी के लिए सबसे अच्छी बचत कौन सी?',
                 ].map((pill) => (
                   <button
                     key={pill}
@@ -235,7 +235,7 @@ export default function Chat() {
                 color: 'rgba(25,27,30,0.45)',
                 fontStyle: 'italic',
               }}>
-                …ya aap kuch aur poochh sakte ho
+                …या आप कुछ और भी पूछ सकते हैं
               </p>
             </div>
           )}
