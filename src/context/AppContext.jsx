@@ -6,7 +6,6 @@
 //   sessionDecodes, insightFired, lastInputModality
 
 import { createContext, useContext, useReducer } from 'react';
-import { SEED_DOCS } from '../data/decoder-samples';
 
 const AppContext = createContext(null);
 const STORAGE_KEY = 'money_mitra_data'; // same key as before — preserves existing data
@@ -46,9 +45,10 @@ const INIT = {
   sessionDecodes:    [],
   insightFired:      false,
   lastInputModality: 'tap',
-  // Decoded-document feed for the हिसाब — in memory only (no storage, resets on reload).
-  // We keep the READING (amount/who/category/in-out), never the photo.
-  docs:              SEED_DOCS,
+  // Decoded-document feed for the हिसाब — REAL decodes only, in memory only
+  // (no storage, resets on reload). We keep the READING (amount/who/category/in-out),
+  // never the photo. Starts empty and accumulates from actual extractions.
+  docs:              [],
 };
 
 function reducer(state, action) {
