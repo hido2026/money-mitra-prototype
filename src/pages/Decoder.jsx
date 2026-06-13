@@ -1,420 +1,264 @@
-// Decoder — Ghar ka Munshi  (route: /#/decoder)
-// Accepts images (camera/gallery) AND PDFs.
-// Images → Groq vision model. PDFs → PDF.js text extraction → Groq text model.
-// Files are NEVER stored. Process and discard immediately.
+// Decoder — कागज़ समझें (route: /#/decoder)
+// 3-beat, camera-only, NO manual entry: input → (mock capture) → reading → result.
+// Visual validation prototype — sample data only, no live AI / OCR / upload.
+// We keep the READING (amount, who, category, in/out), never the photo.
 
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Groq from 'groq-sdk';
-import PortraitAvatar from '../components/PortraitAvatar';
-import BottomInputBar from '../components/BottomInputBar';
 import { useApp } from '../context/AppContext';
-import { computeInsight, computeConnectDotsInsight } from '../engine/insight';
-import { logEvent } from '../utils/analytics';
-import InsightBubble from '../components/InsightBubble';
-import { IcChevronLeft, IcDots, IcCamera, IcFileText } from '../components/icons/Icons';
+import { useCountUp, inr } from '../utils/motion';
+import {
+  DECODE_CYCLE, JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel,
+} from '../data/decoder-samples';
 import { speakMukund } from '../utils/tts';
-// Worker URL registered at build time by Vite (emitted as a separate asset)
-// PDF.js library itself is still loaded on-demand via dynamic import below
-import _pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
+import PortraitAvatar from '../components/PortraitAvatar';
+import {
+  IcChevronLeft, IcCamera, IcFileText, IcCheck,
+  IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
+} from '../components/icons/Icons';
 
-// ── Groq client ───────────────────────────────────────────────────────────────
-const _key = import.meta.env.VITE_GROQ_API_KEY;
-const groq = _key ? new Groq({ apiKey: _key, dangerouslyAllowBrowser: true }) : null;
+const PURPLE = '#534AB7';
+const PURPLE_LIGHT = '#EEEDFE';
+const GREEN = '#1a7d4b';
+const INK = '#2C2C2A';
+const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 
-const VISION_MODEL  = 'meta-llama/llama-4-scout-17b-16e-instruct';
-const TEXT_MODEL    = 'llama-3.3-70b-versatile';
-const FALLBACK_TEXT = 'यह ठीक से दिख नहीं रहा — दोबारा फ़ोटो लें या PDF भेजें।';
-
-const MUKUND_PROMPT = `You are Mukund, a 35-year-old Hindi-speaking financial helper. You speak like a smart older cousin — warm, direct, no jargon. Look at this bill, receipt, or financial document. Reply in Devanagari Hindi, 2-3 sentences max, under 80 words. Cover: 1) What is this document (bill type, from whom) 2) The key amount (total due / paid / balance) 3) One money point: is this normal, is there a saving possible, or is something wrong. End your reply with the amount on a separate line in this exact format: AMOUNT:₹[number]`;
-
-// ── PDF helpers (PDF.js loaded on-demand) ─────────────────────────────────────
-
-async function loadPdfJs() {
-  const pdfjsLib = await import('pdfjs-dist');
-  // Use the worker URL that Vite emitted as a static asset
-  pdfjsLib.GlobalWorkerOptions.workerSrc = _pdfWorkerUrl;
-  return pdfjsLib;
+function docIcon(key, size, color) {
+  if (key === 'zap') return <IcZap size={size} color={color} />;
+  if (key === 'phone') return <IcSmartphone size={size} color={color} />;
+  if (key === 'salary') return <IcFileDollar size={size} color={color} />;
+  return <IcReceipt size={size} color={color} />;
 }
 
-/** Extract selectable text from first 3 pages. Returns '' for scanned PDFs. */
-async function extractPdfText(pdf) {
-  const maxPages = Math.min(pdf.numPages, 3);
-  const parts = [];
-  for (let i = 1; i <= maxPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    parts.push(content.items.map(item => item.str).join(' '));
-  }
-  return parts.join('\n').trim();
-}
-
-/** Render first page of PDF to a 1024px-max JPEG base64 (for scanned PDFs). */
-async function renderPdfPageToBase64(pdf) {
-  const page     = await pdf.getPage(1);
-  const scale    = Math.min(1024 / page.getViewport({ scale: 1 }).width, 2);
-  const viewport = page.getViewport({ scale });
-  const canvas   = document.createElement('canvas');
-  canvas.width   = Math.round(viewport.width);
-  canvas.height  = Math.round(viewport.height);
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-  return canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
-}
-
-/**
- * Handle a PDF file: try text extraction first.
- * If text is too short (scanned PDF), fall back to image rendering.
- * Returns { mode: 'text'|'image', content: string }
- */
-async function processPdf(file) {
-  const pdfjsLib   = await loadPdfJs();
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf        = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-  const text = await extractPdfText(pdf);
-  // If we got meaningful text (>100 chars of non-whitespace), use text path
-  if (text.replace(/\s/g, '').length > 100) {
-    return { mode: 'text', content: text.slice(0, 3000) };
-  }
-  // Otherwise it's a scanned/image PDF — render first page as image
-  const b64 = await renderPdfPageToBase64(pdf);
-  return { mode: 'image', content: b64 };
-}
-
-// ── Image helpers ─────────────────────────────────────────────────────────────
-
-async function compressToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const MAX = 1024;
-      let { width, height } = img;
-      if (width > MAX || height > MAX) {
-        if (width >= height) { height = Math.round((height / width) * MAX); width = MAX; }
-        else                 { width  = Math.round((width  / height) * MAX); height = MAX; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      canvas.toBlob(blob => {
-        const reader = new FileReader();
-        reader.onload  = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      }, 'image/jpeg', 0.82);
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
-function parseAmount(text) {
-  const match = text.match(/AMOUNT:₹([\d,]+)/);
-  if (!match) return null;
-  return parseInt(match[1].replace(/,/g, ''), 10);
-}
-
-function cleanText(text) {
-  // Strip the AMOUNT line before displaying
-  return text.replace(/\nAMOUNT:₹[\d,]+\s*$/, '').trim();
-}
-
-/**
- * Infer bill_type from Mukund's Devanagari/English response text.
- * Used to tag the entry for cross-decode comparison.
- */
-function parseBillType(text) {
-  if (!text) return 'other';
-  const t = text.toLowerCase();
-  if (t.includes('बिजली') || t.includes('electricity') || t.includes('electric') || t.includes('power') || t.includes('bijli')) {
-    return 'बिजली बिल';
-  }
-  if (t.includes('रिचार्ज') || t.includes('recharge') || t.includes('mobile') || t.includes('jio') || t.includes('airtel') || t.includes('vi ') || t.includes('bsnl')) {
-    return 'मोबाइल रिचार्ज';
-  }
-  return 'other';
-}
-
-// ── Loading dots (needs its own component to use hooks safely) ────────────────
-function ReadingStep() {
-  const [dots, setDots] = useState('.');
-  useEffect(() => {
-    const t = setInterval(() => setDots(d => d.length >= 3 ? '.' : d + '.'), 500);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div style={{ padding: '48px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-      <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <IcFileText size={32} color="#534AB7" />
-      </div>
-      <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '17px', fontWeight: 600, color: '#2C2C2A' }}>
-        मुकुंद पढ़ रहा है{dots}
-      </div>
-    </div>
-  );
-}
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function TopBar({ onBack }) {
-  return (
-    <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 18px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', flexShrink: 0 }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
-        <IcChevronLeft size={24} color="#2C2C2A" />
-      </button>
-      <PortraitAvatar size={40} online ringed />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#2C2C2A' }}>Mukund</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A', marginTop: '1px' }}>Money Mitra · online</div>
-      </div>
-      <button style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
-        <IcDots size={22} color="#2C2C2A" />
-      </button>
-    </header>
-  );
-}
-
-function MukundBubble({ text, bg = '#EEEDFE', speakable = false }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '92%' }}>
-      <div style={{ marginTop: '2px' }}><PortraitAvatar size={28} online={false} ringed={false} /></div>
-      <div>
-        <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.55, color: '#2C2C2A', whiteSpace: 'pre-wrap' }}>{text}</div>
-        {speakable && (
-          <button onClick={() => speakMukund(text)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}>
-            🔊 सुनिए
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Main Decoder ───────────────────────────────────────────────────────────────
+const ChevronRight = ({ size = 18, color = '#aaa' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
 
 export default function Decoder() {
   const nav = useNavigate();
   const { state, dispatch } = useApp();
 
-  const [step, setStep]           = useState('home');   // home | reading | result | error
-  const [result, setResult]       = useState('');       // cleaned Mukund text
-  const [parsedAmt, setParsedAmt] = useState(null);
-  const [insight, setInsight]     = useState(null);
-  // Connect-dots insight: ties decoded bill → last same-category entry → active goal.
-  // Shown as a plain Mukund bubble above "बही में डालें"; suppresses general InsightBubble.
-  const [connectDots, setConnectDots] = useState(null);
+  const [stage, setStage] = useState('input'); // input | capture | reading | result | blurry
+  const [doc, setDoc] = useState(null);
+  const idxRef = useRef(0);
 
-  // Hidden file inputs — one for camera, one for gallery
-  const cameraRef  = useRef(null);
-  const galleryRef = useRef(null);
+  // reading → result: pick the next canned decode, log it to the हिसाब, reveal.
+  useEffect(() => {
+    if (stage !== 'reading') return;
+    const t = setTimeout(() => {
+      const base = DECODE_CYCLE[idxRef.current % DECODE_CYCLE.length];
+      idxRef.current += 1;
+      const d = { ...base, id: 'u' + Date.now() + '-' + idxRef.current, ts: Date.now() };
+      setDoc(d);
+      dispatch({ type: 'ADD_DOC', payload: d });
+      setStage('result');
+    }, 1400);
+    return () => clearTimeout(t);
+  }, [stage, dispatch]);
 
-  const handleFile = async (file) => {
-    if (!file) return;
-    setStep('reading');
-    logEvent('decoder_used');
+  // ── live हिसाब totals (from the in-memory feed) ──
+  const docs = state.docs;
+  const aaya = docs.filter(d => d.dir === 'in').reduce((s, d) => s + d.amount, 0);
+  const gaya = docs.filter(d => d.dir === 'out').reduce((s, d) => s + d.amount, 0);
+  const bache = aaya - gaya;
+  const totalPoints = docs.reduce((s, d) => s + (d.points || 0), 0);
 
-    try {
-      if (!groq) throw new Error('no groq key');
+  const shownAmt = useCountUp(doc?.amount ?? 0);
+  const isIn = doc?.dir === 'in';
 
-      const isPDF = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
-      let resp;
-
-      if (isPDF) {
-        // Auto-detect: text-based PDF → text model / scanned PDF → vision model
-        const { mode, content } = await processPdf(file);
-        if (mode === 'text') {
-          resp = await groq.chat.completions.create({
-            model: TEXT_MODEL,
-            messages: [{ role: 'user', content: `${MUKUND_PROMPT}\n\nDocument text:\n${content}` }],
-            max_tokens: 220,
-          });
-        } else {
-          // Scanned PDF rendered as image → same path as a regular photo
-          resp = await groq.chat.completions.create({
-            model: VISION_MODEL,
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text',      text: MUKUND_PROMPT },
-                { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${content}` } },
-              ],
-            }],
-            max_tokens: 220,
-          });
-        }
-      } else {
-        // Regular image → vision model
-        const b64 = await compressToBase64(file);
-        resp = await groq.chat.completions.create({
-          model: VISION_MODEL,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text',      text: MUKUND_PROMPT },
-              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } },
-            ],
-          }],
-          max_tokens: 220,
-        });
-      }
-      const raw = resp.choices[0]?.message?.content ?? '';
-      if (!raw.trim()) throw new Error('empty response');
-
-      const amt = parseAmount(raw);
-      const cleanedText = cleanText(raw);
-      setResult(cleanedText);
-      setParsedAmt(amt);
-      speakMukund(cleanedText); // read Mukund's bill explanation aloud
-
-      // Determine bill type from Mukund's response text (Hindi category label)
-      const detectedBillType = parseBillType(cleanedText);
-
-      // Push decode to AppContext for insight engine (tagged with detected category)
-      if (amt) {
-        dispatch({ type: 'ADD_DECODE', payload: {
-          bill_type:         detectedBillType,
-          labelHi:           detectedBillType !== 'other' ? detectedBillType : 'रसीद',
-          amount:             amt,
-          recurring:          detectedBillType !== 'other',
-          saveable:           0,
-          monthly_saving:     0,
-          annual_plan_cost:   null,
-        }});
-      }
-
-      // ── Priority 1: Connect-dots insight (bill vs last entry → goal) ──────────
-      // Uses entries already in state (not the dispatch above — that's sessionDecodes).
-      if (amt && detectedBillType !== 'other') {
-        const cd = computeConnectDotsInsight(
-          detectedBillType,
-          amt,
-          state.entries,
-          state.goals,
-          state.balance,
-        );
-        if (cd) {
-          setConnectDots(cd);
-          logEvent('connect_dots_insight_shown', { bill_type: detectedBillType });
-        }
-      }
-
-      // ── General insight seam (T0–T3 engine) — suppressed if connect-dots fired ─
-      if (!connectDots) {
-        const payload = computeInsight(state);
-        if (payload) {
-          setInsight(payload);
-          dispatch({ type: 'MARK_INSIGHT_FIRED' });
-          logEvent('insight_shown', { tier: payload.tier });
-        }
-      }
-
-      setStep('result');
-    } catch {
-      setResult(FALLBACK_TEXT);
-      setParsedAmt(null);
-      setStep('error');
-    }
-  };
-
-  const onFileChange = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
-
-  const goToPassbook = () => {
-    const billType = parseBillType(result);
-    nav('/passbook', { state: {
-      decoderAmount:   parsedAmt,
-      decoderBillType: billType,
-    }});
-  };
-
-  const handleInsightAction = (action) => {
-    if (action === 'add_to_bahi') goToPassbook();
-    if (action === 'set_goal')    nav('/passbook', { state: { openGoal: true } });
-  };
-
-  // ── Step: home ───────────────────────────────────────────────────────────────
-  const renderHome = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div style={{ padding: '4px 4px 0' }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#534AB7' }}>SAMJHO</div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#5F5E5A', marginTop: '1px' }}>कागज़ समझें</div>
+  // ── Stage: input (single front door) ──
+  const renderInput = () => (
+    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+        <PortraitAvatar size={36} online={false} ringed={false} />
+        <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '12px 16px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.6, color: INK, maxWidth: '88%' }}>
+          जो भी कागज़ हो — बिल, रसीद, तनख्वाह, कमाई — फ़ोटो दिखाइए। मैं पढ़कर अपने आप हिसाब बना दूँगा।
+        </p>
       </div>
 
-      <MukundBubble text="जो समझ न आये — बिल, रसीद, मैसेज — फ़ोटो या PDF दिखाइए। पढ़ कर समझाता हूँ।" time="अभी" />
-
-      {/* Gallery / PDF — PRIMARY (works on all devices) */}
-      <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#534AB7', border: 'none', borderRadius: '14px', padding: '16px', cursor: 'pointer' }}>
-        <IcFileText size={22} color="#FFFFFF" />
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>फ़ाइल या PDF चुनें</span>
+      <button onClick={() => setStage('capture')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
+        <IcCamera size={22} color="#fff" />
+        <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>फ़ोटो लें</span>
       </button>
 
-      {/* Camera — secondary (mobile only, use capture) */}
-      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '12px', padding: '13px', cursor: 'pointer' }}>
-        <IcCamera size={16} color="#534AB7" />
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, color: '#534AB7' }}>📱 फ़ोटो लीजिए (मोबाइल)</span>
+      <button onClick={() => setStage('reading')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
+        <IcFileText size={18} color={PURPLE} />
+        <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>फ़ाइल या PDF चुनें</span>
       </button>
 
-      <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', lineHeight: 1.4 }}>
-        📱 फ़ोटो/PDF आपके फ़ोन पर ही रहती है — हम store नहीं करते।
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780' }}>मैं पढ़ सकता हूँ —</span>
+        {['बिजली बिल', 'रसीद', 'तनख्वाह पर्ची', 'कमाई स्क्रीन'].map(c => (
+          <span key={c} style={{ background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: PURPLE }}>{c}</span>
+        ))}
       </div>
 
-      {/* Hidden inputs */}
-      <input ref={cameraRef}  type="file" accept="image/*" capture="environment" onChange={onFileChange} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*,.pdf,application/pdf"   onChange={onFileChange} style={{ display: 'none' }} />
-    </div>
-  );
-
-  // renderReading is now <ReadingStep /> — extracted above to obey rules of hooks
-
-  // ── Step: result ──────────────────────────────────────────────────────────────
-  const renderResult = (isError = false) => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <MukundBubble text={result || FALLBACK_TEXT} speakable={!isError} bg={isError ? '#FAECE7' : '#EEEDFE'} />
-
-      {/* Privacy badge */}
-      <div style={{ background: '#F5F4FA', borderRadius: '8px', padding: '8px 12px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780' }}>
-        📱 फ़ोटो आपके फ़ोन पर ही रहती है
+      <div style={{ background: '#F5F4FA', borderRadius: '10px', padding: '10px 14px', fontFamily: DEVA, fontSize: '12px', color: '#5F5E5A', lineHeight: 1.5 }}>
+        हम आपकी फ़ोटो नहीं रखते — सिर्फ़ ज़रूरी बात याद रखते हैं।
       </div>
 
-      {/* General insight bubble (T0–T3) — shown only when connect-dots didn't fire */}
-      {insight && !connectDots && (
-        <InsightBubble payload={insight} onAction={handleInsightAction} onDismiss={() => setInsight(null)} />
-      )}
-
-      {/* Connect-dots insight — shown above "बही में डालें"; observation only, no CTA */}
-      {connectDots && (
-        <MukundBubble text={`💡 ${connectDots.text}`} speakable bg="#FFFBEA" />
-      )}
-
-      {/* Bridge button */}
-      {!isError && parsedAmt && (
-        <button onClick={goToPassbook} style={{ width: '100%', padding: '14px', borderRadius: '13px', border: 'none', background: '#3B6D11', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
-          बही में डालें — {fmt(parsedAmt)}
-        </button>
-      )}
-
-      {/* Take another photo */}
-      <button onClick={() => { setStep('home'); setResult(''); setParsedAmt(null); setInsight(null); setConnectDots(null); }} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', color: '#534AB7', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
-        दोबारा फ़ोटो लें
+      <button onClick={() => setStage('blurry')} style={{ alignSelf: 'center', background: 'none', border: 'none', cursor: 'pointer', fontFamily: DEVA, fontSize: '11px', color: '#b0adb8', textDecoration: 'underline', padding: '4px' }}>
+        डेमो: खराब फ़ोटो का हाल देखें
       </button>
     </div>
   );
 
-  function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+  // ── Stage: capture (mock camera viewfinder — not a JDS content surface) ──
+  const renderCapture = () => (
+    <div className="animate-fade-in" style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', background: '#161616' }}>
+      <div style={{ flex: 1, position: 'relative', margin: '16px', borderRadius: '16px', overflow: 'hidden', background: '#262626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', inset: '24px', border: '2px dashed rgba(255,255,255,0.4)', borderRadius: '12px' }} />
+        <div style={{ width: '62%', transform: 'rotate(-2deg)', background: '#f3f3f3', borderRadius: '8px', padding: '14px' }}>
+          <div style={{ height: '8px', background: '#d4d4d4', borderRadius: '3px', marginBottom: '8px' }} />
+          <div style={{ height: '8px', width: '58%', background: '#d4d4d4', borderRadius: '3px', marginBottom: '8px' }} />
+          <div style={{ height: '8px', background: '#d4d4d4', borderRadius: '3px', marginBottom: '12px' }} />
+          <div style={{ height: '14px', width: '42%', background: '#bdeccd', borderRadius: '3px' }} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
+        <button onClick={() => setStage('reading')} aria-label="capture" style={{ width: '68px', height: '68px', borderRadius: '50%', border: '5px solid #777', background: '#fff', cursor: 'pointer' }} />
+      </div>
+    </div>
+  );
+
+  // ── Stage: reading (skeleton shimmer, never a spinner) ──
+  const renderReading = () => (
+    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }} aria-busy="true" aria-label="मुकुंद पढ़ रहा है">
+      <Shimmer h={28} w="55%" />
+      <Shimmer h={96} />
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <Shimmer h={32} w={32} round />
+        <Shimmer h={60} grow />
+      </div>
+      <Shimmer h={52} />
+      <p style={{ textAlign: 'center', fontFamily: DEVA, fontSize: '14px', fontWeight: 600, color: '#888780', margin: '4px 0 0' }}>मुकुंद पढ़ रहा है…</p>
+    </div>
+  );
+
+  // ── Stage: result (the money moment) ──
+  const renderResult = () => (
+    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* 1. Recognition */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ width: 22, height: 22, borderRadius: '50%', background: GREEN, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <IcCheck size={13} color="#fff" />
+        </span>
+        <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: INK }}>पहचान लिया — {doc.docType}</span>
+      </div>
+
+      {/* 2. Amount + direction */}
+      <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <span style={{ width: 40, height: 40, borderRadius: '12px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {docIcon(doc.icon, 22, PURPLE)}
+          </span>
+          <span className="animate-pop" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: isIn ? '#e6f5ec' : PURPLE_LIGHT, color: isIn ? GREEN : PURPLE, borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>
+            {directionLabel(doc.dir)}
+          </span>
+        </div>
+        <div style={{ fontFamily: DEVA, fontSize: '34px', fontWeight: 900, color: isIn ? GREEN : INK, letterSpacing: '-0.5px' }}>
+          {isIn ? '+' : ''}{inr(shownAmt)}
+        </div>
+        <div style={{ marginTop: '8px', display: 'inline-block', background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: '#5F5E5A' }}>
+          अपने आप: {doc.category}
+        </div>
+      </div>
+
+      {/* 3. Reward (earned, NOT a lottery) */}
+      <div className="animate-pop" style={{ background: PURPLE, borderRadius: '16px', padding: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IcSparks size={20} color="#FFD479" />
+          <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 800, color: '#fff' }}>इनाम — {doc.points} अंक मिले!</span>
+        </div>
+        <div style={{ marginTop: '12px', height: '8px', borderRadius: '999px', background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', borderRadius: '999px', background: '#FFD479', transformOrigin: 'left', transform: `scaleX(${Math.min(totalPoints, JACKPOT_POINTS) / JACKPOT_POINTS})`, transition: 'transform 500ms ease-out' }} />
+        </div>
+        <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+          <span>{Math.min(totalPoints, JACKPOT_POINTS)} / {JACKPOT_POINTS.toLocaleString('en-IN')} अंक</span>
+          <span>{JACKPOT_POINTS.toLocaleString('en-IN')} अंक = ₹{JACKPOT_RUPEES} · {REDEEM_PARTNER} पर</span>
+        </div>
+      </div>
+
+      {/* 4. Insight (supportive, no advice) + सुनें */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+        <PortraitAvatar size={32} online={false} ringed={false} />
+        <div>
+          <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK }}>
+            {doc.insight}
+          </p>
+          <button onClick={() => speakMukund(doc.insight)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
+            <IcSparks size={13} color="#888780" /> सुनें
+          </button>
+        </div>
+      </div>
+
+      {/* 5. Auto-log confirmation */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: DEVA, fontSize: '12px', color: GREEN }}>
+        <IcCheck size={14} color={GREEN} /> अपने आप हिसाब में जुड़ गया
+      </div>
+
+      {/* 6. Tappable हिसाब strip */}
+      <button onClick={() => nav('/passbook')} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', boxSizing: 'border-box', background: '#F5F4FA', border: 'none', borderRadius: '14px', padding: '14px 16px', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ flex: 1, fontFamily: DEVA, fontSize: '13px', fontWeight: 600, color: INK }}>
+          मेरा हिसाब · आया <span style={{ color: GREEN }}>{inr(aaya)}</span> · गया <span style={{ color: PURPLE }}>{inr(gaya)}</span> · बचे <span style={{ fontWeight: 800 }}>{inr(bache)}</span>
+        </span>
+        <ChevronRight color={PURPLE} />
+      </button>
+
+      {/* 7. Loop */}
+      <button onClick={() => { setStage('input'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
+        <IcCamera size={20} color="#fff" />
+        <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>एक और फ़ोटो दिखाओ</span>
+      </button>
+    </div>
+  );
+
+  // ── Stage: blurry / bad photo fallback ──
+  const renderBlurry = () => (
+    <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
+      <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FDECEC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <IcCamera size={28} color="#fa2f40" />
+      </span>
+      <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: INK, margin: 0 }}>कागज़ साफ़ नहीं दिखा — दुबारा दिखाइए?</p>
+      <p style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A', margin: 0, lineHeight: 1.5 }}>साफ़ रोशनी में, पूरा कागज़ फ्रेम के अंदर रखें।</p>
+      <button onClick={() => setStage('capture')} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+        दुबारा दिखाइए
+      </button>
+    </div>
+  );
+
+  const showHeader = stage !== 'capture';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto' }}>
-      <TopBar onBack={() => step !== 'reading' ? nav('/') : undefined} />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#fff', maxWidth: '420px', margin: '0 auto' }}>
+      {showHeader && (
+        <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
+          <button onClick={() => (stage === 'input' ? nav('/') : setStage('input'))} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
+            <IcChevronLeft size={24} color={INK} />
+          </button>
+          <PortraitAvatar size={36} online ringed />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 700, color: INK }}>कागज़ समझें</div>
+            <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#5F5E5A' }}>मुकुंद · पढ़कर हिसाब बनाता है</div>
+          </div>
+        </header>
+      )}
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {step === 'home'    && renderHome()}
-        {step === 'reading' && <ReadingStep />}
-        {step === 'result'  && renderResult(false)}
-        {step === 'error'   && renderResult(true)}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        {stage === 'input' && renderInput()}
+        {stage === 'capture' && renderCapture()}
+        {stage === 'reading' && renderReading()}
+        {stage === 'result' && doc && renderResult()}
+        {stage === 'blurry' && renderBlurry()}
       </div>
-
-      <BottomInputBar compact onSubmit={() => {}} onSpeak={() => {}} onPlus={() => {}} />
     </div>
+  );
+}
+
+function Shimmer({ h, w = '100%', round = false, grow = false }) {
+  return (
+    <div className="mm-shimmer" style={{ height: h, width: round ? h : w, flex: grow ? 1 : undefined, borderRadius: round ? '50%' : '12px', background: '#ECEAF5' }} />
   );
 }

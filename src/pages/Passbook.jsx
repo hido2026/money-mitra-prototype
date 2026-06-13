@@ -1,833 +1,145 @@
-// Passbook — Money Passbook  (route: /#/passbook)
-// v3: multiple goals · correct progress (balance-based) · Groq chat · voice
-//
-// Entry schema: { id, type, amount, category, timestamp, time, src, source?, bill_type? }
-// Goals schema: [{ id, name, target, priority }] — progress computed from balance
+// मेरा हिसाब (route: /#/passbook) — REPLACES the old manual passbook.
+// Auto-built from decoded documents only. NO manual entry: no amount buttons,
+// no amount field, no category chips, no मिला/खर्च/आगे flow. Nothing typed.
+// In-memory feed (state.docs). "भूल जाओ" removes a row — memory is the user's to clear.
 
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import Groq from 'groq-sdk';
-import PortraitAvatar from '../components/PortraitAvatar';
-import BottomInputBar from '../components/BottomInputBar';
-import BottomSheet from '../components/BottomSheet';
-import InsightBubble from '../components/InsightBubble';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { computeInsight } from '../engine/insight';
-import { computeGoalProgress, nextPriority } from '../engine/goals';
-import { logEvent } from '../utils/analytics';
-import { speakMukund } from '../utils/tts';
-import { useVoiceInput, parseHindiAmount, parseHindiCategory, parseHindiSource } from '../hooks/useVoiceInput';
+import { useCountUp, inr } from '../utils/motion';
+import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
 import {
-  IcChevronLeft, IcDots, IcCheck,
-  IcArrowUp, IcArrowDown, IcTarget,
+  IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcXMark, IcCamera,
 } from '../components/icons/Icons';
 
-// ── Groq client (for in-passbook chat) ───────────────────────────────────────
-const groqClient = import.meta.env.VITE_GROQ_API_KEY
-  ? new Groq({ apiKey: import.meta.env.VITE_GROQ_API_KEY, dangerouslyAllowBrowser: true })
-  : null;
+const PURPLE = '#534AB7';
+const PURPLE_LIGHT = '#EEEDFE';
+const GREEN = '#1a7d4b';
+const INK = '#2C2C2A';
+const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function fmt(n)     { return '₹' + Math.abs(Math.round(n)).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
-function fmtFull(n) { return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function nowISO()   { return new Date().toISOString(); }
-function displayTime(iso) {
-  try {
-    const d = new Date(iso);
-    if (isNaN(d)) return iso;
-    let h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
-    const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
-    return `${h}:${m} ${ap}`;
-  } catch { return iso; }
+function docIcon(key, size, color) {
+  if (key === 'zap') return <IcZap size={size} color={color} />;
+  if (key === 'phone') return <IcSmartphone size={size} color={color} />;
+  if (key === 'salary') return <IcFileDollar size={size} color={color} />;
+  return <IcReceipt size={size} color={color} />;
 }
-
-const CATEGORIES = ['खाना','यात्रा','बिल','दवाई','फ़ोन','बच्चे','घर','अन्य'];
-const SOURCES    = [{ label:'तनख़्वाह', sub:'Salary' },{ label:'उपहार', sub:'Gift' },{ label:'बेचा', sub:'Sold' },{ label:'मिला', sub:'Found' }];
-const CANNED_SMS = { display: 'Rs.199 debited for recharge', amount: 199, category: 'फ़ोन' };
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function TopBar({ onBack }) {
-  return (
-    <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 18px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', flexShrink: 0 }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
-        <IcChevronLeft size={24} color="#2C2C2A" />
-      </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#2C2C2A' }}>बही</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A', marginTop: '1px' }}>Money Passbook · रोज़ का हिसाब</div>
-      </div>
-      <button style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
-        <IcDots size={22} color="#2C2C2A" />
-      </button>
-    </header>
-  );
-}
-
-function MukundBubble({ text, bg = '#EEEDFE', speakable = false }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '92%' }}>
-      <div style={{ marginTop: '2px' }}><PortraitAvatar size={28} online={false} ringed={false} /></div>
-      <div style={{ flex: 1 }}>
-        <div style={{ background: bg, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', lineHeight: 1.5, color: '#2C2C2A' }}>{text}</div>
-        {speakable && (
-          <button
-            onClick={() => speakMukund(text)}
-            style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}
-            title="सुनिए"
-          >
-            🔊 सुनिए
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function BigBtn({ label, accent, onClick, outline = false, icon, disabled }) {
-  return (
-    <button onClick={onClick} disabled={disabled} style={{ flex: 1, padding: '13px 8px', borderRadius: '12px', border: outline ? `1.5px solid ${accent}` : 'none', background: outline ? '#FFFFFF' : (disabled ? '#D8D7D4' : accent), color: outline ? accent : '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-      {icon}{label}
-    </button>
-  );
-}
-
-function Chip({ label, sub, selected, onClick }) {
-  return (
-    <button onClick={onClick} style={{ padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', border: selected ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: selected ? '#EEEDFE' : '#FFFFFF' }}>
-      <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 600, color: selected ? '#534AB7' : '#2C2C2A' }}>{label}</div>
-      {sub && <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', marginTop: '2px' }}>{sub}</div>}
-    </button>
-  );
-}
-
-// ── Goal card (single goal with progress) ─────────────────────────────────────
-function GoalCard({ gp, onTap }) {
-  if (gp.achieved) {
-    return (
-      <button onClick={onTap} style={{ width: '100%', background: '#EAF3DE', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #C5E0A8', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '20px' }}>🎉</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 700, color: '#3B6D11' }}>{gp.name} — लक्ष्य पूरा!</div>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A', marginTop: '2px' }}>{fmt(gp.target)} जोड़े गए · नया लक्ष्य रखें?</div>
-        </div>
-      </button>
-    );
-  }
-  return (
-    <button onClick={onTap} style={{ width: '100%', background: '#EAF3DE', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #C5E0A8', cursor: 'pointer', textAlign: 'left' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', fontWeight: 600, color: '#3B6D11' }}>🎯 {gp.name} {gp.priority > 1 ? `(P${gp.priority})` : ''}</span>
-        <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '12px', color: '#3B6D11' }}>{gp.pct}%</span>
-      </div>
-      <div style={{ background: '#D0EAC0', borderRadius: '999px', height: '6px', overflow: 'hidden', marginBottom: '4px' }}>
-        <div style={{ background: '#3B6D11', height: '100%', width: `${gp.pct}%`, borderRadius: '999px', transition: 'width 0.5s ease' }} />
-      </div>
-      <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#5F5E5A' }}>
-        {fmt(gp.allocated)} / {fmt(gp.target)} · ₹{Math.round(gp.remaining).toLocaleString('en-IN')} बाकी
-      </div>
-    </button>
-  );
-}
-
-// ── AmountPicker with voice button ────────────────────────────────────────────
-function AmountPicker({ value, onChange, voiceStatus, voiceTranscript, onVoiceToggle }) {
-  const QUICK = [200, 500, 1000, 2000];
-
-  // Local input state — completely independent from QUICK buttons.
-  // Bug fixed: previously the input value was derived from `value`, so typing "200"
-  // or "2000" would match a QUICK amount and clear the field, selecting the button instead.
-  const [inputVal, setInputVal] = useState('');
-
-  const handleQuick = (q) => {
-    setInputVal('');   // clear freeform when a quick button is tapped
-    onChange(q);
-  };
-
-  const handleInput = (e) => {
-    const raw = e.target.value;
-    setInputVal(raw);
-    onChange(Number(raw) || null);
-  };
-
-  // A QUICK button is highlighted only when it was explicitly tapped (inputVal is empty)
-  const quickSelected = (q) => value === q && inputVal === '';
-
-  const voiceBtn = (() => {
-    if (voiceStatus === 'recording')  return { bg: '#D85A30', label: '🛑  सुन रहा हूँ... (रोकें)', pulse: true };
-    if (voiceStatus === 'processing') return { bg: '#888780', label: '⏳  समझ रहा हूँ...', pulse: false };
-    if (voiceStatus === 'done')       return { bg: '#3B6D11', label: '✓  ' + (voiceTranscript || 'हो गया'), pulse: false };
-    if (voiceStatus === 'no_key')     return { bg: '#888780', label: 'Sarvam key नहीं मिली', pulse: false };
-    if (voiceStatus === 'no_mic')     return { bg: '#888780', label: 'माइक्रोफ़ोन की इजाज़त चाहिए', pulse: false };
-    if (voiceStatus === 'error')      return { bg: '#888780', label: 'कुछ गड़बड़ हुई — दोबारा कोशिश करें', pulse: false };
-    return { bg: '#534AB7', label: '🎤  बोलिए', pulse: false };
-  })();
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <button onClick={onVoiceToggle} className={voiceBtn.pulse ? 'mic-recording' : ''} style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', border: 'none', background: voiceBtn.bg, color: '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer', textAlign: 'center', transition: 'background 0.2s' }}>
-        {voiceBtn.label}
-      </button>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        {QUICK.map(q => (
-          <button key={q} onClick={() => handleQuick(q)} style={{ padding: '14px 8px', minHeight: '52px', borderRadius: '12px', cursor: 'pointer', border: quickSelected(q) ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: quickSelected(q) ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: quickSelected(q) ? '#534AB7' : '#2C2C2A', textAlign: 'center' }}>
-            {fmt(q)}
-          </button>
-        ))}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '12px', padding: '13px 16px', border: `1.5px solid ${inputVal ? '#534AB7' : '#EEEDFE'}` }}>
-        <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '17px', color: '#888780', marginRight: '4px' }}>₹</span>
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          placeholder="और रकम लिखें"
-          value={inputVal}
-          onChange={e => {
-            const raw = e.target.value.replace(/[^0-9]/g, ''); // digits only, no browser interception
-            setInputVal(raw);
-            onChange(raw ? Number(raw) : null);
-          }}
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ── Main component ─────────────────────────────────────────────────────────────
 
 export default function Passbook() {
-  const nav  = useNavigate();
-  const loc  = useLocation();
-  const inputRef = useRef(null);
+  const nav = useNavigate();
   const { state, dispatch } = useApp();
-  const { entries, goals, balance, insightFired, sessionDecodes, restoredFromStorage } = state;
+  const [toast, setToast] = useState(false);
 
-  // Computed goal progress (correct: based on balance, not goal.saved)
-  const goalProgress = useMemo(() => computeGoalProgress(balance, goals), [balance, goals]);
-  // Legacy single-goal format for insight engine compatibility
-  const legacyGoal = goalProgress[0]
-    ? { label: goalProgress[0].name, target: goalProgress[0].target, saved: goalProgress[0].allocated }
-    : null;
+  const docs = state.docs;
+  const aaya = docs.filter(d => d.dir === 'in').reduce((s, d) => s + d.amount, 0);
+  const gaya = docs.filter(d => d.dir === 'out').reduce((s, d) => s + d.amount, 0);
+  const bache = aaya - gaya;
+  const totalPoints = docs.reduce((s, d) => s + (d.points || 0), 0);
 
-  // ── UI flow state ───────────────────────────────────────────────────────────
-  const [mode, setMode]                 = useState('home');
-  const [pendingAmt, setPendingAmt]     = useState(null);
-  const [pendingLabel, setPendingLabel] = useState('');
-  const [pendingType, setPendingType]   = useState(null);
-  const [insight, setInsight]           = useState(null);
-  const [decoderBillType, setDecoderBillType] = useState(null);
+  const aC = useCountUp(aaya);
+  const gC = useCountUp(gaya);
+  const bC = useCountUp(bache);
 
-  // Goal management
-  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
-  const [editingGoal, setEditingGoal]     = useState(null); // null=add, obj=edit
-  const [goalName, setGoalName]           = useState('');
-  const [goalTarget, setGoalTarget]       = useState(null);
-  const [goalPriority, setGoalPriority]   = useState(1);
+  // Biggest expense category → one supportive insight (no advice).
+  const byCat = {};
+  docs.filter(d => d.dir === 'out').forEach(d => { byCat[d.category] = (byCat[d.category] || 0) + d.amount; });
+  const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0]?.[0];
 
-  // Edit/delete entry sheet
-  const [editEntry, setEditEntry]               = useState(null);
-  const [editAmt, setEditAmt]                   = useState('');
-  const [editCat, setEditCat]                   = useState('');
-  const [confirmDelete, setConfirmDelete]       = useState(false);
-
-  // SMS opt-in
-  const [smsConsent, setSmsConsent] = useState(false);
-  const [smsShown, setSmsShown]     = useState(false);
-
-  // Groq chat in home mode
-  const [chatMessages, setChatMessages] = useState([]);
-  const [isChatting, setIsChatting]     = useState(false);
-
-  // Toast
-  const [toast, setToast] = useState(null);
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
-
-  // Mode ref (for voice callback, avoids stale closure)
-  const modeRef      = useRef(mode);
-  const chatHandleRef = useRef(null);
-  modeRef.current    = mode;
-
-  // ── Persistence toast ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (restoredFromStorage) {
-      showToast('पिछला हिसाब लोड हो गया');
-      dispatch({ type: 'CLEAR_RESTORED_FLAG' });
-    }
-  }, []);
-
-  // ── Incoming navigation state ───────────────────────────────────────────────
-  useEffect(() => {
-    if (loc.state?.openGoal) {
-      openAddGoal();
-    } else if (loc.state?.decoderAmount) {
-      setPendingAmt(loc.state.decoderAmount);
-      setPendingLabel('बिल');
-      setPendingType('out');
-      setDecoderBillType(loc.state.decoderBillType ?? null);
-      setMode('add_out');
-    } else if (loc.state?.fromDecoder && loc.state?.saveable) {
-      openAddGoal(loc.state.saveable);
-    }
-  }, []);
-
-  // ── Groq chat with बही context ──────────────────────────────────────────────
-  const handleChatInput = async (text) => {
-    if (!groqClient || !text.trim()) return;
-    const userMsg = { role: 'user', content: text };
-    setChatMessages(prev => [...prev, userMsg]);
-    setIsChatting(true);
-
-    try {
-      const user = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; } })();
-      const goalsText = goalProgress.length
-        ? goalProgress.map(g => `${g.name} ₹${g.target} (${g.pct}%)`).join(', ')
-        : 'कोई लक्ष्य नहीं';
-      const recentText = entries.slice(0, 6).map(e =>
-        `${e.type === 'in' ? '+' : '-'}₹${e.amount} ${e.category}`
-      ).join(', ') || 'कोई entry नहीं';
-
-      const userName = user.name || null;
-      const systemContent = `You are Mukund. You are NOT a generic AI chatbot — you are a specific person.
-
-WHO YOU ARE: A 35-year-old Indian man. Glasses. Light shirt. You speak like a warm, respectful older brother (bhaiya) — protective, caring, never lecturing. You use simple spoken Hindi, not formal written Hindi. Warm, empathetic, and supportive. You never judge, never shame, never condescend.${userName ? ` You are talking to ${userName}.` : ''}
-
-VOICE REGISTER — use these words naturally:
-✓ Use: "अरे", "देख", "चिंता मत कर", "सही किया", "बस इतना", "हो जाएगा"
-✗ Never: "यार" (too casual, disrespectful to a 35-year-old who runs a household)
-✗ Never: sarcasm, roasting, or teasing — it humiliates, not motivates
-✗ Never: formal/stiff language like "आपको चाहिए कि" or "कृपया ध्यान दें"
-
-THIS PERSON'S MONEY RIGHT NOW:
-- Balance: ${balance < 0 ? '-' : ''}₹${Math.abs(Math.round(balance)).toLocaleString('en-IN')}${balance < 0 ? ' (expenses are more than income right now)' : ''}
-- Goals: ${goalsText}
-- Recent entries: ${recentText}
-
-TONE — NON-NEGOTIABLE:
-You are a SUPPORTIVE companion, not a judge or advisor.
-- NEVER say: "तुम्हें नियंत्रण रखना चाहिए", "खर्च कम करना होगा", "यह सही नहीं है", or anything prescriptive.
-- NEVER point out negatives bluntly. If balance is negative, acknowledge it gently and pivot to possibilities.
-- NEVER shame spending. People spend for reasons. Understand first.
-- ALWAYS acknowledge feelings before giving information. "Haan, samajh sakta hoon..." before anything else.
-- Use "hum" (we) instead of "tum" (you) when talking about solving — it's collaborative, not accusatory.
-- Celebrate any small positive: a goal set, any income logged, any saving noticed.
-- Forward-looking only: "aage kya kar sakte hain" not "pehle kya galat hua."
-
-EXAMPLES:
-WRONG: "तुम्हारे खर्च ज़्यादा हो गए हैं, नियंत्रण रखो।"
-RIGHT: "थोड़ा मुश्किल वक़्त है — पर हम मिलकर देखते हैं क्या हो सकता है।"
-
-WRONG: "बैलेंस नेगेटिव है, पहले यह ठीक करो।"
-RIGHT: "बैलेंस अभी कम है — कोई बात नहीं, अगला कदम क्या हो सकता है?"
-
-REGISTER:
-NEVER say: "Wah!", "Bahut achha sawaal!", "Main yahaan hoon madad ke liye", or any opener that praises.
-Engage directly with what they said. No compliments, no lectures.
-
-LENGTH: 2-3 sentences MAX. One idea per reply.
-No bullet points. No headings. No markdown. End with ONE gentle question if natural.
-
-HOW TO BE INSIGHTFUL — this is the most important part:
-Mukund connects dots the user hasn't connected yet. He uses THEIR OWN DATA to surface something they didn't notice.
-
-PATTERNS TO NOTICE (compute from their data, mention naturally):
-- If monthly expenses are consistent: "हर महीने तुम लगभग ₹X खर्च करते हो — साल में ₹Y"
-- If a category dominates: "खाने पर जो जा रहा है, वो बाकी सब से ज़्यादा है"
-- If goal and saving rate are visible: "इस रफ़्तार से [goal] ₹X हफ़्तों/महीनों में पूरा हो जाएगा"
-- If income and expense are close: "तुम्हारी बचत बहुत कम बची है — ₹X हर महीने"
-
-QUESTIONS THAT MAKE PEOPLE THINK (use these to open up reflection):
-- "अगर अगले महीने ₹500 extra आए, वो कहाँ जाएगा?"
-- "इन खर्चों में से कोई एक जो तुम हटा सकते हो बिना ज़्यादा फ़र्क महसूस किए?"
-- "यह लक्ष्य तुम्हारे लिए ज़रूरी क्यों है — क्या हुआ था जब उसने तुम्हें याद दिलाया?"
-- "अगर बैलेंस ₹5,000 ज़्यादा होता, क्या बदलता तुम्हारे लिए?"
-
-REFRAMES (turn problems into questions):
-- Don't say: "Balance negative hai."
-  Say: "₹X ka gap hai — kaunsa kharcha hai jisme thodi flexibility hai?"
-- Don't say: "Saving nahi ho rahi."
-  Say: "Income aur kharcha almost same hain — ₹[small amount] bhi bachana shuru kar dein?"
-
-LANGUAGE: Default Roman-script Hinglish. Mirror their code-mixing. Use ₹ for amounts.
-Numbers: always use "lagbhag" when estimating. Never give wrong math. When you do math, show it briefly: "₹300 × 12 = ₹3,600 saal mein."
-
-NEVER handle OTP/PIN/password. NEVER give SEBI-regulated stock advice. NEVER recommend a specific product by name.
-If you don't know: "Yeh pakka nahi keh sakta — CA se ek baar confirm karna."
-
-Respond in Devanagari Hindi script. Be the cousin who notices what you missed, not the one who tells you what to do.`;
-
-      const res = await groqClient.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemContent },
-          ...chatMessages.slice(-4), // last 4 for context
-          userMsg,
-        ],
-        max_tokens: 200,
-      });
-
-      const reply = res.choices[0]?.message?.content?.trim() || 'कुछ गड़बड़ हुई — फिर कोशिश करें।';
-      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-      speakMukund(reply);
-    } catch (err) {
-      console.error('[passbook chat]', err);
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'कुछ गड़बड़ हुई — फिर कोशिश करें।' }]);
-    } finally {
-      setIsChatting(false);
-    }
-  };
-  chatHandleRef.current = handleChatInput;
-
-  // ── Voice input ─────────────────────────────────────────────────────────────
-  const { status: voiceStatus, transcript: voiceTranscript, toggle: toggleVoice } =
-    useVoiceInput({
-      onResult: (text) => {
-        // Home mode → route to Groq chat
-        if (modeRef.current === 'home') {
-          chatHandleRef.current?.(text);
-          return;
-        }
-        // Structured entry modes → parse amount + label
-        const amt = parseHindiAmount(text);
-        if (amt) setPendingAmt(amt);
-        if (pendingType === 'out') {
-          const cat = parseHindiCategory(text);
-          if (cat) setPendingLabel(cat);
-        } else if (pendingType === 'in') {
-          const src = parseHindiSource(text);
-          if (src) setPendingLabel(src);
-        }
-      },
-    });
-
-  // Show recording toast whenever voice status changes — unmissable feedback
-  useEffect(() => {
-    if (voiceStatus === 'recording') showToast('🎤 सुन रहा हूँ...');
-    if (voiceStatus === 'no_mic')    showToast('⚠️ माइक्रोफ़ोन की इजाज़त दें');
-    if (voiceStatus === 'error')     showToast('आवाज़ नहीं सुनी — फिर कोशिश करें');
-    if (voiceStatus === 'done' && voiceTranscript) showToast(`✓ "${voiceTranscript}"`);
-  }, [voiceStatus]);
-
-  // ── Goal sheet helpers ───────────────────────────────────────────────────────
-  const openAddGoal = (prefillTarget = null) => {
-    setEditingGoal(null);
-    setGoalName('');
-    setGoalTarget(prefillTarget);
-    setGoalPriority(nextPriority(goals));
-    setGoalSheetOpen(true);
-  };
-  const openEditGoal = (gp) => {
-    setEditingGoal(gp);
-    setGoalName(gp.name);
-    setGoalTarget(gp.target);
-    setGoalPriority(gp.priority);
-    setGoalSheetOpen(true);
-  };
-  const saveGoal = () => {
-    if (!goalName.trim() || !goalTarget) return;
-    if (editingGoal) {
-      dispatch({ type: 'UPDATE_GOAL', payload: { id: editingGoal.id, name: goalName.trim(), target: Number(goalTarget), priority: Number(goalPriority) } });
-      showToast('लक्ष्य बदला गया');
-    } else {
-      dispatch({ type: 'ADD_GOAL', payload: { id: Date.now().toString(), name: goalName.trim(), target: Number(goalTarget), priority: Number(goalPriority) } });
-      logEvent('goal_set');
-      showToast('नया लक्ष्य सेट हो गया');
-    }
-    setGoalSheetOpen(false);
-  };
-  const deleteGoal = () => {
-    if (!editingGoal) return;
-    dispatch({ type: 'DELETE_GOAL', payload: editingGoal.id });
-    setGoalSheetOpen(false);
-    showToast('लक्ष्य हटा दिया गया');
-  };
-
-  // ── Commit entry ─────────────────────────────────────────────────────────────
-  const commitEntry = () => {
-    const entry = {
-      id:        Date.now().toString(),
-      type:      pendingType,
-      amount:    Number(pendingAmt),
-      category:  pendingLabel,
-      timestamp: nowISO(),
-      time:      displayTime(nowISO()),
-      src:       decoderBillType ? 'decoder' : 'manual',
-      source:    decoderBillType ? 'decoder' : 'manual',
-      bill_type: decoderBillType ?? null,
-    };
-    setDecoderBillType(null);
-    dispatch({ type: 'ADD_ENTRY', payload: entry });
-    logEvent('entry_logged');
-
-    // Projected state after this entry
-    const projectedEntries = [entry, ...entries];
-    const projBal          = balance + (entry.type === 'in' ? entry.amount : -entry.amount);
-    const projGoalProgress = computeGoalProgress(projBal, goals);
-
-    // Check for micro-celebration
-    checkCelebration(entry, projectedEntries, projGoalProgress);
-
-    // Insight seam
-    const projGoal    = projGoalProgress[0];
-    const insightGoal = projGoal ? { label: projGoal.name, target: projGoal.target, saved: projGoal.allocated } : null;
-    const payload     = computeInsight({ sessionDecodes, entries: projectedEntries, goal: insightGoal, insightFired });
-    if (payload) {
-      setInsight(payload);
-      dispatch({ type: 'MARK_INSIGHT_FIRED' });
-      logEvent('insight_shown');
-    }
-    setMode('saved');
-    if (!payload) setTimeout(() => setMode('home'), 1600);
-  };
-
-  const todayIn  = entries.filter(e => e.type === 'in').reduce((s, e)  => s + e.amount, 0);
-  const todayOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
-
-  // ── Weekly tally — how many distinct days logged in last 7 days ──────────────
-  const weeklyTally = useMemo(() => {
-    const cutoff = Date.now() - 7 * 86400000;
-    const days = new Set(
-      entries
-        .filter(e => e.timestamp && new Date(e.timestamp).getTime() > cutoff)
-        .map(e => e.timestamp.split('T')[0])
-    );
-    return days.size;
-  }, [entries]);
-
-  // ── Micro-celebration — shown once after an entry, then dismissed ─────────────
-  const [celebration, setCelebration] = useState(null);
-  const dismissCelebration = () => setCelebration(null);
-
-  const checkCelebration = (newEntry, newEntries, newGoalProgress) => {
-    // First entry ever
-    if (entries.length === 0) {
-      setCelebration('पहला कदम हो गया — अब दिखेगा पैसा कहाँ जा रहा है।');
-      return;
-    }
-    // Goal milestones (check first goal that changed)
-    for (const gp of newGoalProgress) {
-      const oldGp = goalProgress.find(g => g.id === gp.id);
-      if (!oldGp) continue;
-      if (!oldGp.achieved && gp.achieved) {
-        setCelebration(`देख, ${gp.name} हो गया। तूने खुद करके दिखाया। 🎉`);
-        return;
-      }
-      if (oldGp.pct < 50 && gp.pct >= 50) {
-        setCelebration(`आधा रास्ता तय — ${gp.name} पास आ रहा है।`);
-        return;
-      }
-    }
-    // Full week logged
-    if (weeklyTally >= 6) {
-      setCelebration('इस हफ़्ते हर दिन का हिसाब रखा — अब पूरा हफ़्ता साफ़ दिखता है।');
-    }
-  };
-
-  // ── Edit/delete handlers ─────────────────────────────────────────────────────
-  const openEdit    = (e) => { setEditEntry(e); setEditAmt(String(e.amount)); setEditCat(e.category); setConfirmDelete(false); };
-  const saveEdit    = () => { if (!editEntry) return; dispatch({ type: 'UPDATE_ENTRY', payload: { id: editEntry.id, amount: Number(editAmt), category: editCat } }); logEvent('entry_edited'); setEditEntry(null); showToast('एंट्री बदल दी गई'); };
-  const doDelete    = () => { if (!editEntry) return; dispatch({ type: 'DELETE_ENTRY', payload: editEntry.id }); logEvent('entry_deleted'); setEditEntry(null); setConfirmDelete(false); showToast('एंट्री हटा दी गई'); };
-
-  const handleInsightAction = (action) => {
-    if (action === 'set_goal')    { setInsight(null); openAddGoal(); }
-    if (action === 'add_to_bahi') { setInsight(null); setMode('home'); }
-  };
-
-  // ── Renderers ─────────────────────────────────────────────────────────────────
-
-  const renderHome = () => (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* Balance */}
-      <div style={{ padding: '20px 16px 12px', textAlign: 'center', borderBottom: '1px solid #F5F4FA' }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px' }}>बैलेंस</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: balance < 0 ? '36px' : '42px', fontWeight: 700, color: balance >= 0 ? '#2C2C2A' : '#D85A30', lineHeight: 1.1, marginTop: '4px' }}>
-          {balance < 0 ? '-' : ''}{fmtFull(Math.abs(balance))}
-        </div>
-        {balance < 0 && <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#D85A30', marginTop: '2px' }}>खर्च ज़्यादा हो गया</div>}
-
-        {/* Weekly tally */}
-        {weeklyTally > 0 && (
-          <div style={{ marginTop: '8px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#888780' }}>
-            इस हफ़्ते {weeklyTally} बार लिखा{weeklyTally >= 5 ? ' 🌟' : ''}
-          </div>
-        )}
-      </div>
-
-      {/* Micro-celebration banner */}
-      {celebration && (
-        <div style={{ margin: '8px 16px 0', background: '#EAF3DE', border: '1px solid #C5E0A8', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#3B6D11', flex: 1 }}>{celebration}</span>
-          <button onClick={dismissCelebration} style={{ background: 'none', border: 'none', color: '#888780', cursor: 'pointer', fontSize: '16px', padding: '0 0 0 8px', flexShrink: 0 }}>✕</button>
-        </div>
-      )}
-
-      {/* Goals section */}
-      <div style={{ padding: '12px 16px 4px' }}>
-        {goalProgress.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {goalProgress.slice(0, 3).map(gp => (
-              <GoalCard key={gp.id} gp={gp} onTap={() => openEditGoal(gp)} />
-            ))}
-            {goals.length > 3 && (
-              <div style={{ textAlign: 'center', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#888780' }}>+ {goals.length - 3} और लक्ष्य</div>
-            )}
-            <button onClick={() => openAddGoal()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'none', border: '1.5px dashed rgba(59,109,17,0.3)', borderRadius: '10px', padding: '9px', cursor: 'pointer', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#3B6D11' }}>
-              + नया लक्ष्य जोड़ें
-            </button>
-          </div>
-        ) : (
-          <button onClick={() => openAddGoal()} style={{ width: '100%', background: '#F9F8FB', borderRadius: '14px', padding: '12px 16px', border: '1.5px dashed rgba(83,74,183,0.2)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <IcTarget size={18} color="#534AB7" />
-            <span style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#534AB7' }}>कोई लक्ष्य रखें? त्योहार, बच्चों की फ़ीस, सोना — कुछ भी।</span>
-          </button>
-        )}
-      </div>
-
-      {/* Mukund greeting */}
-      <div style={{ padding: '12px 16px 0' }}>
-        <MukundBubble text={entries.length === 0 ? "आज कितना मिला? कितना खर्च हुआ?" : `आज: ${fmt(todayIn)} मिला, ${fmt(todayOut)} गया।`} bg="#EEEDFE" />
-      </div>
-
-      {/* In-passbook chat messages */}
-      {chatMessages.length > 0 && (
-        <div style={{ padding: '8px 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {chatMessages.map((m, i) => (
-            m.role === 'user'
-              ? <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '80%', background: '#e8e8fc', borderRadius: '16px 16px 4px 16px', padding: '10px 14px', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#2C2C2A' }}>{m.content}</div>
-              : <MukundBubble key={i} text={m.content} bg="#EEEDFE" speakable />
-          ))}
-          {isChatting && <MukundBubble text="..." bg="#EEEDFE" />}
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: '10px', padding: '12px 16px 0' }}>
-        <BigBtn label="मिला" accent="#3B6D11" icon={<IcArrowUp size={16} color="#fff"/>} onClick={() => { setPendingType('in'); setPendingAmt(null); setPendingLabel(''); setMode('add_in'); }} />
-        <BigBtn label="खर्च" accent="#D85A30" icon={<IcArrowDown size={16} color="#fff"/>} onClick={() => { setPendingType('out'); setPendingAmt(null); setPendingLabel(''); setMode('add_out'); }} />
-      </div>
-
-      {/* Entries list */}
-      {entries.length > 0 && (
-        <div style={{ padding: '16px 16px 4px' }}>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', fontWeight: 600, color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>हाल की ENTRIES</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {entries.slice(0, 8).map(e => (
-              <button key={e.id} onClick={() => openEdit(e)} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#FAFAFA', borderRadius: '10px', padding: '10px 12px', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, background: e.type === 'in' ? '#EAF3DE' : '#FAECE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {e.type === 'in' ? <IcArrowUp size={13} color="#3B6D11" /> : <IcArrowDown size={13} color="#D85A30" />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#2C2C2A', fontWeight: 500 }}>{e.category}</div>
-                  <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', marginTop: '1px' }}>{e.time ?? displayTime(e.timestamp)}{e.src === 'sms' ? ' · SMS' : ''}</div>
-                </div>
-                <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '14px', fontWeight: 700, color: e.type === 'in' ? '#3B6D11' : '#D85A30', flexShrink: 0 }}>
-                  {e.type === 'in' ? '+' : '-'}{fmt(e.amount)}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SMS opt-in */}
-      <div style={{ padding: '12px 16px 8px', marginTop: '4px' }}>
-        <div style={{ background: '#F5F4FA', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', fontWeight: 600, color: '#2C2C2A' }}>SMS से जोड़ें</div>
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '10.5px', color: '#888780', marginTop: '2px', lineHeight: 1.3 }}>Simulated only · कोई account नहीं दिखेगा</div>
-          </div>
-          <button onClick={() => { setSmsConsent(c => !c); if (!smsConsent && !smsShown) setMode('sms'); }} style={{ width: '44px', height: '24px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: smsConsent ? '#3B6D11' : '#D8D7D4', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-            <div style={{ position: 'absolute', top: '3px', left: smsConsent ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#FFFFFF', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderAddIn = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <MukundBubble text="कितना मिला? और किससे?" bg="#EAF3DE" />
-      <AmountPicker value={pendingAmt} onChange={setPendingAmt} voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
-      <div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>कहाँ से मिला?</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          {SOURCES.map(s => <Chip key={s.label} label={s.label} sub={s.sub} selected={pendingLabel === s.label} onClick={() => setPendingLabel(s.label)} />)}
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="वापस" accent="#888780" outline onClick={() => setMode('home')} />
-        <BigBtn label="आगे →" accent="#3B6D11" disabled={!pendingAmt || !pendingLabel} onClick={() => setMode('confirm_in')} />
-      </div>
-    </div>
-  );
-
-  const renderAddOut = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <MukundBubble text="कितना खर्च हुआ, किस पे?" bg="#FAECE7" />
-      <AmountPicker value={pendingAmt} onChange={setPendingAmt} voiceStatus={voiceStatus} voiceTranscript={voiceTranscript} onVoiceToggle={toggleVoice} />
-      <div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>किस पे?</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
-          {CATEGORIES.map(c => <button key={c} onClick={() => setPendingLabel(c)} style={{ padding: '10px 4px', borderRadius: '10px', cursor: 'pointer', textAlign: 'center', border: pendingLabel === c ? '2px solid #D85A30' : '1.5px solid #FAECE7', background: pendingLabel === c ? '#FAECE7' : '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', fontWeight: 600, color: pendingLabel === c ? '#D85A30' : '#2C2C2A' }}>{c}</button>)}
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="वापस" accent="#888780" outline onClick={() => setMode('home')} />
-        <BigBtn label="आगे →" accent="#D85A30" disabled={!pendingAmt || !pendingLabel} onClick={() => setMode('confirm_out')} />
-      </div>
-    </div>
-  );
-
-  const renderConfirm = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <MukundBubble text={pendingType === 'in' ? `₹${pendingAmt} ${pendingLabel} से मिला — सही है?` : `₹${pendingAmt} ${pendingLabel} पे — ठीक है?`} bg={pendingType === 'in' ? '#EAF3DE' : '#FAECE7'} />
-      <div style={{ background: '#FAFAFA', borderRadius: '16px', padding: '20px', textAlign: 'center', border: `1.5px solid ${pendingType === 'in' ? '#C5E0A8' : '#F0C8B8'}` }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{pendingLabel}</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '38px', fontWeight: 700, color: pendingType === 'in' ? '#3B6D11' : '#D85A30', marginTop: '6px', lineHeight: 1 }}>
-          {pendingType === 'in' ? '+' : '-'}{fmt(pendingAmt)}
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="हाँ" accent={pendingType === 'in' ? '#3B6D11' : '#D85A30'} onClick={commitEntry} />
-        <BigBtn label="नहीं" accent="#888780" outline onClick={() => setMode(pendingType === 'in' ? 'add_in' : 'add_out')} />
-      </div>
-    </div>
-  );
-
-  const renderSaved = () => (
-    <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#EAF3DE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <IcCheck size={22} color="#3B6D11" />
-        </div>
-        <div>
-          <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '16px', fontWeight: 700, color: '#2C2C2A' }}>हो गया ✓</div>
-          <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#5F5E5A', marginTop: '2px' }}>
-            आज: {fmt(todayIn)} मिला, {fmt(todayOut)} गया।{todayIn - todayOut > 0 ? ` बचा: ${fmt(todayIn - todayOut)}।` : ''}
-          </div>
-        </div>
-      </div>
-      {insight && <InsightBubble payload={insight} onAction={handleInsightAction} onDismiss={() => { setInsight(null); setMode('home'); }} />}
-      {!insight && <button onClick={() => setMode('home')} style={{ alignSelf: 'stretch', padding: '12px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#FFFFFF', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#534AB7', cursor: 'pointer' }}>← बही पर वापस</button>}
-    </div>
-  );
-
-  const renderSms = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <MukundBubble text="यह SMS मिला — confirm करें?" bg="#EEEDFE" />
-      <div style={{ background: '#FAFAFA', border: '1.5px solid #EEEDFE', borderRadius: '14px', padding: '14px' }}>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Simulated SMS</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '14px', color: '#2C2C2A', fontWeight: 500 }}>{CANNED_SMS.display}</div>
-        <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', color: '#888780', marginTop: '4px' }}>🔒 सिर्फ़ amount + category</div>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <BigBtn label="हाँ, जोड़ें" accent="#D85A30" onClick={() => { setSmsShown(true); dispatch({ type: 'ADD_ENTRY', payload: { id: Date.now().toString(), type: 'out', amount: CANNED_SMS.amount, category: CANNED_SMS.category, timestamp: nowISO(), time: displayTime(nowISO()), src: 'sms', source: 'sms', bill_type: null } }); logEvent('entry_logged'); setMode('home'); }} />
-        <BigBtn label="नहीं" accent="#888780" outline onClick={() => { setSmsShown(true); setMode('home'); }} />
-      </div>
-    </div>
-  );
-
-  const sheetLabelStyle = { display: 'block', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: '#5F5E5A', marginBottom: '6px', fontWeight: 600 };
-  const sheetInputStyle = { width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1.5px solid #EEEDFE', background: '#FAFAFA', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', color: '#2C2C2A', outline: 'none', boxSizing: 'border-box' };
+  const redeem = () => { setToast(true); setTimeout(() => setToast(false), 2200); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#FFFFFF', maxWidth: '420px', margin: '0 auto', overflow: 'hidden' }}>
-      <TopBar onBack={() => mode === 'home' ? nav('/') : setMode('home')} />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#F6F5FB', maxWidth: '420px', margin: '0 auto' }}>
+      {/* Header */}
+      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 12px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
+        <button onClick={() => nav('/decoder')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
+          <IcChevronLeft size={24} color={INK} />
+        </button>
+        <h1 style={{ flex: 1, fontFamily: DEVA, fontSize: '18px', fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.3px' }}>मेरा हिसाब</h1>
+      </header>
 
-      {/* Toast */}
-      {toast && (
-        <div className="toast-animate" style={{ position: 'fixed', bottom: '96px', left: '50%', transform: 'translateX(-50%)', background: '#2C2C2A', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', padding: '10px 18px', borderRadius: '999px', zIndex: 400, whiteSpace: 'nowrap', boxShadow: '0 4px 18px rgba(0,0,0,0.18)' }}>
-          {toast}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+        {/* Three metrics */}
+        <div className="animate-fade-in" style={{ display: 'flex', gap: '10px' }}>
+          <Metric label="आया" value={inr(aC)} color={GREEN} />
+          <Metric label="गया" value={inr(gC)} color={PURPLE} />
+          <Metric label="बचे" value={inr(bC)} color={INK} emphasised />
         </div>
-      )}
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {mode === 'home'        && renderHome()}
-        {mode === 'add_in'      && renderAddIn()}
-        {mode === 'confirm_in'  && renderConfirm()}
-        {mode === 'add_out'     && renderAddOut()}
-        {mode === 'confirm_out' && renderConfirm()}
-        {mode === 'saved'       && renderSaved()}
-        {mode === 'sms'         && renderSms()}
-      </div>
+        {/* कुल इनाम */}
+        <div className="animate-fade-in" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', animationDelay: '60ms' }}>
+          <IcSparks size={24} color="#FFD479" />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#fff' }}>कुल इनाम — {totalPoints.toLocaleString('en-IN')} अंक</div>
+            <div style={{ fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>{JACKPOT_POINTS.toLocaleString('en-IN')} अंक = ₹{JACKPOT_RUPEES} · {REDEEM_PARTNER}</div>
+          </div>
+          <button onClick={redeem} style={{ background: '#fff', border: 'none', borderRadius: '999px', padding: '9px 18px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: PURPLE, flexShrink: 0 }}>
+            बदलें
+          </button>
+        </div>
 
-      <BottomInputBar
-        ref={inputRef}
-        compact
-        voiceStatus={voiceStatus}
-        onSubmit={(text) => {
-          if (mode === 'home') handleChatInput(text);
-        }}
-        onSpeak={toggleVoice}
-        onPlus={() => {}}
-      />
+        <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', margin: '0 2px', textAlign: 'center' }}>
+          सब फ़ोटो से अपने आप — कोई एंट्री नहीं।
+        </p>
 
-      {/* ── Edit/Delete entry sheet ── */}
-      <BottomSheet open={!!editEntry} onClose={() => { setEditEntry(null); setConfirmDelete(false); }} title={confirmDelete ? 'एंट्री हटाएँ?' : 'एंट्री बदलें'}>
-        {editEntry && !confirmDelete && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div><label style={sheetLabelStyle}>रकम (₹)</label><input type="number" value={editAmt} onChange={e => setEditAmt(e.target.value)} style={sheetInputStyle} /></div>
-            <div>
-              <label style={sheetLabelStyle}>कैटेगरी</label>
-              <input type="text" value={editCat} onChange={e => setEditCat(e.target.value)} style={sheetInputStyle} />
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                {CATEGORIES.map(c => <button key={c} onClick={() => setEditCat(c)} style={{ padding: '5px 10px', borderRadius: '8px', border: editCat === c ? '1.5px solid #534AB7' : '1.5px solid #EEEDFE', background: editCat === c ? '#EEEDFE' : '#FAFAFA', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '12px', color: editCat === c ? '#534AB7' : '#5F5E5A', cursor: 'pointer' }}>{c}</button>)}
+        {/* Auto-logged feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {docs.map((d, i) => (
+            <div key={d.id} className="animate-fade-in" style={{ background: '#fff', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px', animationDelay: `${Math.min(i, 8) * 45}ms` }}>
+              <span style={{ width: 40, height: 40, borderRadius: '12px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {docIcon(d.icon, 20, PURPLE)}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK }}>{d.docType}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <span style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>{d.category}</span>
+                  <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>{directionLabel(d.dir)}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: d.dir === 'in' ? GREEN : INK }}>
+                  {d.dir === 'in' ? '+' : '−'}{inr(d.amount)}
+                </span>
+                <button onClick={() => dispatch({ type: 'FORGET_DOC', payload: d.id })} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: DEVA, fontSize: '11px', color: '#b0adb8', padding: '2px' }}>
+                  <IcXMark size={11} color="#b0adb8" /> भूल जाओ
+                </button>
               </div>
             </div>
-            <button onClick={saveEdit} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: '#534AB7', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>बदलें</button>
-            <button onClick={() => setConfirmDelete(true)} style={{ width: '100%', padding: '11px', borderRadius: '12px', border: '1.5px solid #FAECE7', background: '#FFF', color: '#D85A30', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>हटाएँ</button>
-          </div>
-        )}
-        {editEntry && confirmDelete && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <p style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', color: '#2C2C2A', margin: 0 }}>क्या यह एंट्री हटाएँ?</p>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={doDelete} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: '#D85A30', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>हाँ</button>
-              <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', color: '#534AB7', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>नहीं</button>
-            </div>
-          </div>
-        )}
-      </BottomSheet>
-
-      {/* ── Goal add/edit sheet ── */}
-      <BottomSheet open={goalSheetOpen} onClose={() => setGoalSheetOpen(false)} title={editingGoal ? 'लक्ष्य बदलें' : 'नया लक्ष्य'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Quick goal name chips */}
-          {!editingGoal && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {['त्योहार','फीस','फ़ोन','इमरजेंसी','सोना','यात्रा'].map(g => (
-                <Chip key={g} label={g} selected={goalName === g} onClick={() => setGoalName(g)} />
-              ))}
-            </div>
-          )}
-          <div><label style={sheetLabelStyle}>लक्ष्य का नाम</label><input placeholder="किसके लिए बचत?" value={goalName} onChange={e => setGoalName(e.target.value)} style={sheetInputStyle} /></div>
-          <div>
-            <label style={sheetLabelStyle}>कितने चाहिए? (₹)</label>
-            <div style={{ display: 'flex', alignItems: 'center', background: '#F5F4FA', borderRadius: '10px', padding: '10px 14px', border: '1.5px solid #EEEDFE' }}>
-              <span style={{ fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#888780', marginRight: '4px' }}>₹</span>
-              <input type="number" placeholder="Target amount" value={goalTarget ?? ''} onChange={e => setGoalTarget(Number(e.target.value) || null)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'JioType',sans-serif", fontSize: '16px', color: '#2C2C2A' }} />
-            </div>
-          </div>
-          <div>
-            <label style={sheetLabelStyle}>Priority (1 = सबसे ज़रूरी)</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[1,2,3,4,5].map(p => (
-                <button key={p} onClick={() => setGoalPriority(p)} style={{ flex: 1, padding: '10px 4px', borderRadius: '10px', border: goalPriority === p ? '2px solid #534AB7' : '1.5px solid #EEEDFE', background: goalPriority === p ? '#EEEDFE' : '#FFFFFF', fontFamily: "'JioType',sans-serif", fontSize: '14px', fontWeight: 600, color: goalPriority === p ? '#534AB7' : '#2C2C2A', cursor: 'pointer' }}>{p}</button>
-              ))}
-            </div>
-          </div>
-          <button onClick={saveGoal} disabled={!goalName.trim() || !goalTarget} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: goalName.trim() && goalTarget ? '#3B6D11' : '#D8D7D4', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
-            {editingGoal ? 'बदलें' : 'लक्ष्य रखें'}
-          </button>
-          {editingGoal && (
-            <button onClick={deleteGoal} style={{ width: '100%', padding: '11px', borderRadius: '12px', border: '1.5px solid #FAECE7', background: '#fff', color: '#D85A30', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
-              लक्ष्य हटाएँ
-            </button>
-          )}
+          ))}
         </div>
-      </BottomSheet>
+
+        {/* One insight line */}
+        {topCat && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', borderRadius: '14px', padding: '12px 14px' }}>
+            <IcSparks size={16} color={PURPLE} />
+            <span style={{ fontFamily: DEVA, fontSize: '13px', color: INK }}>इस महीने सबसे ज़्यादा {topCat} पे गया।</span>
+          </div>
+        )}
+
+        {docs.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <p style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780', margin: 0 }}>अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।</p>
+            <button onClick={() => nav('/decoder')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '12px 22px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+              <IcCamera size={18} color="#fff" /> फ़ोटो दिखाओ
+            </button>
+          </div>
+        )}
+      </div>
+
+      {toast && (
+        <div className="toast-animate" style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontFamily: DEVA, fontSize: '13px', padding: '10px 18px', borderRadius: '999px', zIndex: 500, whiteSpace: 'nowrap' }}>
+          इनाम — डेमो (Reliance Retail)
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Metric({ label, value, color, emphasised }) {
+  return (
+    <div style={{ flex: 1, background: '#fff', borderRadius: '14px', padding: emphasised ? '14px 10px' : '12px 10px', textAlign: 'center', border: emphasised ? `1.5px solid ${PURPLE_LIGHT}` : 'none' }}>
+      <div style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 600, color: '#888780', marginBottom: '4px' }}>{label}</div>
+      <div style={{ fontFamily: DEVA, fontSize: emphasised ? '18px' : '15px', fontWeight: emphasised ? 900 : 800, color, letterSpacing: '-0.3px' }}>{value}</div>
     </div>
   );
 }

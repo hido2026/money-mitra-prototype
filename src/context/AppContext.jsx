@@ -6,6 +6,7 @@
 //   sessionDecodes, insightFired, lastInputModality
 
 import { createContext, useContext, useReducer } from 'react';
+import { SEED_DOCS } from '../data/decoder-samples';
 
 const AppContext = createContext(null);
 const STORAGE_KEY = 'money_mitra_data'; // same key as before — preserves existing data
@@ -45,6 +46,9 @@ const INIT = {
   sessionDecodes:    [],
   insightFired:      false,
   lastInputModality: 'tap',
+  // Decoded-document feed for the हिसाब — in memory only (no storage, resets on reload).
+  // We keep the READING (amount/who/category/in-out), never the photo.
+  docs:              SEED_DOCS,
 };
 
 function reducer(state, action) {
@@ -110,6 +114,12 @@ function reducer(state, action) {
     // ── Decoder ───────────────────────────────────────────────────────────────
     case 'ADD_DECODE':
       return { ...state, sessionDecodes: [...state.sessionDecodes, action.payload] };
+
+    // ── हिसाब feed (decoded docs, in-memory only — never persisted) ────────────
+    case 'ADD_DOC':
+      return { ...state, docs: [action.payload, ...state.docs] };
+    case 'FORGET_DOC':
+      return { ...state, docs: state.docs.filter(d => d.id !== action.payload) };
 
     // ── Insight gate ──────────────────────────────────────────────────────────
     case 'MARK_INSIGHT_FIRED':
