@@ -5,7 +5,7 @@
 // No manual entry. हिसाब accumulates real decodes (in-memory).
 
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
@@ -62,6 +62,7 @@ function Bubble({ children, delay = 0 }) {
 
 export default function Decoder() {
   const nav = useNavigate();
+  const location = useLocation();
   const { state, dispatch } = useApp();
 
   const [stage, setStage] = useState('input'); // input | reading | result | blurry
@@ -73,6 +74,7 @@ export default function Decoder() {
   const cameraRef = useRef(null);
   const fileRef = useRef(null);
   const introSpokenRef = useRef(false);
+  const camOpenedRef = useRef(false);
 
   const docs = state.docs;
   const aaya = docs.filter(d => d.dir === 'in').reduce((s, d) => s + d.amount, 0);
@@ -90,6 +92,15 @@ export default function Decoder() {
       speakMukund(INTRO, () => setSpeaking(false));
     }
   }, [stage]);
+
+  // Opened from मेरा हिसाब's "फ़ोटो दिखाओ" → open the camera straight away.
+  useEffect(() => {
+    if (location.state?.openCamera && !camOpenedRef.current) {
+      camOpenedRef.current = true;
+      const t = setTimeout(() => cameraRef.current?.click(), 200);
+      return () => clearTimeout(t);
+    }
+  }, [location.state]);
 
   // Finalize a resolved decode: compute the grounded insight (from PRIOR entries),
   // auto-speak recognition → insight, then log it to the हिसाब once (real amount only).
