@@ -24,6 +24,24 @@ export function insightEngine(doc, prior = []) {
   const amt = doc.amount;
   if (!amt) return doc.direction === 'in' ? 'कमाई का कागज़ पढ़ लिया।' : 'कागज़ पढ़ लिया।';
 
+  // 0. CALMING — only when the document looks alarming (notice / penalty)
+  if (doc.alarming) {
+    return doc.dueDate
+      ? `घबराइए मत — यह सिर्फ़ एक सूचना है। इसमें ${inr(amt)} का ज़िक्र है, ${doc.dueDate} तक देख लीजिए।`
+      : `घबराइए मत — यह सिर्फ़ एक सूचना है। इसमें ${inr(amt)} का ज़िक्र है — आराम से समझ लीजिए।`;
+  }
+
+  // 1. ACTIONABLE — real due date + amount (how the bill works, not advice)
+  if (doc.dueDate && doc.direction === 'out') {
+    return `${doc.dueDate} तक पूरा ${inr(amt)} भर दें तो ब्याज/लेट फ़ीस नहीं लगती।`;
+  }
+
+  // 2. BIGGEST line-item spend (expenses only) — a real extracted item
+  if (doc.direction === 'out' && Array.isArray(doc.lineItems) && doc.lineItems.length) {
+    const big = [...doc.lineItems].sort((a, b) => b.amount - a.amount)[0];
+    if (big && big.amount) return `सबसे बड़ा हिस्सा ${big.label} — ${inr(big.amount)}।`;
+  }
+
   const dir = doc.direction;
   const byMerchant = doc.merchant
     ? prior.filter(e => e.merchant && e.merchant === doc.merchant && e.dir === dir)
@@ -31,9 +49,9 @@ export function insightEngine(doc, prior = []) {
   const byCat = prior.filter(e => e.category === doc.category && e.dir === dir);
   const matches = byMerchant.length ? byMerchant : byCat;
 
-  // 1. COMPARISON — real prior amount + real delta
+  // 3. COMPARISON — real prior amount + real delta
   if (matches.length) {
-    const last = matches[0]; // newest prior
+    const last = matches[0];
     const delta = amt - last.amount;
     if (delta !== 0) {
       const who = byMerchant.length ? doc.merchant : doc.category;
@@ -41,19 +59,19 @@ export function insightEngine(doc, prior = []) {
     }
   }
 
-  // 2. COMPOSITION — extracted tax/service charge
+  // 4. COMPOSITION — extracted tax/service charge
   if (doc.tax && doc.tax > 0 && doc.tax < amt) {
     return `इसमें ${inr(doc.tax)} टैक्स/सर्विस चार्ज भी जुड़ा है — आम बात।`;
   }
 
-  // 3. CUMULATIVE — needs ≥1 prior in this category (so the total > this amount)
+  // 5. CUMULATIVE — needs ≥1 prior in this category
   if (byCat.length) {
     const total = byCat.reduce((s, e) => s + e.amount, 0) + amt;
     const verb = dir === 'in' ? 'आया' : 'गया';
     return `${inr(amt)} का ${doc.category} — इस महीने ${doc.category} पे अब तक ${inr(total)} ${verb}।`;
   }
 
-  // 4. GENERAL literacy nudge (no specific ₹ claim) — or a neutral factual line
+  // 6. GENERAL literacy nudge (no specific ₹ claim) — or a neutral factual line
   return GENERAL[doc.category] || (dir === 'in' ? `कमाई आई — ${inr(amt)}।` : `${doc.category} — ${inr(amt)}।`);
 }
 

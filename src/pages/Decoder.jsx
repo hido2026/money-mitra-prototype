@@ -1,19 +1,21 @@
 // Decoder — कागज़ समझें (route: /#/decoder)
-// REAL & grounded (v2): reads the actual uploaded image/PDF via a vision model,
-// renders STRICTLY from the extracted JSON. No invented numbers; null → nothing.
-// Camera-only, no manual entry. हिसाब accumulates real decodes (in-memory).
+// VOICE-FIRST chat (v4): reads ANY real financial paper via a vision model and
+// replies as Mukund in short bubbles that AUTO-SPEAK (Sarvam hi-IN). Renders
+// STRICTLY from extracted JSON + computed insights — no invented numbers.
+// No manual entry. हिसाब accumulates real decodes (in-memory).
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
-import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
+import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
 import { extractFromFile, docLabel, iconForCategory } from '../utils/extract';
 import { insightEngine } from '../utils/insights';
 import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
+import BottomInputBar from '../components/BottomInputBar';
 import {
-  IcChevronLeft, IcCamera, IcFileText, IcCheck,
+  IcChevronLeft, IcCamera, IcFileText, IcCheck, IcShield,
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
 } from '../components/icons/Icons';
 
@@ -22,8 +24,10 @@ const PURPLE_LIGHT = '#EEEDFE';
 const GREEN = '#1a7d4b';
 const INK = '#2C2C2A';
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const REWARD_POINTS = 100;       // fixed, earned per real readable decode
+const REWARD_POINTS = 100;
 const LOW_CONF = 0.6;
+
+const INTRO = 'कोई भी कागज़ जो समझ न आए या परेशान करे — बिल, बैंक नोटिस, मैसेज, पर्ची — दिखाइए। मैं आसान भाषा में समझा दूँगा।';
 
 function docIcon(key, size, color) {
   if (key === 'zap') return <IcZap size={size} color={color} />;
@@ -38,6 +42,24 @@ const ChevronRight = ({ size = 18, color = '#aaa' }) => (
   </svg>
 );
 
+// The spoken/printed recognition line (real doc + total; never "कागज़" when avoidable).
+function recogText(d) {
+  const who = d.merchant || docLabel(d.docType);
+  if (!d.amount) return `यह ${who} है।`;
+  return d.direction === 'in' ? `यह ${who} है — ${inr(d.amount)} मिले।` : `यह ${who} है — कुल ${inr(d.amount)}।`;
+}
+
+function Bubble({ children, delay = 0 }) {
+  return (
+    <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', animationDelay: `${delay}ms` }}>
+      <PortraitAvatar size={32} online={false} ringed={false} />
+      <div style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function Decoder() {
   const nav = useNavigate();
   const { state, dispatch } = useApp();
@@ -46,11 +68,12 @@ export default function Decoder() {
   const [data, setData] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [insightLine, setInsightLine] = useState('');
+  const [speaking, setSpeaking] = useState(false);
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
   const fileRef = useRef(null);
+  const introSpokenRef = useRef(false);
 
-  // ── live हिसाब totals (from the real in-memory feed) ──
   const docs = state.docs;
   const aaya = docs.filter(d => d.dir === 'in').reduce((s, d) => s + d.amount, 0);
   const gaya = docs.filter(d => d.dir === 'out').reduce((s, d) => s + d.amount, 0);
@@ -59,15 +82,27 @@ export default function Decoder() {
 
   const shownAmt = useCountUp(data?.amount ?? 0);
 
-  // Finalize a resolved decode: compute its grounded insight from PRIOR entries
-  // (this doc not added yet), then log it to the हिसाब once (only on a real amount).
+  // Auto-speak the intro once when the screen first opens.
+  useEffect(() => {
+    if (stage === 'input' && !introSpokenRef.current) {
+      introSpokenRef.current = true;
+      setSpeaking(true);
+      speakMukund(INTRO, () => setSpeaking(false));
+    }
+  }, [stage]);
+
+  // Finalize a resolved decode: compute the grounded insight (from PRIOR entries),
+  // auto-speak recognition → insight, then log it to the हिसाब once (real amount only).
   const finalize = (d) => {
     if (d.direction === 'ambiguous') return;
-    setInsightLine(insightEngine(d, state.docs));
+    const line = insightEngine(d, state.docs);
+    setInsightLine(line);
+    setSpeaking(true);
+    speakMukund(recogText(d), () => speakMukund(line, () => setSpeaking(false)));
+    const safety = setTimeout(() => setSpeaking(false), 16000);
+    void safety;
     if (d.amount && !addedRef.current) {
       addedRef.current = true;
-      // Title: prefer the doc label; if it's generic but the category is specific,
-      // use the category so a Jio receipt reads "फ़ोन रिचार्ज", not "कागज़".
       const title = (docLabel(d.docType) === 'कागज़' && d.category && d.category !== 'अन्य')
         ? d.category : docLabel(d.docType);
       dispatch({ type: 'ADD_DOC', payload: {
@@ -95,44 +130,39 @@ export default function Decoder() {
   };
 
   const onPick = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
-
-  const resolveDirection = (dir) => {
-    const d = { ...data, direction: dir };
-    setData(d);
-    finalize(d);
-  };
-
+  const resolveDirection = (dir) => { const d = { ...data, direction: dir }; setData(d); finalize(d); };
   const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); addedRef.current = false; };
 
-  // ── Stage: input ──
+  // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
     <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-        <PortraitAvatar size={36} online={false} ringed={false} />
-        <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '12px 16px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.6, color: INK, maxWidth: '88%' }}>
-          जो भी कागज़ हो — बिल, रसीद, तनख्वाह, कमाई — फ़ोटो दिखाइए। मैं पढ़कर अपने आप हिसाब बना दूँगा।
-        </p>
-      </div>
+      <Bubble>{INTRO}</Bubble>
 
       <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
         <IcCamera size={22} color="#fff" />
         <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>फ़ोटो लें</span>
       </button>
-
       <button onClick={() => fileRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
         <IcFileText size={18} color={PURPLE} />
         <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>फ़ाइल या PDF चुनें</span>
       </button>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780' }}>मैं पढ़ सकता हूँ —</span>
-        {['बिजली बिल', 'रसीद', 'तनख्वाह पर्ची', 'कमाई स्क्रीन'].map(c => (
-          <span key={c} style={{ background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: PURPLE }}>{c}</span>
-        ))}
+      {/* Capability card — breadth + vernacular (examples are not a limit) */}
+      <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '14px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+          {['बिजली बिल', 'बैंक नोटिस', 'रसीद', 'तनख्वाह पर्ची', '…और बहुत कुछ'].map(c => (
+            <span key={c} style={{ background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: PURPLE }}>{c}</span>
+          ))}
+        </div>
+        <p style={{ margin: 0, fontFamily: DEVA, fontSize: '12px', color: '#5F5E5A' }}>हिंदी या आपकी भाषा में भी पढ़ लूँगा।</p>
       </div>
 
-      <div style={{ background: '#F5F4FA', borderRadius: '10px', padding: '10px 14px', fontFamily: DEVA, fontSize: '12px', color: '#5F5E5A', lineHeight: 1.5 }}>
-        हम आपकी फ़ोटो नहीं रखते — पढ़ने के बाद सिर्फ़ ज़रूरी बात याद रखते हैं।
+      {/* Warm, reassuring disclaimer (green, shield) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#e9f6ee', borderRadius: '12px', padding: '12px 14px' }}>
+        <IcShield size={20} color={GREEN} />
+        <span style={{ fontFamily: DEVA, fontSize: '12.5px', color: '#1a5c38', lineHeight: 1.5 }}>
+          बेफ़िक्र रहिए — फ़ोटो हम रखते नहीं, बस ज़रूरी बात याद रखते हैं।
+        </span>
       </div>
 
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onPick} style={{ display: 'none' }} />
@@ -140,7 +170,6 @@ export default function Decoder() {
     </div>
   );
 
-  // ── Stage: reading (skeleton shimmer) ──
   const renderReading = () => (
     <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }} aria-busy="true" aria-label="मुकुंद पढ़ रहा है">
       <Shimmer h={28} w="55%" />
@@ -153,7 +182,7 @@ export default function Decoder() {
     </div>
   );
 
-  // ── Stage: result (render strictly from extracted data) ──
+  // ── Screen 2: result (voice-first chat) ──
   const renderResult = () => {
     const isIn = data.direction === 'in';
     const ambiguous = data.direction === 'ambiguous';
@@ -161,45 +190,45 @@ export default function Decoder() {
     const logged = !ambiguous && !!data.amount;
 
     return (
-      <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {/* 1. Recognition — merchant or doc type (only what was read) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ width: 22, height: 22, borderRadius: '50%', background: GREEN, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <IcCheck size={13} color="#fff" />
-          </span>
-          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: INK }}>
-            पहचान लिया — {data.merchant || docLabel(data.docType)}
-          </span>
-        </div>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* 1. Recognition bubble */}
+        <Bubble delay={0}>{recogText(data)}</Bubble>
 
-        {/* 2. Amount + direction (rendered only from extracted fields) */}
-        <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: data.amount ? '8px' : 0 }}>
-            <span style={{ width: 40, height: 40, borderRadius: '12px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {docIcon(iconForCategory(data.category), 22, PURPLE)}
+        {/* 2. Breakdown widget */}
+        <div className="animate-fade-in" style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '16px', marginLeft: '42px', animationDelay: '80ms' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: 34, height: 34, borderRadius: '10px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {docIcon(iconForCategory(data.category), 18, PURPLE)}
             </span>
             {!ambiguous && (
-              <span className="animate-pop" style={{ display: 'inline-flex', alignItems: 'center', background: isIn ? '#e6f5ec' : PURPLE_LIGHT, color: isIn ? GREEN : PURPLE, borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>
-                {directionLabel(data.direction)}
-              </span>
+              <span className="animate-pop" style={{ background: isIn ? '#e6f5ec' : PURPLE_LIGHT, color: isIn ? GREEN : PURPLE, borderRadius: '999px', padding: '4px 11px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>{directionLabel(data.direction)}</span>
+            )}
+            {data.category && (
+              <span style={{ background: '#F5F4FA', borderRadius: '999px', padding: '4px 11px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: '#5F5E5A' }}>{data.category}</span>
             )}
           </div>
 
           {data.amount ? (
-            <div style={{ fontFamily: DEVA, fontSize: '34px', fontWeight: 900, color: isIn ? GREEN : INK, letterSpacing: '-0.5px' }}>
-              {isIn ? '+' : ''}{inr(shownAmt)}
-            </div>
+            <div style={{ fontFamily: DEVA, fontSize: '30px', fontWeight: 900, color: isIn ? GREEN : INK, letterSpacing: '-0.5px' }}>{isIn ? '+' : ''}{inr(shownAmt)}</div>
           ) : (
             <div style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780' }}>रकम साफ़ नहीं पढ़ पाया।</div>
           )}
 
-          {data.category && (
-            <div style={{ marginTop: '8px', display: 'inline-block', background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: '#5F5E5A' }}>
-              अपने आप: {data.category}
+          {/* line items */}
+          {data.lineItems?.length > 0 && (
+            <div style={{ marginTop: '10px', borderTop: `1px solid ${PURPLE_LIGHT}`, paddingTop: '8px' }}>
+              {data.lineItems.map((li, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontFamily: DEVA, fontSize: '13px' }}>
+                  <span style={{ color: '#5F5E5A' }}>{li.label}</span>
+                  <span style={{ color: INK, fontWeight: 600 }}>{inr(li.amount)}</span>
+                </div>
+              ))}
             </div>
           )}
+          {data.dueDate && (
+            <div style={{ marginTop: '8px', fontFamily: DEVA, fontSize: '12.5px', color: '#5F5E5A' }}>आख़िरी तारीख़: <span style={{ color: INK, fontWeight: 700 }}>{data.dueDate}</span></div>
+          )}
 
-          {/* low-confidence confirm */}
           {lowConf && (
             <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A' }}>सही है?</span>
@@ -209,57 +238,54 @@ export default function Decoder() {
           )}
         </div>
 
-        {/* ambiguous → one plain question (two taps, no typing) */}
+        {/* ambiguous → one question; "मैंने दिया · खर्च" is the PRIMARY first button */}
         {ambiguous && (
-          <div style={{ background: '#FFFBEA', border: '1px solid #F2E2A8', borderRadius: '16px', padding: '16px' }}>
-            <p style={{ margin: '0 0 12px', fontFamily: DEVA, fontSize: '14px', fontWeight: 600, color: INK }}>यह आपको मिला पैसा है, या आपने दिया?</p>
+          <div style={{ background: '#FFFBEA', border: '1px solid #F2E2A8', borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
+            <p style={{ margin: '0 0 12px', fontFamily: DEVA, fontSize: '14px', fontWeight: 600, color: INK }}>यह पैसा आपने दिया, या आपको मिला?</p>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => resolveDirection('in')} style={{ flex: 1, background: '#e6f5ec', color: GREEN, border: 'none', borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>मिला (आया)</button>
-              <button onClick={() => resolveDirection('out')} style={{ flex: 1, background: PURPLE_LIGHT, color: PURPLE, border: 'none', borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>दिया (गया)</button>
+              <button onClick={() => resolveDirection('out')} style={{ flex: 1, background: PURPLE, color: '#fff', border: 'none', borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>मैंने दिया · खर्च</button>
+              <button onClick={() => resolveDirection('in')} style={{ flex: 1, background: '#fff', color: GREEN, border: `1.5px solid #cde7d8`, borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>मुझे मिला · कमाई</button>
             </div>
           </div>
         )}
 
-        {/* 3. Reward — only on a real, readable, resolved decode */}
-        {logged && (
-          <div className="animate-pop" style={{ background: PURPLE, borderRadius: '16px', padding: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <IcSparks size={20} color="#FFD479" />
-              <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 800, color: '#fff' }}>इनाम — {REWARD_POINTS} अंक मिले!</span>
-            </div>
-            <div style={{ marginTop: '12px', height: '8px', borderRadius: '999px', background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: '999px', background: '#FFD479', transformOrigin: 'left', transform: `scaleX(${Math.min(totalPoints, JACKPOT_POINTS) / JACKPOT_POINTS})`, transition: 'transform 500ms ease-out' }} />
-            </div>
-            <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
-              <span>{Math.min(totalPoints, JACKPOT_POINTS)} / {JACKPOT_POINTS.toLocaleString('en-IN')} अंक</span>
-              <span>{JACKPOT_POINTS.toLocaleString('en-IN')} अंक = ₹{JACKPOT_RUPEES} · {REDEEM_PARTNER}</span>
-            </div>
-          </div>
-        )}
-
-        {/* 4. Insight (grounded, no advice) + सुनें */}
-        {!ambiguous && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+        {/* 3. Insight bubble — leads with the specific extracted fact */}
+        {!ambiguous && insightLine && (
+          <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', animationDelay: '160ms' }}>
             <PortraitAvatar size={32} online={false} ringed={false} />
             <div>
-              <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK }}>
-                {insightLine}
-              </p>
-              <button onClick={() => speakMukund(insightLine)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
+              <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>{insightLine}</p>
+              <button onClick={() => { setSpeaking(true); speakMukund(insightLine, () => setSpeaking(false)); }} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
                 <IcSparks size={13} color="#888780" /> सुनें
               </button>
             </div>
           </div>
         )}
 
-        {/* 5. Auto-log confirmation */}
+        {/* 4. Reward — अंक only; इनाम is the milestone; no Reliance/₹10 here */}
         {logged && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: DEVA, fontSize: '12px', color: GREEN }}>
+          <div className="animate-pop" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <IcSparks size={20} color="#FFD479" />
+              <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 800, color: '#fff' }}>{REWARD_POINTS} अंक मिले!</span>
+            </div>
+            <div style={{ marginTop: '12px', height: '8px', borderRadius: '999px', background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: '999px', background: '#FFD479', transformOrigin: 'left', transform: `scaleX(${Math.min(totalPoints, JACKPOT_POINTS) / JACKPOT_POINTS})`, transition: 'transform 500ms ease-out' }} />
+            </div>
+            <div style={{ marginTop: '8px', fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+              {Math.min(totalPoints, JACKPOT_POINTS)} / {JACKPOT_POINTS.toLocaleString('en-IN')} अंक · {JACKPOT_POINTS.toLocaleString('en-IN')} अंक पूरे होने पर इनाम — पढ़ते रहिए।
+            </div>
+          </div>
+        )}
+
+        {/* 5. Auto-log */}
+        {logged && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '42px', fontFamily: DEVA, fontSize: '12px', color: GREEN }}>
             <IcCheck size={14} color={GREEN} /> अपने आप हिसाब में जुड़ गया
           </div>
         )}
 
-        {/* 6. Tappable हिसाब strip */}
+        {/* 6. हिसाब strip */}
         {docs.length > 0 && (
           <button onClick={() => nav('/passbook')} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', boxSizing: 'border-box', background: '#F5F4FA', border: 'none', borderRadius: '14px', padding: '14px 16px', cursor: 'pointer', textAlign: 'left' }}>
             <span style={{ flex: 1, fontFamily: DEVA, fontSize: '13px', fontWeight: 600, color: INK }}>
@@ -269,16 +295,14 @@ export default function Decoder() {
           </button>
         )}
 
-        {/* 7. Loop */}
-        <button onClick={reset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
+        <button onClick={reset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '15px', cursor: 'pointer' }}>
           <IcCamera size={20} color="#fff" />
-          <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>एक और फ़ोटो दिखाओ</span>
+          <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>एक और कागज़ दिखाओ</span>
         </button>
       </div>
     );
   };
 
-  // ── Stage: blurry / unreadable fallback ──
   const renderBlurry = () => (
     <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
       <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FDECEC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -286,11 +310,11 @@ export default function Decoder() {
       </span>
       <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: INK, margin: 0 }}>कागज़ साफ़ नहीं दिखा — दुबारा दिखाइए?</p>
       <p style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A', margin: 0, lineHeight: 1.5 }}>साफ़ रोशनी में, पूरा कागज़ फ्रेम के अंदर रखें।</p>
-      <button onClick={reset} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
-        दुबारा दिखाइए
-      </button>
+      <button onClick={reset} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>दुबारा दिखाइए</button>
     </div>
   );
+
+  const showDock = stage === 'input' || stage === 'result';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#fff', maxWidth: '420px', margin: '0 auto' }}>
@@ -301,7 +325,9 @@ export default function Decoder() {
         <PortraitAvatar size={36} online ringed />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 700, color: INK }}>कागज़ समझें</div>
-          <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#5F5E5A' }}>मुकुंद · पढ़कर हिसाब बनाता है</div>
+          <div style={{ fontFamily: DEVA, fontSize: '11px', color: speaking ? PURPLE : '#5F5E5A', fontWeight: speaking ? 700 : 400 }}>
+            {speaking ? 'मुकुंद · बोल रहा है…' : 'मुकुंद · पढ़कर समझाता है'}
+          </div>
         </div>
       </header>
 
@@ -311,6 +337,15 @@ export default function Decoder() {
         {stage === 'result' && data && renderResult()}
         {stage === 'blurry' && renderBlurry()}
       </div>
+
+      {showDock && (
+        <BottomInputBar
+          compact
+          onSubmit={(t) => nav('/chat', { state: { initialMessage: t } })}
+          onSpeak={() => nav('/chat', { state: { autoVoice: true } })}
+          onPlus={() => fileRef.current?.click()}
+        />
+      )}
     </div>
   );
 }

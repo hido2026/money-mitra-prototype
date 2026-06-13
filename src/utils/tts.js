@@ -44,11 +44,13 @@ export function stopSpeaking() {
   } catch {}
 }
 
-// ── speakMukund — Sarvam first, browser fallback ─────────────────────────────
-export async function speakMukund(text) {
+// ── speakMukund — Sarvam first, browser fallback. onEnd() fires when playback
+//    finishes (used for the "बोल रहा है…" cue + speaking bubbles in sequence). ─
+export async function speakMukund(text, onEnd) {
+  const done = () => { try { onEnd?.(); } catch {} };
   // Strip stray markdown, collapse whitespace, cap to Sarvam's 500-char limit.
   const clean = (text || '').replace(/[*_#`>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 480);
-  if (!clean) return;
+  if (!clean) { done(); return; }
 
   stopSpeaking();          // stops anything playing AND bumps playSeq
   const myTurn = playSeq;  // this call's claim on the speaker
@@ -81,13 +83,14 @@ export async function speakMukund(text) {
 
     const audio  = new Audio(`data:audio/wav;base64,${b64}`);
     currentAudio = audio;
-    audio.onended = () => { if (currentAudio === audio) currentAudio = null; };
+    audio.onended = () => { if (currentAudio === audio) currentAudio = null; done(); };
     await audio.play();
     return;
   } catch (err) {
     if (myTurn !== playSeq) return; // superseded — don't fall back either
     console.warn('[tts] Sarvam failed → browser fallback:', err?.message || err);
     browserSpeak(clean);
+    done();
   }
 }
 

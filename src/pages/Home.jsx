@@ -178,7 +178,7 @@ export default function Home() {
               <div style={{
                 fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
                 fontSize: '13px', color: '#444', marginTop: '6px',
-              }}>बिल की फ़ोटो लें — मैं समझा दूँगा</div>
+              }}>कोई भी कागज़ दिखाएँ — मैं समझा दूँगा।</div>
             </div>
             <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={20} height={20} style={{ flexShrink: 0 }}>
               <polyline points="9 18 15 12 9 6" />

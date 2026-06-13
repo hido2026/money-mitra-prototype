@@ -20,14 +20,21 @@ const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 const EXTRACT_PROMPT =
   "You are a document-extraction engine for an Indian money app. Extract ONLY what is literally visible in the image. " +
   "Never guess, estimate, or fabricate any number, merchant, or date. " +
+  "Read ANY financial document — bill, bank notice, message, receipt, salary slip, credit-card statement — including ones in Hindi or other Indian languages, handwriting, or faded print. " +
+  "If line items are not clearly readable, return just the total_amount. " +
   "If the image is not a financial document, or is too blurry to read, set readable=false and stop. " +
   "If a field is not present, return null for it. " +
-  "tax_amount is the total GST / tax / service charge shown on the document (numbers only); null if not shown. " +
+  "tax_amount is the total GST / tax / service charge shown (numbers only); null if not shown. " +
+  "due_date is the payment due date if shown; null otherwise. " +
+  "line_items: up to 6 main charges/items with their amounts, ONLY if clearly readable; null otherwise. " +
+  "alarming: true if it is a notice / penalty / overdue / legal-sounding letter that could worry the reader. " +
   "direction: 'out' for a bill/receipt the user pays; 'in' ONLY for a salary slip / earnings / money-received screenshot; 'ambiguous' if you cannot tell. " +
   "Return JSON ONLY, no prose, matching exactly: " +
-  "{\"readable\":true|false,\"doc_type\":\"restaurant_bill|electricity_bill|kirana_receipt|salary_slip|upi_receipt|phone_recharge|other|null\"," +
-  "\"merchant\":string|null,\"total_amount\":number|null,\"tax_amount\":number|null,\"currency\":\"INR\"|null,\"date\":string|null," +
-  "\"direction\":\"out|in|ambiguous\",\"category\":\"खाना-पीना|बिजली|राशन|तनख्वाह|फ़ोन रिचार्ज|अन्य|null\",\"confidence\":0.0-1.0}";
+  "{\"readable\":true|false,\"doc_type\":\"restaurant_bill|electricity_bill|kirana_receipt|salary_slip|upi_receipt|phone_recharge|credit_card_bill|bank_notice|other|null\"," +
+  "\"merchant\":string|null,\"total_amount\":number|null,\"tax_amount\":number|null,\"due_date\":string|null," +
+  "\"line_items\":[{\"label\":string,\"amount\":number}]|null,\"alarming\":true|false," +
+  "\"currency\":\"INR\"|null,\"date\":string|null,\"direction\":\"out|in|ambiguous\"," +
+  "\"category\":\"खाना-पीना|बिजली|राशन|तनख्वाह|फ़ोन रिचार्ज|अन्य|null\",\"confidence\":0.0-1.0}";
 
 function toNumber(v) {
   if (v == null) return null;
@@ -128,12 +135,21 @@ export async function extractFromFile(file) {
 
   const docType = j.doc_type ?? null;
   const merchant = typeof j.merchant === 'string' ? j.merchant.trim() : null;
+  const lineItems = Array.isArray(j.line_items)
+    ? j.line_items
+        .map(li => (li && li.label ? { label: String(li.label), amount: toNumber(li.amount) } : null))
+        .filter(li => li && li.amount)
+        .slice(0, 6)
+    : [];
   return {
     readable:   j.readable === true,
     docType,
     merchant,
     amount:     toNumber(j.total_amount),
     tax:        toNumber(j.tax_amount),
+    dueDate:    typeof j.due_date === 'string' ? j.due_date : null,
+    lineItems,
+    alarming:   j.alarming === true || docType === 'bank_notice',
     date:       typeof j.date === 'string' ? j.date : null,
     direction:  ['in', 'out', 'ambiguous'].includes(j.direction) ? j.direction : 'ambiguous',
     category:   categorise(merchant, docType, typeof j.category === 'string' ? j.category : null),
@@ -145,7 +161,8 @@ export async function extractFromFile(file) {
 const DOC_LABEL = {
   restaurant_bill: 'रेस्तरां बिल', electricity_bill: 'बिजली बिल',
   kirana_receipt: 'किराना रसीद', salary_slip: 'तनख्वाह पर्ची',
-  upi_receipt: 'UPI रसीद', phone_recharge: 'फ़ोन रिचार्ज', other: 'कागज़',
+  upi_receipt: 'UPI रसीद', phone_recharge: 'फ़ोन रिचार्ज',
+  credit_card_bill: 'क्रेडिट कार्ड का बिल', bank_notice: 'बैंक की सूचना', other: 'कागज़',
 };
 export const docLabel = (d) => DOC_LABEL[d] || 'कागज़';
 
