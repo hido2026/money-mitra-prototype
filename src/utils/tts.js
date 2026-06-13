@@ -68,6 +68,7 @@ export async function speakMukund(text, onEnd) {
         speaker:              SPEAKER,
         model:                MODEL,
         speech_sample_rate:   22050,
+        enable_preprocessing: true, // pronounce embedded English words correctly in mixed Hindi+English
       }),
     });
 
