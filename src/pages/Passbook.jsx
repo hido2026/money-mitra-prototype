@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
+import { hisaabInsights } from '../utils/insights';
 import {
   IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcXMark, IcCamera,
 } from '../components/icons/Icons';
@@ -40,10 +41,8 @@ export default function Passbook() {
   const gC = useCountUp(gaya);
   const bC = useCountUp(bache);
 
-  // Biggest expense category → one supportive insight (no advice).
-  const byCat = {};
-  docs.filter(d => d.dir === 'out').forEach(d => { byCat[d.category] = (byCat[d.category] || 0) + d.amount; });
-  const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0]?.[0];
+  // Cumulative insight cards — recompute on every render (decode / भूल जाओ).
+  const insights = hisaabInsights(docs);
 
   const redeem = () => { setToast(true); setTimeout(() => setToast(false), 2200); };
 
@@ -108,11 +107,18 @@ export default function Passbook() {
           ))}
         </div>
 
-        {/* One insight line */}
-        {topCat && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', borderRadius: '14px', padding: '12px 14px' }}>
-            <IcSparks size={16} color={PURPLE} />
-            <span style={{ fontFamily: DEVA, fontSize: '13px', color: INK }}>इस महीने सबसे ज़्यादा {topCat} पे गया।</span>
+        {/* Cumulative insight cards — each unlocks when its data condition is met */}
+        {docs.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {insights.map((c, i) => (
+              <div key={c.id} className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', borderRadius: '14px', padding: '12px 14px', animationDelay: `${i * 50}ms` }}>
+                <IcSparks size={16} color={PURPLE} />
+                <span style={{ fontFamily: DEVA, fontSize: '13px', color: INK }}>{c.text}</span>
+              </div>
+            ))}
+            <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', textAlign: 'center', margin: '2px 0 0' }}>
+              जितनी ज़्यादा फ़ोटो, उतना साफ़ हिसाब।
+            </p>
           </div>
         )}
 

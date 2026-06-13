@@ -22,17 +22,45 @@ const EXTRACT_PROMPT =
   "Never guess, estimate, or fabricate any number, merchant, or date. " +
   "If the image is not a financial document, or is too blurry to read, set readable=false and stop. " +
   "If a field is not present, return null for it. " +
+  "tax_amount is the total GST / tax / service charge shown on the document (numbers only); null if not shown. " +
   "direction: 'out' for a bill/receipt the user pays; 'in' ONLY for a salary slip / earnings / money-received screenshot; 'ambiguous' if you cannot tell. " +
   "Return JSON ONLY, no prose, matching exactly: " +
-  "{\"readable\":true|false,\"doc_type\":\"restaurant_bill|electricity_bill|kirana_receipt|salary_slip|upi_receipt|other|null\"," +
-  "\"merchant\":string|null,\"total_amount\":number|null,\"currency\":\"INR\"|null,\"date\":string|null," +
-  "\"direction\":\"out|in|ambiguous\",\"category\":\"खाना-पीना|बिजली|राशन|तनख्वाह|अन्य|null\",\"confidence\":0.0-1.0}";
+  "{\"readable\":true|false,\"doc_type\":\"restaurant_bill|electricity_bill|kirana_receipt|salary_slip|upi_receipt|phone_recharge|other|null\"," +
+  "\"merchant\":string|null,\"total_amount\":number|null,\"tax_amount\":number|null,\"currency\":\"INR\"|null,\"date\":string|null," +
+  "\"direction\":\"out|in|ambiguous\",\"category\":\"खाना-पीना|बिजली|राशन|तनख्वाह|फ़ोन रिचार्ज|अन्य|null\",\"confidence\":0.0-1.0}";
 
 function toNumber(v) {
   if (v == null) return null;
   const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
   return isNaN(n) || n <= 0 ? null : Math.round(n);
 }
+
+// Deterministic categoriser — maps common merchants/keywords to the right bucket,
+// overriding the model so a Jio bill never lands in "अन्य".
+const CAT_RULES = [
+  { cat: 'फ़ोन रिचार्ज', kw: ['jio', 'airtel', 'vodafone', 'vi ', 'idea', 'bsnl', 'recharge', 'prepaid', 'postpaid', 'रिचार्ज', 'मोबाइल'] },
+  { cat: 'बिजली',        kw: ['electric', 'adani', 'tata power', 'bses', 'mseb', 'torrent power', 'units', 'kwh', 'energy charge', 'बिजली'] },
+  { cat: 'खाना-पीना',    kw: ['restaurant', 'cafe', 'hotel', 'dine', 'dhaba', 'food', 'swiggy', 'zomato', 'रेस्तरां', 'कैफे', 'भोजन'] },
+  { cat: 'राशन',         kw: ['kirana', 'grocery', 'supermarket', 'mart', 'provision', 'reliance fresh', 'dmart', 'big bazaar', 'राशन', 'किराना'] },
+  { cat: 'तनख्वाह',      kw: ['salary', 'payslip', 'pay slip', 'net pay', 'earnings', 'wages', 'तनख्वाह', 'सैलरी', 'वेतन'] },
+];
+function categorise(merchant, docType, raw) {
+  const hay = `${merchant || ''} ${docType || ''} ${raw || ''}`.toLowerCase();
+  for (const r of CAT_RULES) if (r.kw.some(k => hay.includes(k))) return r.cat;
+  if (docType === 'salary_slip')      return 'तनख्वाह';
+  if (docType === 'electricity_bill') return 'बिजली';
+  if (docType === 'restaurant_bill')  return 'खाना-पीना';
+  if (docType === 'kirana_receipt')   return 'राशन';
+  if (docType === 'phone_recharge')   return 'फ़ोन रिचार्ज';
+  const known = ['खाना-पीना', 'बिजली', 'राशन', 'तनख्वाह', 'फ़ोन रिचार्ज', 'अन्य'];
+  return known.includes(raw) ? raw : 'अन्य';
+}
+
+const CAT_ICON = {
+  'बिजली': 'zap', 'फ़ोन रिचार्ज': 'phone', 'तनख्वाह': 'salary',
+  'खाना-पीना': 'receipt', 'राशन': 'receipt', 'अन्य': 'receipt',
+};
+export const iconForCategory = (cat) => CAT_ICON[cat] || 'receipt';
 
 // Image → max-1024px JPEG base64 (keeps the upload small + fast).
 function compressToBase64(file) {
@@ -98,14 +126,17 @@ export async function extractFromFile(file) {
   let j = {};
   try { j = JSON.parse(resp.choices[0]?.message?.content ?? '{}'); } catch { j = {}; }
 
+  const docType = j.doc_type ?? null;
+  const merchant = typeof j.merchant === 'string' ? j.merchant.trim() : null;
   return {
     readable:   j.readable === true,
-    docType:    j.doc_type ?? null,
-    merchant:   typeof j.merchant === 'string' ? j.merchant.trim() : null,
+    docType,
+    merchant,
     amount:     toNumber(j.total_amount),
+    tax:        toNumber(j.tax_amount),
     date:       typeof j.date === 'string' ? j.date : null,
     direction:  ['in', 'out', 'ambiguous'].includes(j.direction) ? j.direction : 'ambiguous',
-    category:   typeof j.category === 'string' ? j.category : null,
+    category:   categorise(merchant, docType, typeof j.category === 'string' ? j.category : null),
     confidence: typeof j.confidence === 'number' ? j.confidence : 0,
   };
 }
@@ -114,7 +145,7 @@ export async function extractFromFile(file) {
 const DOC_LABEL = {
   restaurant_bill: 'रेस्तरां बिल', electricity_bill: 'बिजली बिल',
   kirana_receipt: 'किराना रसीद', salary_slip: 'तनख्वाह पर्ची',
-  upi_receipt: 'UPI रसीद', other: 'कागज़',
+  upi_receipt: 'UPI रसीद', phone_recharge: 'फ़ोन रिचार्ज', other: 'कागज़',
 };
 export const docLabel = (d) => DOC_LABEL[d] || 'कागज़';
 

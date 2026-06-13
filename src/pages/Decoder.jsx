@@ -8,7 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
-import { extractFromFile, insightFor, docLabel, iconFor } from '../utils/extract';
+import { extractFromFile, docLabel, iconForCategory } from '../utils/extract';
+import { insightEngine } from '../utils/insights';
 import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
 import {
@@ -44,6 +45,7 @@ export default function Decoder() {
   const [stage, setStage] = useState('input'); // input | reading | result | blurry
   const [data, setData] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [insightLine, setInsightLine] = useState('');
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
   const fileRef = useRef(null);
@@ -57,14 +59,23 @@ export default function Decoder() {
 
   const shownAmt = useCountUp(data?.amount ?? 0);
 
-  // Log a resolved, real decode to the हिसाब exactly once.
-  const logDecode = (d) => {
-    if (addedRef.current || !d.amount || d.direction === 'ambiguous') return;
-    addedRef.current = true;
-    dispatch({ type: 'ADD_DOC', payload: {
-      id: 'u' + Date.now(), docType: docLabel(d.docType), category: d.category || 'अन्य',
-      dir: d.direction, amount: d.amount, points: REWARD_POINTS, icon: iconFor(d.docType),
-    }});
+  // Finalize a resolved decode: compute its grounded insight from PRIOR entries
+  // (this doc not added yet), then log it to the हिसाब once (only on a real amount).
+  const finalize = (d) => {
+    if (d.direction === 'ambiguous') return;
+    setInsightLine(insightEngine(d, state.docs));
+    if (d.amount && !addedRef.current) {
+      addedRef.current = true;
+      // Title: prefer the doc label; if it's generic but the category is specific,
+      // use the category so a Jio receipt reads "फ़ोन रिचार्ज", not "कागज़".
+      const title = (docLabel(d.docType) === 'कागज़' && d.category && d.category !== 'अन्य')
+        ? d.category : docLabel(d.docType);
+      dispatch({ type: 'ADD_DOC', payload: {
+        id: 'u' + Date.now(), docType: title, merchant: d.merchant,
+        category: d.category || 'अन्य', dir: d.direction, amount: d.amount,
+        points: REWARD_POINTS, icon: iconForCategory(d.category),
+      }});
+    }
   };
 
   const handleFile = async (file) => {
@@ -76,7 +87,7 @@ export default function Decoder() {
       if (!d.readable) { setStage('blurry'); return; }
       setData(d);
       setStage('result');
-      logDecode(d); // logs only if amount present AND direction resolved
+      finalize(d);
     } catch (err) {
       console.warn('[decode] failed:', err?.message || err);
       setStage('blurry');
@@ -88,10 +99,10 @@ export default function Decoder() {
   const resolveDirection = (dir) => {
     const d = { ...data, direction: dir };
     setData(d);
-    logDecode(d);
+    finalize(d);
   };
 
-  const reset = () => { setStage('input'); setData(null); setConfirmed(false); addedRef.current = false; };
+  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); addedRef.current = false; };
 
   // ── Stage: input ──
   const renderInput = () => (
@@ -165,7 +176,7 @@ export default function Decoder() {
         <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: data.amount ? '8px' : 0 }}>
             <span style={{ width: 40, height: 40, borderRadius: '12px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {docIcon(iconFor(data.docType), 22, PURPLE)}
+              {docIcon(iconForCategory(data.category), 22, PURPLE)}
             </span>
             {!ambiguous && (
               <span className="animate-pop" style={{ display: 'inline-flex', alignItems: 'center', background: isIn ? '#e6f5ec' : PURPLE_LIGHT, color: isIn ? GREEN : PURPLE, borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>
@@ -232,9 +243,9 @@ export default function Decoder() {
             <PortraitAvatar size={32} online={false} ringed={false} />
             <div>
               <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK }}>
-                {insightFor(data)}
+                {insightLine}
               </p>
-              <button onClick={() => speakMukund(insightFor(data))} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
+              <button onClick={() => speakMukund(insightLine)} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
                 <IcSparks size={13} color="#888780" /> सुनें
               </button>
             </div>
