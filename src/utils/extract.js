@@ -30,9 +30,10 @@ const EXTRACT_PROMPT =
   "For a gold loan statement: total_amount = the EMI/instalment shown, or outstanding if no EMI is shown; NEVER gold weight or gold market value. " +
   "For a credit card bill: total_amount = total/minimum amount due, NEVER the credit limit. " +
   "If the actual transaction amount is not clearly readable, return null for total_amount. " +
-  "LINE ITEMS: include only actual charges/fees paid — EXCLUDE principal, outstanding balance, sum assured, IDV, credit limit, gold weight, gold value. " +
+  "LINE ITEMS: include only actual charges/fees paid — EXCLUDE principal, outstanding balance, sum assured, IDV, credit limit, gold weight, gold value, किश्त राशि (group total), बकाया राशि (outstanding). " +
   "BORROWED FIELD: set borrowed=true ONLY when money came IN but must be repaid — " +
-  "i.e. loan disbursals (personal/home/gold), credit card credits, BNPL. " +
+  "i.e. loan disbursals (personal/home/gold/SHG/microfinance group), credit card credits, BNPL. " +
+  "For SHG/microfinance group: if document shows loan received by group (किश्त मिली/ऋण मिला), set direction=in, borrowed=true, doc_type=personal_loan_disbursal, total_amount=individual member share (सामूहिक राशि) not group total (किश्त राशि). " +
   "Salary, subsidies, FD maturity, mutual fund redemption are NOT borrowed (borrowed=false). " +
   "GOLD LOAN STATEMENT: look for EMI, interest, outstanding — set total_amount to EMI if shown. " +
   "If image is not a financial document or too blurry, set readable=false and stop. " +

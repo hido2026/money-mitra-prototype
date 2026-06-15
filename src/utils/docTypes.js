@@ -87,7 +87,7 @@ export function isBorrowed(typeKey) {
  * gold weight/value, sanctioned amount.
  */
 export const TRAP_LABEL_RE =
-  /principal|outstanding|balance(?!\s*due)|sum[- ]?assured|sum[- ]?insured|\bidv\b|credit[- ]?limit|loan[- ]?amount|sanctioned|gold[- ]?weight|gold[- ]?value|मूलधन|बकाया(?!\s*राशि$)|बीमा[- ]?राशि|ऋण[- ]?राशि|क्रेडिट[- ]?सीमा|सोने|वज़न/i;
+  /principal|outstanding|balance(?!\s*due)|sum[- ]?assured|sum[- ]?insured|\bidv\b|credit[- ]?limit|loan[- ]?amount|sanctioned|gold[- ]?weight|gold[- ]?value|मूलधन|बकाया|किश्त\s*राशि|बीमा[- ]?राशि|ऋण[- ]?राशि|क्रेडिट[- ]?सीमा|सोने|वज़न/i;
 
 export function isTrapLabel(label = '') {
   return TRAP_LABEL_RE.test(label);
