@@ -111,14 +111,43 @@ async function sarvamTransliterate(text) {
   } catch { return text; }
 }
 
+// ── A5: Date normalization — "15-AUG-2025" → Hindi BEFORE transliteration ────
+// Dates embedded in Hindi text arrive as Latin (e.g. "15-AUG-2025 तक भर दें").
+// Transliteration turns them into garbled Devanagari phonetics; this pre-converts
+// them to spoken Hindi so the TTS engine reads them naturally.
+const MONTH_HI = {
+  JAN:'जनवरी', FEB:'फ़रवरी', MAR:'मार्च', APR:'अप्रैल', MAY:'मई', JUN:'जून',
+  JUL:'जुलाई', AUG:'अगस्त', SEP:'सितंबर', OCT:'अक्टूबर', NOV:'नवंबर', DEC:'दिसंबर',
+};
+const YEAR_WORDS = {
+  2020:'दो हज़ार बीस', 2021:'दो हज़ार इक्कीस', 2022:'दो हज़ार बाईस',
+  2023:'दो हज़ार तेईस', 2024:'दो हज़ार चौबीस', 2025:'दो हज़ार पच्चीस',
+  2026:'दो हज़ार छब्बीस', 2027:'दो हज़ार सत्ताईस', 2028:'दो हज़ार अट्ठाईस',
+};
+
+function normalizeDates(text) {
+  // "15-AUG-2025", "15/AUG/2025", "15 AUG 2025"
+  return text.replace(
+    /\b(\d{1,2})[-/\s](JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[-/\s](\d{4})\b/gi,
+    (_, d, m, y) => {
+      const day = parseInt(d, 10);
+      const month = MONTH_HI[m.toUpperCase()] || m;
+      const year = YEAR_WORDS[parseInt(y, 10)] || y;
+      return `${NUM_0_99[day] || d} ${month} ${year}`;
+    },
+  );
+}
+
 // ── speakMukund — Sarvam first, browser fallback. onEnd() fires when playback
 //    finishes (used for the "बोल रहा है…" cue + speaking bubbles in sequence). ─
 export async function speakMukund(text, onEnd) {
   const done = () => { try { onEnd?.(); } catch {} };
-  // Strip markdown, collapse whitespace, speak ₹ amounts as Hindi number words,
+  // Strip markdown, normalize dates (A5), speak ₹ amounts as Hindi number words,
   // then cap to Sarvam's 500-char limit.
   const clean = speakableAmounts(
-    (text || '').replace(/[*_#`>]/g, '').replace(/\s+/g, ' ').trim(),
+    normalizeDates(
+      (text || '').replace(/[*_#`>]/g, '').replace(/\s+/g, ' ').trim(),
+    ),
   ).slice(0, 480);
   if (!clean) { done(); return; }
 

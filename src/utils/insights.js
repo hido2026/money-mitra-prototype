@@ -5,6 +5,7 @@
 // entry shape (from Decoder logDecode): { id, docType, merchant, category, dir, amount, points, icon }
 
 import { inr } from './motion';
+import { isTrapLabel } from './docTypes';
 
 // General literacy nudges — TRUE, non-numeric, non-advisory (used only as last resort).
 const GENERAL = {
@@ -36,9 +37,10 @@ export function insightEngine(doc, prior = []) {
     return `${doc.dueDate} तक पूरा ${inr(amt)} भर दें तो ब्याज/लेट फ़ीस नहीं लगती।`;
   }
 
-  // 2. BIGGEST line-item spend (expenses only) — a real extracted item
+  // 2. BIGGEST line-item spend (expenses only) — a real extracted item, trap labels excluded (A2)
   if (doc.direction === 'out' && Array.isArray(doc.lineItems) && doc.lineItems.length) {
-    const big = [...doc.lineItems].sort((a, b) => b.amount - a.amount)[0];
+    const safeLI = doc.lineItems.filter(li => li && li.amount && !isTrapLabel(li.label));
+    const big = safeLI.sort((a, b) => b.amount - a.amount)[0];
     if (big && big.amount) return `सबसे बड़ा हिस्सा ${big.label} — ${inr(big.amount)}।`;
   }
 
@@ -46,7 +48,10 @@ export function insightEngine(doc, prior = []) {
   const byMerchant = doc.merchant
     ? prior.filter(e => e.merchant && e.merchant === doc.merchant && e.dir === dir)
     : [];
-  const byCat = prior.filter(e => e.category === doc.category && e.dir === dir);
+  // B1: never compare by category when category is 'अन्य' — too broad to be meaningful
+  const byCat = doc.category && doc.category !== 'अन्य'
+    ? prior.filter(e => e.category === doc.category && e.dir === dir)
+    : [];
   const matches = byMerchant.length ? byMerchant : byCat;
 
   // 3. COMPARISON — real prior amount + real delta
@@ -89,9 +94,19 @@ export function hisaabInsights(entries = []) {
   const cards = [];
 
   // In vs out (≥1 income + ≥1 expense)
+  // B4: only show "कम पड़े" when we have ≥1 salary/subsidy/FD entry (real income);
+  // never cry deficit when the user has only uploaded expense docs.
   if (ins.length && out.length) {
     const net = inSum - outSum;
-    cards.push({ id: 'inout', text: `${inr(inSum)} आया, ${inr(outSum)} गया — ${inr(Math.abs(net))} ${net >= 0 ? 'बचे' : 'कम पड़े'}।` });
+    const hasRealIncome = ins.some(e =>
+      e.docType && ['salary_slip','lpg_subsidy','bank_subsidy','fixed_deposit_maturity','mutual_fund_redemption'].includes(e.docType)
+    );
+    if (net >= 0 || hasRealIncome) {
+      cards.push({ id: 'inout', text: `${inr(inSum)} आया, ${inr(outSum)} गया — ${inr(Math.abs(net))} ${net >= 0 ? 'बचे' : 'कम पड़े'}।` });
+    } else {
+      // income present but may be partial — only show what went out
+      cards.push({ id: 'inout', text: `इस महीने ${inr(outSum)} गया।` });
+    }
   }
 
   // Top spend (≥2 expenses)

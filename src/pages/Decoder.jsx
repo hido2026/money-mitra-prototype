@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
-import { extractFromFile, docLabel, iconForCategory } from '../utils/extract';
+import { extractFromFile, docLabel, docIconKey, iconForCategory } from '../utils/extract';
 import { insightEngine } from '../utils/insights';
 import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
@@ -115,12 +115,15 @@ export default function Decoder() {
     void safety;
     if (d.amount && !addedRef.current) {
       addedRef.current = true;
-      const title = (docLabel(d.docType) === 'कागज़' && d.category && d.category !== 'अन्य')
-        ? d.category : docLabel(d.docType);
+      // A1: use the specific docType title; fall back to category only for truly unknown docs
+      const title = docLabel(d.docType) !== 'कागज़'
+        ? docLabel(d.docType)
+        : (d.category && d.category !== 'अन्य' ? d.category : 'कागज़');
       dispatch({ type: 'ADD_DOC', payload: {
         id: 'u' + Date.now(), docType: title, merchant: d.merchant,
         category: d.category || 'अन्य', dir: d.direction, amount: d.amount,
-        points: REWARD_POINTS, icon: iconForCategory(d.category),
+        points: REWARD_POINTS, icon: docIconKey(d.docType),
+        borrowed: d.borrowed === true,
       }});
     }
   };
