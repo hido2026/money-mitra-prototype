@@ -244,3 +244,66 @@ export const IcShield = ({ size = 16, color = '#D85A30' }) => (
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
 );
+
+// ── Part E: icons for new doc types ──────────────────────────────────────────
+
+export const IcWallet = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <path d="M20 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/>
+    <circle cx="17" cy="13" r="1.5" fill={color} stroke="none"/>
+    <line x1="2" y1="10" x2="22" y2="10"/>
+  </svg>
+);
+
+export const IcLock = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+
+export const IcFork = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <line x1="12" y1="2" x2="12" y2="22"/>
+    <path d="M8 2v4a4 4 0 0 0 8 0V2"/>
+  </svg>
+);
+
+export const IcCart = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <circle cx="9" cy="21" r="1"/>
+    <circle cx="20" cy="21" r="1"/>
+    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+  </svg>
+);
+
+export const IcGas = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <path d="M3 22V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v15"/>
+    <line x1="3" y1="22" x2="21" y2="22"/>
+    <path d="M10 22V16h4v6"/>
+    <rect x="6" y="10" width="12" height="5" rx="1"/>
+  </svg>
+);
+
+export const IcUpi = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <path d="M7 3l5 9 5-9"/>
+    <path d="M7 21l5-9 5 9"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+  </svg>
+);
+
+export const IcCoin = ({ size = 16, color = '#534AB7' }) => (
+  <svg {...base(size, color)}>
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M12 7v5l3 3"/>
+  </svg>
+);
+
+export const IcGoldCoin = ({ size = 16, color = '#C8961E' }) => (
+  <svg {...base(size, color)}>
+    <circle cx="12" cy="12" r="9"/>
+    <text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} stroke="none">₹</text>
+  </svg>
+);

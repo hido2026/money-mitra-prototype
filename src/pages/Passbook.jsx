@@ -11,6 +11,8 @@ import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '
 import { hisaabInsights } from '../utils/insights';
 import {
   IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcXMark, IcCamera,
+  IcShield, IcChartLine, IcBuilding,
+  IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
 } from '../components/icons/Icons';
 
 const PURPLE = '#534AB7';
@@ -20,10 +22,23 @@ const INK = '#2C2C2A';
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 
 function docIcon(key, size, color) {
-  if (key === 'zap') return <IcZap size={size} color={color} />;
-  if (key === 'phone') return <IcSmartphone size={size} color={color} />;
-  if (key === 'salary') return <IcFileDollar size={size} color={color} />;
-  return <IcReceipt size={size} color={color} />;
+  switch (key) {
+    case 'zap':       return <IcZap size={size} color={color} />;
+    case 'phone':     return <IcSmartphone size={size} color={color} />;
+    case 'wallet':    return <IcWallet size={size} color={color} />;
+    case 'salary':    return <IcFileDollar size={size} color={color} />;
+    case 'shield':    return <IcShield size={size} color={color} />;
+    case 'lock':      return <IcLock size={size} color={color} />;
+    case 'fork':      return <IcFork size={size} color={color} />;
+    case 'cart':      return <IcCart size={size} color={color} />;
+    case 'gas':       return <IcGas size={size} color={color} />;
+    case 'upi':       return <IcUpi size={size} color={color} />;
+    case 'coin':      return <IcCoin size={size} color={color} />;
+    case 'gold-coin': return <IcGoldCoin size={size} color={color} />;
+    case 'chart':     return <IcChartLine size={size} color={color} />;
+    case 'bank':      return <IcBuilding size={size} color={color} />;
+    default:          return <IcReceipt size={size} color={color} />;
+  }
 }
 
 export default function Passbook() {
@@ -32,14 +47,19 @@ export default function Passbook() {
   const [toast, setToast] = useState(false);
 
   const docs = state.docs;
-  const aaya = docs.filter(d => d.dir === 'in').reduce((s, d) => s + d.amount, 0);
+  // D1: borrowed money (loan disbursal, CC credit) NEVER counts as income.
+  const aaya = docs.filter(d => d.dir === 'in' && !d.borrowed).reduce((s, d) => s + d.amount, 0);
+  const udhar = docs.filter(d => d.borrowed).reduce((s, d) => s + d.amount, 0);
   const gaya = docs.filter(d => d.dir === 'out').reduce((s, d) => s + d.amount, 0);
   const bache = aaya - gaya;
   const totalPoints = docs.reduce((s, d) => s + (d.points || 0), 0);
+  // D3: suppress balance metric when no real income doc present
+  const hasRealIncome = docs.some(d => d.dir === 'in' && !d.borrowed);
 
   const aC = useCountUp(aaya);
   const gC = useCountUp(gaya);
-  const bC = useCountUp(bache);
+  const bC = useCountUp(Math.abs(bache));
+  const uC = useCountUp(udhar);
 
   // Cumulative insight cards — recompute on every render (decode / भूल जाओ).
   const insights = hisaabInsights(docs);
@@ -58,12 +78,22 @@ export default function Passbook() {
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-        {/* Three metrics */}
+        {/* Metrics — D1: आया excludes borrowed; D3: बचे suppressed without real income */}
         <div className="animate-fade-in" style={{ display: 'flex', gap: '10px' }}>
           <Metric label="आया" value={inr(aC)} color={GREEN} />
           <Metric label="गया" value={inr(gC)} color={PURPLE} />
-          <Metric label="बचे" value={inr(bC)} color={INK} emphasised />
+          {hasRealIncome
+            ? <Metric label={bache >= 0 ? 'बचे' : 'कम पड़े'} value={inr(bC)} color={bache >= 0 ? INK : '#c0392b'} emphasised />
+            : <Metric label="बचे" value="—" color="#888780" emphasised />
+          }
         </div>
+        {/* D2: borrowed section shown only when present */}
+        {udhar > 0 && (
+          <div className="animate-fade-in" style={{ background: '#FFF8E1', border: '1px solid #F3DBA0', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#7B5C00', flex: 1 }}>उधार / ऋण मिला</span>
+            <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#7B5C00' }}>{inr(uC)}</span>
+          </div>
+        )}
 
         {/* कुल इनाम */}
         <div className="animate-fade-in" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', animationDelay: '60ms' }}>
@@ -92,12 +122,15 @@ export default function Passbook() {
                 <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK }}>{d.docType}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                   <span style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>{d.category}</span>
-                  <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>{directionLabel(d.dir)}</span>
+                  {d.borrowed
+                    ? <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: '#7B5C00', background: '#FFF3CD', borderRadius: '999px', padding: '1px 7px' }}>उधार</span>
+                    : <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>{directionLabel(d.dir)}</span>
+                  }
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: d.dir === 'in' ? GREEN : INK }}>
-                  {d.dir === 'in' ? '+' : '−'}{inr(d.amount)}
+                <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: d.borrowed ? '#7B5C00' : (d.dir === 'in' ? GREEN : INK) }}>
+                  {d.borrowed ? '' : (d.dir === 'in' ? '+' : '−')}{inr(d.amount)}
                 </span>
                 <button onClick={() => dispatch({ type: 'FORGET_DOC', payload: d.id })} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: DEVA, fontSize: '11px', color: '#b0adb8', padding: '2px' }}>
                   <IcXMark size={11} color="#b0adb8" /> भूल जाओ

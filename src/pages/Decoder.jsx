@@ -18,6 +18,8 @@ import BottomInputBar from '../components/BottomInputBar';
 import {
   IcChevronLeft, IcCamera, IcFileText, IcCheck, IcShield,
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
+  IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
+  IcChartLine, IcBuilding,
 } from '../components/icons/Icons';
 
 // seenTypes persists across decodes in the session (for variety/first-of-type bonuses)
@@ -33,10 +35,23 @@ const LOW_CONF = 0.6;
 const INTRO = 'कोई भी कागज़ जो समझ न आए या परेशान करे — बिल, बैंक नोटिस, मैसेज, पर्ची — दिखाइए। मैं आसान भाषा में समझा दूँगा।';
 
 function docIcon(key, size, color) {
-  if (key === 'zap') return <IcZap size={size} color={color} />;
-  if (key === 'phone') return <IcSmartphone size={size} color={color} />;
-  if (key === 'salary') return <IcFileDollar size={size} color={color} />;
-  return <IcReceipt size={size} color={color} />;
+  switch (key) {
+    case 'zap':       return <IcZap size={size} color={color} />;
+    case 'phone':     return <IcSmartphone size={size} color={color} />;
+    case 'wallet':    return <IcWallet size={size} color={color} />;
+    case 'salary':    return <IcFileDollar size={size} color={color} />;
+    case 'shield':    return <IcShield size={size} color={color} />;
+    case 'lock':      return <IcLock size={size} color={color} />;
+    case 'fork':      return <IcFork size={size} color={color} />;
+    case 'cart':      return <IcCart size={size} color={color} />;
+    case 'gas':       return <IcGas size={size} color={color} />;
+    case 'upi':       return <IcUpi size={size} color={color} />;
+    case 'coin':      return <IcCoin size={size} color={color} />;
+    case 'gold-coin': return <IcGoldCoin size={size} color={color} />;
+    case 'chart':     return <IcChartLine size={size} color={color} />;
+    case 'bank':      return <IcBuilding size={size} color={color} />;
+    default:          return <IcReceipt size={size} color={color} />;
+  }
 }
 
 const ChevronRight = ({ size = 18, color = '#aaa' }) => (
