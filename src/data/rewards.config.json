@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "events": {
+    "doc_captured": { "base": [3, 12] },
+    "first_of_type": { "bonus": 10 },
+    "variety_milestone": { "bonus": 8, "everyNTypes": 3 },
+    "completeness": { "bonus": 6, "when": "income+expense both present this month" }
+  },
+  "redeem": { "pointsPerRupee": 100, "partner": "Reliance Retail" }
+}

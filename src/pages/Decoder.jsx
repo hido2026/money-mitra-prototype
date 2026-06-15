@@ -9,7 +9,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
-import { extractFromFile, docLabel, docIconKey, iconForCategory } from '../utils/extract';
+import { extractFromFile, docLabel, docIconKey } from '../utils/extract';
+import { awardPoints, REWARDS_CFG } from '../utils/rewards';
 import { insightEngine } from '../utils/insights';
 import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
@@ -19,12 +20,14 @@ import {
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
 } from '../components/icons/Icons';
 
+// seenTypes persists across decodes in the session (for variety/first-of-type bonuses)
+const _seenTypes = new Set();
+
 const PURPLE = '#534AB7';
 const PURPLE_LIGHT = '#EEEDFE';
 const GREEN = '#1a7d4b';
 const INK = '#2C2C2A';
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const REWARD_POINTS = 100;
 const LOW_CONF = 0.6;
 
 const INTRO = 'कोई भी कागज़ जो समझ न आए या परेशान करे — बिल, बैंक नोटिस, मैसेज, पर्ची — दिखाइए। मैं आसान भाषा में समझा दूँगा।';
@@ -71,6 +74,7 @@ export default function Decoder() {
   const [confirmed, setConfirmed] = useState(false);
   const [insightLine, setInsightLine] = useState('');
   const [speaking, setSpeaking] = useState(false);
+  const [reward, setReward] = useState(null); // { total, reasons }
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
   const fileRef = useRef(null);
@@ -119,10 +123,18 @@ export default function Decoder() {
       const title = docLabel(d.docType) !== 'कागज़'
         ? docLabel(d.docType)
         : (d.category && d.category !== 'अन्य' ? d.category : 'कागज़');
+      const hasIncome = state.docs.some(e => e.dir === 'in' && !e.borrowed);
+      const hasExpense = state.docs.some(e => e.dir === 'out');
+      const earned = awardPoints('doc_captured', {
+        seenTypes: _seenTypes, docType: d.docType,
+        hasIncome: hasIncome || (d.direction === 'in' && !d.borrowed),
+        hasExpense: hasExpense || d.direction === 'out',
+      });
+      setReward(earned);
       dispatch({ type: 'ADD_DOC', payload: {
         id: 'u' + Date.now(), docType: title, merchant: d.merchant,
         category: d.category || 'अन्य', dir: d.direction, amount: d.amount,
-        points: REWARD_POINTS, icon: docIconKey(d.docType),
+        points: earned.total, icon: docIconKey(d.docType),
         borrowed: d.borrowed === true,
       }});
     }
@@ -155,7 +167,7 @@ export default function Decoder() {
 
   const onPick = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
   const resolveDirection = (dir) => { const d = { ...data, direction: dir }; setData(d); finalize(d); };
-  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); setErrorMsg(''); addedRef.current = false; };
+  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); setErrorMsg(''); setReward(null); addedRef.current = false; };
 
   // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
@@ -286,12 +298,15 @@ export default function Decoder() {
           </div>
         )}
 
-        {/* 4. Reward — अंक only; इनाम is the milestone; no Reliance/₹10 here */}
-        {logged && (
+        {/* 4. Reward — variable points + bonus reason chips */}
+        {logged && reward && (
           <div className="animate-pop" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <IcSparks size={20} color="#FFD479" />
-              <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 800, color: '#fff' }}>{REWARD_POINTS} अंक मिले!</span>
+              <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 800, color: '#fff' }}>{reward.total} अंक मिले!</span>
+              {reward.reasons.filter(r => r.why !== 'फ़ोटो जोड़ी').map(r => (
+                <span key={r.why} style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '999px', padding: '3px 10px', fontFamily: DEVA, fontSize: '11px', fontWeight: 700, color: '#FFD479' }}>+{r.pts} {r.why}</span>
+              ))}
             </div>
             <div style={{ marginTop: '12px', height: '8px', borderRadius: '999px', background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: '999px', background: '#FFD479', transformOrigin: 'left', transform: `scaleX(${Math.min(totalPoints, JACKPOT_POINTS) / JACKPOT_POINTS})`, transition: 'transform 500ms ease-out' }} />
