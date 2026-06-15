@@ -65,7 +65,8 @@ export default function Decoder() {
   const location = useLocation();
   const { state, dispatch } = useApp();
 
-  const [stage, setStage] = useState('input'); // input | reading | result | blurry
+  const [stage, setStage] = useState('input'); // input | reading | result | blurry | error
+  const [errorMsg, setErrorMsg] = useState('');
   const [data, setData] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [insightLine, setInsightLine] = useState('');
@@ -136,13 +137,22 @@ export default function Decoder() {
       finalize(d);
     } catch (err) {
       console.warn('[decode] failed:', err?.message || err);
-      setStage('blurry');
+      if (err?.message === 'no_key') {
+        setErrorMsg('API key नहीं मिली — GitHub Secrets में VITE_GROQ_API_KEY सेट करें।');
+      } else if (err?.status === 429 || err?.message?.includes('rate')) {
+        setErrorMsg('थोड़ा इंतज़ार करें — बहुत जल्दी अनुरोध आए। एक मिनट में दोबारा कोशिश करें।');
+      } else if (err?.status >= 500 || err?.message?.includes('network') || err?.message?.includes('fetch')) {
+        setErrorMsg('सर्वर से कनेक्ट नहीं हो पाया — इंटरनेट जाँचें और दोबारा कोशिश करें।');
+      } else {
+        setErrorMsg('कुछ गड़बड़ हुई — दोबारा कोशिश करें।');
+      }
+      setStage('error');
     }
   };
 
   const onPick = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
   const resolveDirection = (dir) => { const d = { ...data, direction: dir }; setData(d); finalize(d); };
-  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); addedRef.current = false; };
+  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); setErrorMsg(''); addedRef.current = false; };
 
   // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
@@ -314,6 +324,15 @@ export default function Decoder() {
     );
   };
 
+  const renderError = () => (
+    <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
+      <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>⚠️</span>
+      <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: INK, margin: 0 }}>तकनीकी गड़बड़</p>
+      <p style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A', margin: 0, lineHeight: 1.5 }}>{errorMsg}</p>
+      <button onClick={reset} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>दोबारा कोशिश</button>
+    </div>
+  );
+
   const renderBlurry = () => (
     <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
       <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FDECEC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -347,6 +366,7 @@ export default function Decoder() {
         {stage === 'reading' && renderReading()}
         {stage === 'result' && data && renderResult()}
         {stage === 'blurry' && renderBlurry()}
+        {stage === 'error'  && renderError()}
       </div>
 
       {showDock && (
