@@ -158,7 +158,7 @@ export default function Passbook() {
         {docs.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
             <p style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780', margin: 0 }}>अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।</p>
-            <button onClick={() => nav('/decoder', { state: { openCamera: true } })} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '12px 22px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+            <button onClick={() => nav('/decoder', { state: { openCamera: true, attribution: 'points_view' } })} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '12px 22px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
               <IcCamera size={18} color="#fff" /> फ़ोटो दिखाओ
             </button>
           </div>

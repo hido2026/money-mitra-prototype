@@ -150,7 +150,7 @@ export default function Home() {
           {/* कागज़ समझें — full-width white tile */}
           <button
             type="button"
-            onClick={() => nav('/decoder')}
+            onClick={() => nav('/decoder', { state: { attribution: 'home_camera' } })}
             style={{
               display: 'flex', alignItems: 'center', gap: '16px',
               padding: '18px', width: '100%', boxSizing: 'border-box',
@@ -198,7 +198,7 @@ export default function Home() {
       <BottomInputBar
         onSubmit={(text) => nav('/chat', { state: { initialMessage: text } })}
         onSpeak={() => nav('/chat', { state: { autoVoice: true } })}
-        onPlus={() => nav('/decoder')}
+        onPlus={() => nav('/decoder', { state: { attribution: 'home_camera' } })}
       />
     </div>
   );

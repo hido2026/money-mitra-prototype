@@ -12,6 +12,7 @@ import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
 import { extractFromFile, docLabel, docIconKey, iconForCategory } from '../utils/extract';
 import { awardPoints, REWARDS_CFG } from '../utils/rewards';
 import { insightEngine } from '../utils/insights';
+import { Events } from '../engine/instrumentation';
 import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
@@ -153,6 +154,7 @@ export default function Decoder() {
         points: earned.total, icon: docIconKey(d.docType),
         borrowed: d.borrowed === true,
       }});
+      Events.uploadCompleted({ attribution: location.state?.attribution || 'organic' });
     }
   };
 

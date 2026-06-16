@@ -76,6 +76,7 @@ export const Events = {
   decoderReplay:        (p = {}) => logEvent('decoder_replay',             { flow: 'decoder', ...p }),
   decoderMoneyPoint:    (p = {}) => logEvent('decoder_money_point_reached',{ flow: 'decoder', ...p }),
   decoderSelfReport:    (p = {}) => logEvent('decoder_self_report',        { flow: 'decoder', ...p }),
+  uploadCompleted:      (p = {}) => logEvent('upload_completed',           { flow: 'decoder', ...p }),
 
   // Insights — general
   insightShown:              (p = {}) => logEvent('insight_shown',                { flow: 'insight', ...p }),
