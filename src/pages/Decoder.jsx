@@ -16,7 +16,7 @@ import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import {
-  IcChevronLeft, IcCamera, IcFileText, IcCheck, IcShield,
+  IcChevronLeft, IcCamera, IcCheck, IcShield,
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
   IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
   IcChartLine, IcBuilding,
@@ -92,7 +92,8 @@ export default function Decoder() {
   const [reward, setReward] = useState(null); // { total, reasons }
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
-  const fileRef = useRef(null);
+  const galleryRef = useRef(null);
+  const fileRef = useRef(null); // PDF / file picker (also images saved as files)
   const introSpokenRef = useRef(false);
   const camOpenedRef = useRef(false);
 
@@ -186,17 +187,35 @@ export default function Decoder() {
 
   // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
-    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <Bubble>{INTRO}</Bubble>
 
-      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
-        <IcCamera size={22} color="#fff" />
-        <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>फ़ोटो लें</span>
+      {/* Helper line — most docs are already photos (WhatsApp/UPI screenshots) */}
+      <p style={{ margin: '0 2px', fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A' }}>
+        बिल · रसीद · बैंक नोटिस · WhatsApp वाली फ़ोटो भी
+      </p>
+
+      {/* गैलरी — PRIMARY: for this user the doc is usually already a photo */}
+      <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21 15 16 10 5 21" />
+        </svg>
+        <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>गैलरी से चुनें</span>
       </button>
-      <button onClick={() => fileRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
-        <IcFileText size={18} color={PURPLE} />
-        <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>फ़ाइल या PDF चुनें</span>
-      </button>
+
+      {/* Secondary row: कैमरा (paper-in-hand) + PDF (violet outline, secondary) */}
+      <div style={{ display: 'flex', gap: '12px' }}>
+        <button onClick={() => cameraRef.current?.click()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
+          <IcCamera size={20} color={PURPLE} />
+          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>फ़ोटो खींचें</span>
+        </button>
+        <button onClick={() => fileRef.current?.click()} style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', background: 'transparent', border: '2.2px solid #6b4ef0', borderRadius: '999px', padding: '8px 18px', cursor: 'pointer' }}>
+          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#7a5cf0' }}>PDF</span>
+          <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 500, color: '#8b80c4' }}>भी चलेगा</span>
+        </button>
+      </div>
 
       {/* Capability card — breadth + vernacular (examples are not a limit) */}
       <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '14px' }}>
@@ -216,8 +235,12 @@ export default function Decoder() {
         </span>
       </div>
 
+      {/* कैमरा — paper in hand */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onPick} style={{ display: 'none' }} />
-      <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf" onChange={onPick} style={{ display: 'none' }} />
+      {/* गैलरी — native photo picker (no capture attr → opens Photos/Gallery with recents incl. WhatsApp) */}
+      <input ref={galleryRef} type="file" accept="image/*" onChange={onPick} style={{ display: 'none' }} />
+      {/* PDF (and image files) */}
+      <input ref={fileRef} type="file" accept="application/pdf,image/*" onChange={onPick} style={{ display: 'none' }} />
     </div>
   );
 
@@ -407,7 +430,7 @@ export default function Decoder() {
           compact
           onSubmit={(t) => nav('/chat', { state: { initialMessage: t } })}
           onSpeak={() => nav('/chat', { state: { autoVoice: true } })}
-          onPlus={() => fileRef.current?.click()}
+          onPlus={() => galleryRef.current?.click()}
         />
       )}
     </div>
