@@ -49,6 +49,10 @@ const INIT = {
   // (no storage, resets on reload). We keep the READING (amount/who/category/in-out),
   // never the photo. Starts empty and accumulates from actual extractions.
   docs:              [],
+  // Day-0 onboarding mission — DISPLAY ONLY (not the points engine). Tracks the
+  // 3 mission steps + a display points tally so progress survives navigating into
+  // the Decoder/Chat and back. Resets on reload (prototype).
+  onboarding:        { points: 0, steps: { firstDoc: false, secondEntry: false, askedMukund: false } },
 };
 
 function reducer(state, action) {
@@ -128,6 +132,13 @@ function reducer(state, action) {
     // ── Voice I/O tracking ────────────────────────────────────────────────────
     case 'SET_INPUT_MODALITY':
       return { ...state, lastInputModality: action.payload };
+
+    // ── Day-0 onboarding (display-only mission state; not persisted) ────────────
+    case 'ONBOARDING_AWARD': // payload: points to add to the display tally
+      return { ...state, onboarding: { ...state.onboarding, points: state.onboarding.points + action.payload } };
+    case 'ONBOARDING_STEP': // payload: 'firstDoc' | 'secondEntry' | 'askedMukund'
+      if (state.onboarding.steps[action.payload]) return state; // already done — no double-count
+      return { ...state, onboarding: { ...state.onboarding, steps: { ...state.onboarding.steps, [action.payload]: true } } };
 
     default:
       return state;

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Groq from 'groq-sdk';
+import { useApp } from '../context/AppContext';
+import { ONBOARDING } from '../data/onboarding.config.js';
 import { MUKUND_PROMPT } from '../config/system-prompts.js';
 import TopBar from '../components/TopBar';
 import Message from '../components/Message';
@@ -43,6 +45,8 @@ export default function Chat() {
   const bottomRef = useRef(null);
   const location = useLocation();
   const autoSentRef = useRef(false);
+  const { state, dispatch } = useApp();
+  const onbAskMarkedRef = useRef(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,6 +63,12 @@ export default function Chat() {
   }, [isStreaming]); // fires only when isStreaming flips to false
 
   const sendMessage = async (text) => {
+    // Day-0 mission: "मुकुंद से कुछ पूछो" completes on the first question asked.
+    if (location.state?.onboardingAsk && !onbAskMarkedRef.current && !state.onboarding.steps.askedMukund) {
+      onbAskMarkedRef.current = true;
+      dispatch({ type: 'ONBOARDING_STEP', payload: 'askedMukund' });
+      dispatch({ type: 'ONBOARDING_AWARD', payload: ONBOARDING.STEP_ASK });
+    }
     const userMsg = { role: 'user', content: text };
     const nextMessages = [...messages, userMsg];
     setMessages([...nextMessages, { role: 'assistant', content: '' }]);

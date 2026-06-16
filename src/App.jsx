@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 
 // ── Pages ──────────────────────────────────────────────────────────────────────
 import Registration from './pages/Registration';
+import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Decoder from './pages/Decoder';
@@ -30,6 +31,9 @@ export default function App() {
     catch { return null; }
   });
 
+  // First-run onboarding flag — shown once after registration, then never again.
+  const [onboarded, setOnboarded] = useState(() => localStorage.getItem('mm_onboarded') === '1');
+
   if (!user) {
     return <Registration onComplete={(u) => setUser(u)} />;
   }
@@ -38,8 +42,11 @@ export default function App() {
     <AppProvider>
       <HashRouter>
         <Routes>
+          {/* ── First-run onboarding gate: land on /onboarding until completed ── */}
+          <Route path="/onboarding"         element={<Onboarding onDone={() => setOnboarded(true)} />} />
+
           {/* ── Primary ── */}
-          <Route path="/"                   element={<Home />} />
+          <Route path="/"                   element={onboarded ? <Home /> : <Navigate to="/onboarding" replace />} />
           <Route path="/chat"               element={<Chat />} />
           <Route path="/decoder"            element={<Decoder />} />
           <Route path="/passbook"           element={<Passbook />} />
