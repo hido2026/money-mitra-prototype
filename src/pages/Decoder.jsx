@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
-import { extractFromFile, docLabel, docIconKey } from '../utils/extract';
+import { extractFromFile, docLabel, docIconKey, iconForCategory } from '../utils/extract';
 import { awardPoints, REWARDS_CFG } from '../utils/rewards';
 import { insightEngine } from '../utils/insights';
 import { speakMukund } from '../utils/tts';
