@@ -132,7 +132,7 @@ export default function Home() {
               <div style={{
                 fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
                 fontSize: '18px', fontWeight: 800, color: '#fff', lineHeight: 1.2,
-              }}>समझो</div>
+              }}>समझें</div>
               <div style={{
                 fontFamily: "'JioType',sans-serif",
                 fontSize: '11px', color: 'rgba(255,255,255,0.85)', marginTop: '3px',

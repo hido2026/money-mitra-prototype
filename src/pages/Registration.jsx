@@ -67,7 +67,7 @@ export default function Registration({ onComplete }) {
         fontSize: '11.5px', color: '#888780', textAlign: 'center',
         margin: '14px 0 20px', lineHeight: 1.5,
       }}>
-        यह सिर्फ़ इस टेस्ट के लिए है।<br />आपकी जानकारी सुरक्षित रहेगी।
+        कोई फ़ॉर्म नहीं · पैसा नहीं माँगेंगे · आपकी जानकारी सुरक्षित
       </p>
 
       {/* Submit */}

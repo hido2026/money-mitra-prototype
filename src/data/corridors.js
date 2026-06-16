@@ -5,7 +5,7 @@
 export const samjhoCorridor = {
   route: 'samjho-entry',
   bannerCaps: 'SAMJHO',
-  bannerHi: 'समझो',
+  bannerHi: 'समझें',
   accent: '#534AB7',
   accentLight: '#EEEDFE',
   bubbleText: 'कोई भी सवाल पूछो — सरकारी योजना हो, पैसे कटे हों, बेटी के लिए बचाना हो। बताओ, क्या जानना है?',
