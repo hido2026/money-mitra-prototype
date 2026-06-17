@@ -123,7 +123,9 @@ export default function Passbook() {
             <p style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 800, color: '#888780', letterSpacing: '0.4px', margin: '4px 2px 0' }}>बिल याद दिलाएँ</p>
             {reminders.map(d => (
               <div key={'r' + d.id} style={{ background: '#fff', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ width: 36, height: 36, borderRadius: '999px', background: '#FFF3CD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 16 }}>⏰</span>
+                <span style={{ width: 36, height: 36, borderRadius: '999px', background: '#FFF3CD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
+                </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.merchant || d.docType}</div>
                   <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>आख़िरी तारीख़ · {d.dueDate}</div>

@@ -41,13 +41,14 @@ const BottomInputBar = forwardRef(function BottomInputBar(
     voiceStatus === 'error'      ? '#888780' :
     '#534AB7';
 
+  // Text-only labels — the IcMicrophone SVG renders alongside (no emoji, per JDS).
   const speakLabel =
-    voiceStatus === 'recording'  ? '🛑 बंद करें' :   // tap to stop early
-    voiceStatus === 'processing' ? '⏳ समझ रहा...' :
-    voiceStatus === 'done'       ? '✓ हो गया' :
-    voiceStatus === 'no_mic'     ? '⚠️ इजाज़त दें' :
-    voiceStatus === 'error'      ? '⚠️ फिर कोशिश' :
-    '🎤 बोलिए';
+    voiceStatus === 'recording'  ? 'बंद करें' :   // tap to stop early
+    voiceStatus === 'processing' ? 'समझ रहा...' :
+    voiceStatus === 'done'       ? 'हो गया' :
+    voiceStatus === 'no_mic'     ? 'इजाज़त दें' :
+    voiceStatus === 'error'      ? 'फिर कोशिश' :
+    'बोलिए';
 
   return (
     <div style={{

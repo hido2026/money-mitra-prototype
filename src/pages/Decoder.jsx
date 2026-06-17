@@ -17,7 +17,7 @@ import { speakMukund } from '../utils/tts';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import {
-  IcChevronLeft, IcCamera, IcCheck, IcShield,
+  IcChevronLeft, IcCamera, IcCheck, IcShield, IcAlertOctagon,
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
   IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
   IcChartLine, IcBuilding,
@@ -385,7 +385,7 @@ export default function Decoder() {
 
   const renderError = () => (
     <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
-      <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>⚠️</span>
+      <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IcAlertOctagon size={28} color="#D85A30" /></span>
       <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: INK, margin: 0 }}>तकनीकी गड़बड़</p>
       <p style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A', margin: 0, lineHeight: 1.5 }}>{errorMsg}</p>
       <button onClick={reset} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>दोबारा कोशिश</button>

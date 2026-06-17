@@ -14,7 +14,7 @@ import { ONBOARDING } from '../data/onboarding.config.js';
 import { DECODE_CYCLE } from '../data/decoder-samples.js';
 import MicCameraDual from '../components/MicCameraDual';
 import PortraitAvatar from '../components/PortraitAvatar';
-import { IcSparks, IcCheck } from '../components/icons/Icons';
+import { IcSparks, IcCheck, IcMicrophone } from '../components/icons/Icons';
 
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 const PURPLE = '#534AB7';
@@ -209,9 +209,9 @@ export default function Onboarding({ onDone }) {
           <button
             type="button"
             onClick={askMukund}
-            style={{ background: 'none', border: `1.5px dashed ${PURPLE_LIGHT}`, borderRadius: '14px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: PURPLE }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'none', border: `1.5px dashed ${PURPLE_LIGHT}`, borderRadius: '14px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: PURPLE }}
           >
-            🎤 मुकुंद से कुछ पूछो
+            <IcMicrophone size={16} color={PURPLE} /> मुकुंद से कुछ पूछो
           </button>
         )}
 
