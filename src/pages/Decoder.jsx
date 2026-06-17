@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, directionLabel } from '../data/decoder-samples';
-import { extractFromFile, docLabel, docIconKey, iconForCategory } from '../utils/extract';
+import { extractFromFile, docLabel, docIconKey, iconForCategory, classifyRoute } from '../utils/extract';
 import { awardPoints, REWARDS_CFG } from '../utils/rewards';
 import { insightEngine } from '../utils/insights';
 import { Events } from '../engine/instrumentation';
@@ -25,6 +25,8 @@ import {
 
 // seenTypes persists across decodes in the session (for variety/first-of-type bonuses)
 const _seenTypes = new Set();
+// Recurring-doc memory (in-memory session): recurringKey → 'add' | 'skip'.
+const _recurringChoices = new Map();
 
 const PURPLE = '#534AB7';
 const PURPLE_LIGHT = '#EEEDFE';
@@ -91,6 +93,9 @@ export default function Decoder() {
   const [insightLine, setInsightLine] = useState('');
   const [speaking, setSpeaking] = useState(false);
   const [reward, setReward] = useState(null); // { total, reasons }
+  const [route, setRoute] = useState(null);       // 'confirmed' | 'uncertain' | 'none'
+  const [askResolved, setAskResolved] = useState(null); // null | 'added' | 'skipped'
+  const [recurringNote, setRecurringNote] = useState(false);
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
@@ -124,51 +129,79 @@ export default function Decoder() {
     }
   }, [location.state]);
 
-  // Finalize a resolved decode: compute the grounded insight (from PRIOR entries),
-  // auto-speak recognition → insight, then log it to the हिसाब once (real amount only).
-  const finalize = (d) => {
-    if (d.direction === 'ambiguous') return;
+  // Speak recognition → grounded insight (always; educate-not-advise). No हिसाब write.
+  const explain = (d) => {
     const line = insightEngine(d, state.docs);
     setInsightLine(line);
     setSpeaking(true);
     speakMukund(recogText(d), () => speakMukund(line, () => setSpeaking(false)));
-    const safety = setTimeout(() => setSpeaking(false), 16000);
-    void safety;
-    if (d.amount && !addedRef.current) {
-      addedRef.current = true;
-      // A1: use the specific docType title; fall back to category only for truly unknown docs
-      const title = docLabel(d.docType) !== 'कागज़'
-        ? docLabel(d.docType)
-        : (d.category && d.category !== 'अन्य' ? d.category : 'कागज़');
-      const hasIncome = state.docs.some(e => e.dir === 'in' && !e.borrowed);
-      const hasExpense = state.docs.some(e => e.dir === 'out');
-      const earned = awardPoints('doc_captured', {
-        seenTypes: _seenTypes, docType: d.docType,
-        hasIncome: hasIncome || (d.direction === 'in' && !d.borrowed),
-        hasExpense: hasExpense || d.direction === 'out',
-      });
-      setReward(earned);
-      dispatch({ type: 'ADD_DOC', payload: {
-        id: 'u' + Date.now(), docType: title, merchant: d.merchant,
-        category: d.category || 'अन्य', dir: d.direction, amount: d.amount,
-        points: earned.total, icon: docIconKey(d.docType),
-        borrowed: d.borrowed === true,
-        dueDate: d.dueDate || null, ts: Date.now(), // bill reminders + time-of-entry
-      }});
-      Events.uploadCompleted({ attribution: location.state?.attribution || 'organic' });
+    setTimeout(() => setSpeaking(false), 16000);
+  };
+
+  // Write ONE entry to the हिसाब + award points. Points only ever fire here.
+  const addToHisaab = (d) => {
+    if (!d.amount || addedRef.current) return;
+    addedRef.current = true;
+    const title = docLabel(d.docType) !== 'कागज़'
+      ? docLabel(d.docType)
+      : (d.category && d.category !== 'अन्य' ? d.category : 'कागज़');
+    const hasIncome = state.docs.some(e => e.dir === 'in' && !e.borrowed);
+    const hasExpense = state.docs.some(e => e.dir === 'out');
+    const earned = awardPoints('doc_captured', {
+      seenTypes: _seenTypes, docType: d.docType,
+      hasIncome: hasIncome || (d.direction === 'in' && !d.borrowed),
+      hasExpense: hasExpense || d.direction === 'out',
+    });
+    setReward(earned);
+    dispatch({ type: 'ADD_DOC', payload: {
+      id: 'u' + Date.now(), docType: title, merchant: d.merchant,
+      category: d.category || 'अन्य', dir: d.direction, amount: d.amount,
+      points: earned.total, icon: docIconKey(d.docType),
+      borrowed: d.borrowed === true,
+      dueDate: d.dueDate || null, ts: Date.now(),
+    }});
+    Events.uploadCompleted({ attribution: location.state?.attribution || 'organic' });
+  };
+
+  // Route a resolved decode (CLAUDE.md §Document routing): confirmed / uncertain / none.
+  const routeDoc = (d) => {
+    if (d.direction === 'ambiguous') return; // direction resolver handles this first
+    explain(d);
+    let r = classifyRoute(d);
+    // Recurring memory — skip the ASK if we already know the user's choice for this key.
+    if (r === 'uncertain' && d.isRecurring && d.recurringKey && _recurringChoices.has(d.recurringKey)) {
+      const choice = _recurringChoices.get(d.recurringKey);
+      if (choice === 'add') { setRecurringNote(true); setRoute('confirmed'); addToHisaab(d); return; }
+      setRoute('none'); return; // remembered "skip" → explain only
     }
+    setRoute(r);
+    if (r === 'confirmed') addToHisaab(d);
+    // uncertain → wait for ASK; none → explain only
+  };
+
+  // ASK card answers (UNCERTAIN docs).
+  const askYes = () => {
+    if (!data) return;
+    addToHisaab(data);
+    setAskResolved('added');
+    if (data.isRecurring && data.recurringKey) _recurringChoices.set(data.recurringKey, 'add');
+  };
+  const askNo = () => {
+    setAskResolved('skipped');
+    if (data?.isRecurring && data?.recurringKey) _recurringChoices.set(data.recurringKey, 'skip');
   };
 
   const handleFile = async (file) => {
     if (!file) return;
     setData(null); setConfirmed(false); addedRef.current = false;
+    setRoute(null); setAskResolved(null); setRecurringNote(false); setReward(null); setInsightLine('');
     setStage('reading');
     try {
       const d = await extractFromFile(file);
       if (!d.readable) { setStage('blurry'); return; }
       setData(d);
       setStage('result');
-      finalize(d);
+      routeDoc(d);
     } catch (err) {
       console.warn('[decode] failed:', err?.message || err);
       if (err?.message === 'no_key') {
@@ -185,8 +218,8 @@ export default function Decoder() {
   };
 
   const onPick = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
-  const resolveDirection = (dir) => { const d = { ...data, direction: dir }; setData(d); finalize(d); };
-  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); setErrorMsg(''); setReward(null); addedRef.current = false; };
+  const resolveDirection = (dir) => { const d = { ...data, direction: dir }; setData(d); routeDoc(d); };
+  const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); setErrorMsg(''); setReward(null); setRoute(null); setAskResolved(null); setRecurringNote(false); addedRef.current = false; };
 
   // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
@@ -264,7 +297,10 @@ export default function Decoder() {
     const isIn = data.direction === 'in';
     const ambiguous = data.direction === 'ambiguous';
     const lowConf = !ambiguous && data.amount && data.confidence < LOW_CONF && !confirmed;
-    const logged = !ambiguous && !!data.amount;
+    // Routing-aware outcomes (CLAUDE.md §Document routing)
+    const added = route === 'confirmed' || (route === 'uncertain' && askResolved === 'added');
+    const askPending = route === 'uncertain' && askResolved === null;
+    const explainedOnly = route === 'none' || (route === 'uncertain' && askResolved === 'skipped');
 
     return (
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -339,8 +375,20 @@ export default function Decoder() {
           </div>
         )}
 
-        {/* 4. Reward — variable points + bonus reason chips */}
-        {logged && reward && (
+        {/* B. UNCERTAIN → explain, then ASK before adding */}
+        {askPending && (
+          <div className="animate-fade-in" style={{ background: '#FFFBEA', border: '1px solid #F2E2A8', borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
+            <p style={{ margin: '0 0 12px', fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK }}>क्या यह आपने लिया है? हिसाब में जोड़ूँ?</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={askYes} style={{ flex: 1, background: PURPLE, color: '#fff', border: 'none', borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>हाँ, जोड़ें</button>
+              <button onClick={askNo} style={{ flex: 1, background: '#fff', color: PURPLE, border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>सिर्फ़ समझना था</button>
+            </div>
+            <p style={{ margin: '10px 0 0', fontFamily: DEVA, fontSize: '12px', color: '#8a7a3a' }}>पक्का पता न हो, तो अपने आप नहीं जोड़ता।</p>
+          </div>
+        )}
+
+        {/* 4. Reward — variable points + bonus reason chips (only when entry entered हिसाब) */}
+        {added && reward && (
           <div className="animate-pop" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <IcSparks size={20} color="#FFD479" />
@@ -358,10 +406,17 @@ export default function Decoder() {
           </div>
         )}
 
-        {/* 5. Auto-log */}
-        {logged && (
+        {/* 5a. Added → confirmation (+ recurring note if remembered) */}
+        {added && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '42px', fontFamily: DEVA, fontSize: '12px', color: GREEN }}>
-            <IcCheck size={14} color={GREEN} /> अपने आप हिसाब में जुड़ गया
+            <IcCheck size={14} color={GREEN} /> {recurringNote ? 'पिछली बार की तरह — हिसाब में जोड़ दिया' : 'हिसाब में जुड़ गया'}
+          </div>
+        )}
+
+        {/* 5b. Explain-only → never touched हिसाब */}
+        {explainedOnly && (
+          <div style={{ marginLeft: '42px', fontFamily: DEVA, fontSize: '12px', color: '#888780' }}>
+            हिसाब में नहीं जोड़ा — सिर्फ़ {route === 'none' ? 'जानकारी' : 'समझाया'}।
           </div>
         )}
 

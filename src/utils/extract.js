@@ -42,6 +42,12 @@ const EXTRACT_PROMPT =
   "due_date = payment due date if shown; null otherwise. " +
   "alarming = true for notice/penalty/overdue/legal-sounding letters. " +
   "direction: 'out' for bills/premiums/EMI the user pays; 'in' for salary/subsidy/FD maturity/loan disbursal/MF redemption; 'ambiguous' if unclear. " +
+  // ── Routing fields (step 2): classify, never invent. If unsure → lower confidence, don't guess. ──
+  "has_amount = true only if a real money amount is present. " +
+  "transaction_confidence: 'high' = a real money movement clearly happened to THIS user (paid bill, UPI paid/received, salary credit, kirana receipt, subsidy received); " +
+  "'medium' = money involved but unclear it happened to her (insurance policy, loan offer, quote, brochure); 'none' = no money movement (ID, KYC, notice with no amount). " +
+  "doc_kind: one of bill_paid|bill_due|upi_receipt|salary_slip|kirana_receipt|subsidy|insurance_policy|loan_offer|quote|brochure|id_kyc|notice_no_amount|other. " +
+  "is_recurring = true for monthly/repeating docs (credit card, monthly bill, EMI). recurring_key = stable id like 'creditcard:HDFC' or 'electricity:Adani', else null. " +
   "Return JSON ONLY, no prose: " +
   "{\"readable\":true|false," +
   "\"doc_type\":\"restaurant_bill|electricity_bill|kirana_receipt|salary_slip|upi_receipt|phone_recharge|" +
@@ -55,6 +61,9 @@ const EXTRACT_PROMPT =
   "\"alarming\":true|false,\"borrowed\":true|false," +
   "\"currency\":\"INR\"|null,\"date\":string|null,\"direction\":\"out|in|ambiguous\"," +
   "\"category\":\"खाना-पीना|बिजली|राशन|तनख्वाह|फ़ोन|बीमा|ऋण|सब्सिडी|निवेश|बचत|आमदनी|अन्य|null\"," +
+  "\"has_amount\":true|false,\"transaction_confidence\":\"high|medium|none\"," +
+  "\"doc_kind\":\"bill_paid|bill_due|upi_receipt|salary_slip|kirana_receipt|subsidy|insurance_policy|loan_offer|quote|brochure|id_kyc|notice_no_amount|other\"," +
+  "\"is_recurring\":true|false,\"recurring_key\":string|null," +
   "\"confidence\":0.0-1.0}";
 
 function toNumber(v) {
@@ -200,11 +209,13 @@ export async function extractFromFile(file) {
   const rawCat = typeof j.category === 'string' ? j.category : null;
   const category = categorise(merchant, docType, rawCat);
 
+  const amount = toNumber(j.total_amount);
+
   return {
     readable:   j.readable === true,
     docType,
     merchant,
-    amount:     toNumber(j.total_amount),
+    amount,
     tax:        toNumber(j.tax_amount),
     dueDate:    typeof j.due_date === 'string' ? j.due_date : null,
     lineItems,
@@ -214,7 +225,26 @@ export async function extractFromFile(file) {
     category,
     confidence: typeof j.confidence === 'number' ? j.confidence : 0,
     borrowed,
+    // ── Routing fields (step 2) ──────────────────────────────────────────────
+    hasAmount:     j.has_amount === true || (amount != null && amount > 0),
+    txnConfidence: ['high', 'medium', 'none'].includes(j.transaction_confidence) ? j.transaction_confidence : (amount > 0 ? 'medium' : 'none'),
+    docKind:       typeof j.doc_kind === 'string' ? j.doc_kind : 'other',
+    isRecurring:   j.is_recurring === true,
+    recurringKey:  typeof j.recurring_key === 'string' ? j.recurring_key : null,
   };
+}
+
+/**
+ * classifyRoute — pure routing decision over the extracted doc (CLAUDE.md §Document routing).
+ * Returns 'confirmed' (auto-add) | 'uncertain' (explain + ASK) | 'none' (explain only).
+ */
+const UNCERTAIN_KINDS = new Set(['insurance_policy', 'loan_offer', 'quote', 'brochure']);
+const NONE_KINDS = new Set(['id_kyc', 'notice_no_amount']);
+export function classifyRoute(doc) {
+  if (!doc) return 'none';
+  if (!doc.hasAmount || doc.txnConfidence === 'none' || NONE_KINDS.has(doc.docKind)) return 'none';
+  if (doc.txnConfidence === 'high' && ['in', 'out'].includes(doc.direction) && !UNCERTAIN_KINDS.has(doc.docKind)) return 'confirmed';
+  return 'uncertain';
 }
 
 // ── Render helper (legacy — used in some screens for quick inline insight) ────
