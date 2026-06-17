@@ -18,7 +18,7 @@ const IcSend = () => (
 );
 
 const BottomInputBar = forwardRef(function BottomInputBar(
-  { compact = false, onSubmit, onSpeak, onPlus, voiceStatus = 'idle' },
+  { compact = false, onSubmit, onSpeak, onPlus, voiceStatus = 'idle', placeholder = 'कुछ भी पूछिए' },
   ref
 ) {
   const [text, setText] = useState('');
@@ -92,7 +92,7 @@ const BottomInputBar = forwardRef(function BottomInputBar(
         <input
           ref={ref}
           type="text"
-          placeholder="कुछ भी पूछिए"
+          placeholder={placeholder}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}

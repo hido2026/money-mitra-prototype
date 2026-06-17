@@ -14,6 +14,7 @@ import { awardPoints, REWARDS_CFG } from '../utils/rewards';
 import { insightEngine } from '../utils/insights';
 import { Events } from '../engine/instrumentation';
 import { speakMukund } from '../utils/tts';
+import { takePendingFile } from '../utils/pendingFile';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import {
@@ -128,6 +129,13 @@ export default function Decoder() {
       return () => clearTimeout(t);
     }
   }, [location.state]);
+
+  // Opened from the home AttachSheet (+/Document card) → decode the picked file once.
+  useEffect(() => {
+    const f = takePendingFile();
+    if (f) handleFile(f);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Speak recognition → grounded insight (always; educate-not-advise). No हिसाब write.
   const explain = (d) => {
