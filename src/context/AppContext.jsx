@@ -124,6 +124,9 @@ function reducer(state, action) {
       return { ...state, docs: [action.payload, ...state.docs] };
     case 'FORGET_DOC':
       return { ...state, docs: state.docs.filter(d => d.id !== action.payload) };
+    // सही करें — edit one entry's amount/dir/borrowed. Points untouched (per-scan).
+    case 'UPDATE_DOC':
+      return { ...state, docs: state.docs.map(d => d.id === action.payload.id ? { ...d, ...action.payload.patch } : d) };
 
     // ── Insight gate ──────────────────────────────────────────────────────────
     case 'MARK_INSIGHT_FIRED':

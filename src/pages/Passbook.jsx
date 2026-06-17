@@ -9,12 +9,14 @@ import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
 import { hisaabInsights } from '../utils/insights';
+import EditEntrySheet from '../components/EditEntrySheet';
 import {
   IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcXMark, IcCamera,
   IcShield, IcChartLine, IcBuilding,
   IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
 } from '../components/icons/Icons';
 
+const timeLabel = (ts) => ts ? new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
 const PURPLE = '#534AB7';
 const PURPLE_LIGHT = '#EEEDFE';
 const GREEN = '#1a7d4b';
@@ -45,8 +47,12 @@ export default function Passbook() {
   const nav = useNavigate();
   const { state, dispatch } = useApp();
   const [toast, setToast] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const docs = state.docs;
+  const editDoc = docs.find(d => d.id === editId) || null;
+  // Bill reminders — any decoded doc that carries a due date.
+  const reminders = docs.filter(d => d.dueDate);
   // D1: borrowed money (loan disbursal, CC credit) NEVER counts as income.
   const aaya = docs.filter(d => d.dir === 'in' && !d.borrowed).reduce((s, d) => s + d.amount, 0);
   const udhar = docs.filter(d => d.borrowed).reduce((s, d) => s + d.amount, 0);
@@ -111,10 +117,27 @@ export default function Passbook() {
           सब फ़ोटो से अपने आप — कोई एंट्री नहीं।
         </p>
 
-        {/* Auto-logged feed */}
+        {/* Bill reminders — any decoded doc with a due date */}
+        {reminders.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <p style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 800, color: '#888780', letterSpacing: '0.4px', margin: '4px 2px 0' }}>बिल याद दिलाएँ</p>
+            {reminders.map(d => (
+              <div key={'r' + d.id} style={{ background: '#fff', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ width: 36, height: 36, borderRadius: '999px', background: '#FFF3CD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 16 }}>⏰</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.merchant || d.docType}</div>
+                  <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>आख़िरी तारीख़ · {d.dueDate}</div>
+                </div>
+                <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#c0392b' }}>{inr(d.amount)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Auto-logged feed — tap a row to सही करें (edit amount/आया-गया/उधार) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {docs.map((d, i) => (
-            <div key={d.id} className="animate-fade-in" style={{ background: '#fff', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px', animationDelay: `${Math.min(i, 8) * 45}ms` }}>
+            <button key={d.id} onClick={() => setEditId(d.id)} className="animate-fade-in" style={{ width: '100%', textAlign: 'left', background: '#fff', border: 'none', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', animationDelay: `${Math.min(i, 8) * 45}ms` }}>
               <span style={{ width: 40, height: 40, borderRadius: '12px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {docIcon(d.icon, 20, PURPLE)}
               </span>
@@ -126,17 +149,16 @@ export default function Passbook() {
                     ? <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: '#7B5C00', background: '#FFF3CD', borderRadius: '999px', padding: '1px 7px' }}>उधार</span>
                     : <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>{directionLabel(d.dir)}</span>
                   }
+                  {d.ts && <span style={{ fontFamily: DEVA, fontSize: '10px', color: '#b0adb8' }}>{timeLabel(d.ts)}</span>}
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                 <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: d.borrowed ? '#7B5C00' : (d.dir === 'in' ? GREEN : INK) }}>
                   {d.borrowed ? '' : (d.dir === 'in' ? '+' : '−')}{inr(d.amount)}
                 </span>
-                <button onClick={() => dispatch({ type: 'FORGET_DOC', payload: d.id })} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: DEVA, fontSize: '11px', color: '#b0adb8', padding: '2px' }}>
-                  <IcXMark size={11} color="#b0adb8" /> भूल जाओ
-                </button>
+                <span style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 700, color: '#b0adb8' }}>बदलें ›</span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -170,6 +192,15 @@ export default function Passbook() {
           इनाम — डेमो (Reliance Retail)
         </div>
       )}
+
+      <EditEntrySheet
+        open={!!editDoc}
+        title={editDoc ? (editDoc.merchant ? `${editDoc.docType} · ${editDoc.merchant}` : editDoc.docType) : ''}
+        initial={editDoc ? { amount: editDoc.amount, dir: editDoc.dir, borrowed: editDoc.borrowed } : null}
+        onSave={(next) => { dispatch({ type: 'UPDATE_DOC', payload: { id: editId, patch: { amount: next.amount, dir: next.dir, borrowed: next.borrowed } } }); setEditId(null); }}
+        onDelete={() => { dispatch({ type: 'FORGET_DOC', payload: editId }); setEditId(null); }}
+        onClose={() => setEditId(null)}
+      />
     </div>
   );
 }

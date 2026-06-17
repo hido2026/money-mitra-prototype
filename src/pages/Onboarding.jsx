@@ -92,6 +92,7 @@ export default function Onboarding({ onDone }) {
         id: 'v' + Date.now(), docType: sample.docType, merchant: null,
         category: sample.category, dir: sample.dir, amount: sample.amount,
         points: sample.points, icon: sample.icon, borrowed: false,
+        dueDate: null, ts: Date.now(), // match real decodes (time-of-entry)
       },
     });
     Events.uploadCompleted({ attribution: 'voice_checkin' });

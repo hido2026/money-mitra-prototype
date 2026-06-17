@@ -153,6 +153,7 @@ export default function Decoder() {
         category: d.category || 'अन्य', dir: d.direction, amount: d.amount,
         points: earned.total, icon: docIconKey(d.docType),
         borrowed: d.borrowed === true,
+        dueDate: d.dueDate || null, ts: Date.now(), // bill reminders + time-of-entry
       }});
       Events.uploadCompleted({ attribution: location.state?.attribution || 'organic' });
     }
