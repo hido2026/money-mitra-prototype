@@ -1,22 +1,26 @@
-// Home — rebuilt to the locked spec (CLAUDE.md §Home + §Universal shell).
-// No identity block, no mission board, no ₹/redeem. Hindi default + EN toggle.
-// Lead + three scoped cards (shortcuts, not gates). The home is a working chat:
-// a question from the dock is answered INLINE (no forced entry into a card).
+// Home — scoped-cards working chat + हिसाब snapshot (CLAUDE.md §Home + Home spec v7).
+// No hard-coded money/name/date — greeting, insight and In/Out/Saved bind to the
+// user profile + their हिसाब (state.docs). Bilingual (हिं default / EN toggle).
+// No identity block, no mission, no ₹/redeem on home.
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Groq from 'groq-sdk';
+import { useApp } from '../context/AppContext';
+import { inr } from '../utils/motion';
 import { MUKUND_PROMPT } from '../config/system-prompts.js';
 import { speakMukund } from '../utils/tts';
 import { setPendingFile } from '../utils/pendingFile';
 import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
-import { IcReceipt } from '../components/icons/Icons';
+import { IcReceipt, IcShield } from '../components/icons/Icons';
 
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 const PURPLE = '#534AB7';
 const PURPLE_LIGHT = '#EEEDFE';
+const GREEN = '#1a7d4b';
+const AMBER = '#d97706';
 const INK = '#2C2C2A';
 
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -24,38 +28,72 @@ const groqClient = _apiKey ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser
 
 const COPY = {
   hi: {
-    lead: 'नमस्ते, आज मैं किसमें मदद करूँ?',
+    greet: (n) => `नमस्ते, ${n} जी`,
+    savedInsight: (amt) => `इस महीने आपने ${amt} बचाए`,
     askTitle: 'पैसे की बात पूछिए', askSub: 'बिल · सरकारी योजना · ठगी · बचत',
     chip1: 'सरकारी योजना का पैसा कैसे मिलता है?', chip2: 'ठगी से कैसे बचूँ?',
-    docTitle: 'Document समझिए', docSub: 'फ़ोटो दिखाइए — आसान भाषा में समझा दूँगा',
-    ledgerTitle: 'आपका हिसाब', ledgerSub: 'फ़ोटो से अपने आप बने', pill: 'अंक मिलते रहेंगे',
-    placeholder: 'पूछिए या Document दिखाइए…',
+    askGhost: 'या अपना सवाल पूछिए →',
+    docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
+    docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
+    connector: 'जो कागज़ दिखाते हैं, वो यहाँ अपने आप जुड़ जाता है',
+    hisaabTitle: 'आपका हिसाब', tileIn: 'आया', tileOut: 'गया', tileSaved: 'बचा',
+    hisaabSub: (m) => `आपकी फ़ोटो से अपने आप बना · ${m}`,
+    rewardChip: 'इनाम पाइए',
+    hisaabEmpty: 'पहली फ़ोटो दिखाइए, हिसाब यहीं बनेगा →',
+    trust: 'हम कभी आपसे OTP, PIN या पैसे नहीं माँगते।',
+    placeholder: 'कुछ पूछिए या कागज़ दिखाइए…',
+    locale: 'hi-IN',
   },
   en: {
-    lead: 'Namaste — how can I help today?',
+    greet: (n) => `Namaste, ${n} ji`,
+    savedInsight: (amt) => `You've saved ${amt} this month`,
     askTitle: 'Ask about money', askSub: 'Bills · govt schemes · fraud · savings',
     chip1: 'How do I get government scheme money?', chip2: 'How do I stay safe from fraud?',
-    docTitle: 'Understand a Document', docSub: 'Show a photo — I’ll explain it simply',
-    ledgerTitle: 'Your हिसाब', ledgerSub: 'Built automatically from photos', pill: 'Earn points',
-    placeholder: 'Ask or show a Document…',
+    askGhost: 'Or ask your own question →',
+    docTitle: 'Understand a document',
+    docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
+    connector: 'Every paper you show adds here automatically',
+    hisaabTitle: 'Your हिसाब', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
+    hisaabSub: (m) => `Built automatically from your photos · ${m}`,
+    rewardChip: 'Earn rewards',
+    hisaabEmpty: 'Show your first paper — your हिसाब builds here →',
+    trust: "We'll never ask for your OTP, PIN, or money.",
+    placeholder: 'Ask or show a paper…',
+    locale: 'en-IN',
   },
 };
 
 export default function Home() {
   const nav = useNavigate();
+  const { state } = useApp();
   const [lang, setLang] = useState('hi');
-  const [msgs, setMsgs] = useState([]); // inline chat thread
+  const [msgs, setMsgs] = useState([]);
   const [busy, setBusy] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const endRef = useRef(null);
   const t = COPY[lang];
 
+  const user = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
+  }, []);
+  const userName = user.name || (lang === 'hi' ? 'दोस्त' : 'friend');
+
+  // ── हिसाब binding (no hard-coded values) ───────────────────────────────────
+  const docs = state.docs;
+  const hasData = docs.length > 0;
+  const aaya = docs.filter(d => d.dir === 'in' && !d.borrowed).reduce((s, d) => s + d.amount, 0);
+  const gaya = docs.filter(d => d.dir === 'out').reduce((s, d) => s + d.amount, 0);
+  const bacha = aaya - gaya;
+  const amberPct = aaya > 0 ? Math.min(100, Math.round((gaya / aaya) * 100)) : (gaya > 0 ? 100 : 0);
+  const greenPct = Math.max(0, 100 - amberPct);
+  const reminder = docs.find(d => d.dueDate) || null;
+  const month = new Date().toLocaleString(t.locale, { month: 'long' });
+
   const send = async (text) => {
     const q = (text || '').trim();
     if (!q || busy) return;
     const next = [...msgs, { role: 'user', content: q }];
-    setMsgs(next);
-    setBusy(true);
+    setMsgs(next); setBusy(true);
     setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     try {
       let reply;
@@ -83,30 +121,37 @@ export default function Home() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#F6F5FB', maxWidth: 420, margin: '0 auto' }}>
-      {/* Top bar: ← · Money Mitra · हिं/EN toggle */}
-      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', background: '#F6F5FB', flexShrink: 0 }}>
+      {/* Header: ← · Money Mitra · हिं/EN */}
+      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', flexShrink: 0 }}>
         <button aria-label="Back" onClick={() => (window.location.hash = '#/')} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={18} height={18}><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <span style={{ flex: 1, fontFamily: "'JioType',sans-serif", fontSize: 17, fontWeight: 900, color: INK, letterSpacing: '-0.3px' }}>Money Mitra</span>
-        <button onClick={() => setLang(l => (l === 'hi' ? 'en' : 'hi'))} style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: '3px', cursor: 'pointer' }}>
+        <button onClick={() => setLang(l => (l === 'hi' ? 'en' : 'hi'))} style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: 3, cursor: 'pointer' }}>
           {['hi', 'en'].map(L => (
             <span key={L} style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 999, background: lang === L ? PURPLE : 'transparent', color: lang === L ? '#fff' : '#888780' }}>{L === 'hi' ? 'हिं' : 'EN'}</span>
           ))}
         </button>
       </header>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {/* Lead line */}
-        <h1 className="animate-fade-in" style={{ fontFamily: DEVA, fontSize: 24, fontWeight: 900, color: INK, letterSpacing: '-0.5px', margin: '4px 2px 0', lineHeight: 1.3 }}>{t.lead}</h1>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {/* A1. Greeting + insight (bound to user + हिसाब) */}
+        <div className="animate-fade-in" style={{ margin: '4px 2px 0' }}>
+          <h1 style={{ fontFamily: DEVA, fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.4px', margin: 0 }}>{t.greet(userName)}</h1>
+          {hasData && bacha >= 0 && (
+            <p style={{ fontFamily: DEVA, fontSize: 13, color: '#888780', margin: '4px 0 0' }}>
+              {t.savedInsight(inr(bacha))}{reminder ? ` · ${reminder.docType} ${reminder.dueDate}` : ''}
+            </p>
+          )}
+        </div>
 
-        {/* Inline chat thread (home is a working chat) */}
+        {/* Inline chat thread — home is a working chat */}
         {msgs.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {msgs.map((m, i) => m.role === 'user' ? (
               <div key={i} style={{ alignSelf: 'flex-end', background: PURPLE, color: '#fff', borderRadius: '16px 16px 4px 16px', padding: '10px 14px', maxWidth: '85%', fontFamily: DEVA, fontSize: 14, lineHeight: 1.5 }}>{m.content}</div>
             ) : (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <PortraitAvatar size={28} />
                 <div style={{ background: '#fff', borderRadius: '4px 16px 16px 16px', padding: '10px 14px', maxWidth: '85%', fontFamily: DEVA, fontSize: 14, lineHeight: 1.55, color: INK }}>{m.content || '…'}</div>
               </div>
@@ -116,45 +161,74 @@ export default function Home() {
           </div>
         )}
 
-        {/* Card 1 — पैसे की बात पूछिए (violet, primary) */}
-        <div className="animate-fade-in" style={{ animationDelay: '60ms', background: PURPLE, borderRadius: '20px', padding: '18px' }}>
-          <button onClick={() => nav('/chat')} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <div style={{ fontFamily: DEVA, fontSize: 18, fontWeight: 800, color: '#fff' }}>{t.askTitle}</div>
-            <div style={{ fontFamily: DEVA, fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 3 }}>{t.askSub}</div>
-          </button>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: 12 }}>
+        {/* Ask hero (पैसे की बात पूछिए) — 2 example pills + A2 ghost pill */}
+        <div className="animate-fade-in" style={{ animationDelay: '60ms', background: PURPLE, borderRadius: 20, padding: 18 }}>
+          <div style={{ fontFamily: DEVA, fontSize: 18, fontWeight: 800, color: '#fff' }}>{t.askTitle}</div>
+          <div style={{ fontFamily: DEVA, fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 3 }}>{t.askSub}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
             {[t.chip1, t.chip2].map(c => (
               <button key={c} onClick={() => send(c)} style={{ background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 999, padding: '8px 14px', cursor: 'pointer', fontFamily: DEVA, fontSize: 13, fontWeight: 600, color: '#fff', textAlign: 'left' }}>{c}</button>
             ))}
           </div>
+          {/* A2. ghost "ask anything" pill → open chat with empty input */}
+          <button onClick={() => nav('/chat')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', boxSizing: 'border-box', marginTop: 10, background: 'transparent', border: '1.5px dashed rgba(255,255,255,0.5)', borderRadius: 999, padding: '10px', cursor: 'pointer', fontFamily: DEVA, fontSize: 13, fontWeight: 700, color: '#fff' }}>
+            {t.askGhost}
+          </button>
         </div>
 
-        {/* Card 2 — Document समझिए (page icon, opens attach sheet) */}
-        <button className="animate-fade-in" onClick={() => setAttachOpen(true)} style={{ animationDelay: '120ms', display: 'flex', alignItems: 'center', gap: '16px', width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: '20px', padding: '18px', cursor: 'pointer', textAlign: 'left' }}>
-          <span style={{ width: 48, height: 48, borderRadius: '14px', flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+        {/* Document door */}
+        <button className="animate-fade-in" onClick={() => setAttachOpen(true)} style={{ animationDelay: '120ms', display: 'flex', alignItems: 'center', gap: 16, width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
+          <span style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontFamily: DEVA, fontSize: 16, fontWeight: 700, color: INK }}>{t.docTitle}</span>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 13, color: '#5F5E5A', marginTop: 4 }}>{t.docSub}</span>
+            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 12, color: '#5F5E5A', marginTop: 4, lineHeight: 1.4 }}>{t.docExamples}</span>
           </span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={20} height={20} style={{ flexShrink: 0 }}><polyline points="9 18 15 12 9 6" /></svg>
         </button>
 
-        {/* Card 3 — आपका हिसाब (receipt icon, अंक pill, opens ledger) */}
-        <button className="animate-fade-in" onClick={() => nav('/passbook')} style={{ animationDelay: '180ms', display: 'flex', alignItems: 'center', gap: '16px', width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: '20px', padding: '18px', cursor: 'pointer', textAlign: 'left' }}>
-          <span style={{ width: 48, height: 48, borderRadius: '14px', flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <IcReceipt size={24} color={PURPLE} />
-          </span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 16, fontWeight: 700, color: INK }}>{t.ledgerTitle}</span>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 13, color: '#5F5E5A', marginTop: 4 }}>{t.ledgerSub}</span>
-          </span>
-          <span style={{ flexShrink: 0, background: PURPLE_LIGHT, color: PURPLE, borderRadius: 999, padding: '4px 10px', fontFamily: DEVA, fontSize: 11, fontWeight: 700 }}>{t.pill}</span>
+        {/* A3. Connector: vertical line + down arrow + caption */}
+        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, margin: '-4px 0' }}>
+          <span style={{ width: 2, height: 14, background: PURPLE_LIGHT, borderRadius: 1 }} />
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={PURPLE} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><polyline points="6 13 12 19 18 13" /></svg>
+          <span style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 600, color: '#5F5E5A', textAlign: 'center', maxWidth: 280 }}>{t.connector}</span>
+        </div>
+
+        {/* A4. हिसाब widget — In/Out/Saved + split bar (bound), accent outline, इनाम chip */}
+        <button className="animate-fade-in" onClick={() => nav('/passbook')} style={{ animationDelay: '180ms', display: 'block', width: '100%', boxSizing: 'border-box', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <span style={{ width: 36, height: 36, borderRadius: 12, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <IcReceipt size={20} color={PURPLE} />
+            </span>
+            <span style={{ flex: 1, fontFamily: DEVA, fontSize: 16, fontWeight: 800, color: INK }}>{t.hisaabTitle}</span>
+            <span style={{ background: PURPLE_LIGHT, color: PURPLE, borderRadius: 999, padding: '4px 10px', fontFamily: DEVA, fontSize: 11, fontWeight: 700 }}>{t.rewardChip}</span>
+          </div>
+
+          {hasData ? (
+            <>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Tile label={t.tileIn} value={inr(aaya)} color={GREEN} />
+                <Tile label={t.tileOut} value={inr(gaya)} color={AMBER} />
+                <Tile label={t.tileSaved} value={inr(Math.abs(bacha))} color={PURPLE} emphasised />
+              </div>
+              <div style={{ display: 'flex', height: 8, borderRadius: 999, overflow: 'hidden', background: '#EFEDF7', marginTop: 12 }}>
+                <span style={{ width: `${greenPct}%`, background: GREEN }} />
+                <span style={{ width: `${amberPct}%`, background: AMBER }} />
+              </div>
+              <p style={{ fontFamily: DEVA, fontSize: 12, color: '#888780', margin: '10px 0 0' }}>{t.hisaabSub(month)}</p>
+            </>
+          ) : (
+            <p style={{ fontFamily: DEVA, fontSize: 14, fontWeight: 600, color: PURPLE, margin: 0 }}>{t.hisaabEmpty}</p>
+          )}
         </button>
+
+        {/* A5. Trust line (above bottom bar) */}
+        <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '2px 0' }}>
+          <IcShield size={16} color={GREEN} />
+          <span style={{ fontFamily: DEVA, fontSize: 12, color: '#1a5c38', textAlign: 'center' }}>{t.trust}</span>
+        </div>
       </div>
 
-      {/* Universal dock — + (attach) · ask (inline) · voice */}
       <BottomInputBar
         placeholder={t.placeholder}
         onSubmit={(text) => send(text)}
@@ -163,6 +237,15 @@ export default function Home() {
       />
 
       <AttachSheet open={attachOpen} onClose={() => setAttachOpen(false)} onFile={onFile} />
+    </div>
+  );
+}
+
+function Tile({ label, value, color, emphasised }) {
+  return (
+    <div style={{ flex: 1, background: emphasised ? PURPLE_LIGHT : '#F7F6FB', borderRadius: 12, padding: '10px 8px', textAlign: 'center' }}>
+      <div style={{ fontFamily: DEVA, fontSize: 11, fontWeight: 600, color: '#888780', marginBottom: 3 }}>{label}</div>
+      <div style={{ fontFamily: DEVA, fontSize: 15, fontWeight: 800, color, letterSpacing: '-0.3px' }}>{value}</div>
     </div>
   );
 }
