@@ -38,6 +38,20 @@ const LOW_CONF = 0.6;
 
 const INTRO = 'कोई भी कागज़ जो समझ न आए या परेशान करे — बिल, बैंक नोटिस, मैसेज, पर्ची — दिखाइए। मैं आसान भाषा में समझा दूँगा।';
 
+// Pre-filled SAMPLE shown first (validation flow). Illustrative only — not the user's data.
+const DEMO_COPY = {
+  en: { sample: 'Sample', title: 'Electricity bill', amt: '₹740',
+    recog: "Here's a sample — an electricity bill, read in plain language.",
+    insight: "₹740 this time — ₹60 more than last month. Pay by 25 June and there's no late fee.",
+    worryQ: 'Should you worry?', worry: "Not much — it's only ₹60 more, likely the heat.",
+    cta: 'Show your own document', note: 'Try it with your own bill, bank SMS, or any paper.' },
+  hi: { sample: 'नमूना', title: 'बिजली बिल', amt: '₹740',
+    recog: 'यह एक नमूना है — बिजली बिल, आसान भाषा में।',
+    insight: 'इस बार ₹740 — पिछली बार से ₹60 ज़्यादा। 25 जून तक भर दें तो लेट फ़ीस नहीं लगेगी।',
+    worryQ: 'क्या चिंता की बात है?', worry: 'ज़्यादा नहीं — बस ₹60 बढ़ा है, शायद गर्मी से।',
+    cta: 'अपना कागज़ दिखाइए', note: 'अपना बिल, बैंक SMS, या कोई भी कागज़ दिखाकर आज़माइए।' },
+};
+
 function docIcon(key, size, color) {
   switch (key) {
     case 'zap':       return <IcZap size={size} color={color} />;
@@ -87,7 +101,8 @@ export default function Decoder() {
   const location = useLocation();
   const { state, dispatch } = useApp();
 
-  const [stage, setStage] = useState('input'); // input | reading | result | blurry | error
+  const [stage, setStage] = useState('demo'); // demo | input | reading | result | blurry | error
+  const lang = (() => { try { return localStorage.getItem('mm_lang') === 'hi' ? 'hi' : 'en'; } catch { return 'en'; } })();
   const [errorMsg, setErrorMsg] = useState('');
   const [data, setData] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -125,6 +140,7 @@ export default function Decoder() {
   useEffect(() => {
     if (location.state?.openCamera && !camOpenedRef.current) {
       camOpenedRef.current = true;
+      setStage('input'); // skip the demo when explicitly sent to capture
       const t = setTimeout(() => cameraRef.current?.click(), 200);
       return () => clearTimeout(t);
     }
@@ -228,6 +244,41 @@ export default function Decoder() {
   const onPick = (e) => { handleFile(e.target.files?.[0] ?? null); e.target.value = ''; };
   const resolveDirection = (dir) => { const d = { ...data, direction: dir }; setData(d); routeDoc(d); };
   const reset = () => { setStage('input'); setData(null); setConfirmed(false); setInsightLine(''); setErrorMsg(''); setReward(null); setRoute(null); setAskResolved(null); setRecurringNote(false); addedRef.current = false; };
+
+  // ── Screen 0: demo — a pre-filled SAMPLE decode so the user instantly gets it,
+  //    then "show your own document" opens the real capture. Sample is clearly
+  //    labelled; it never touches the हिसाब and never poses as the user's data. ──
+  const renderDemo = () => {
+    const D = DEMO_COPY[lang];
+    return (
+      <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <span style={{ alignSelf: 'flex-start', background: '#fff5dc', color: '#8a6a00', fontFamily: DEVA, fontSize: '11px', fontWeight: 800, padding: '4px 11px', borderRadius: '999px' }}>{D.sample}</span>
+        <Bubble>{D.recog}</Bubble>
+        <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: 34, height: 34, borderRadius: '10px', background: '#fcf1e6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7z" stroke="#a8620f" strokeWidth="2" strokeLinejoin="round"/></svg>
+            </span>
+            <span style={{ background: PURPLE_LIGHT, color: PURPLE, borderRadius: '999px', padding: '4px 11px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>{D.title}</span>
+          </div>
+          <div style={{ fontFamily: DEVA, fontSize: '30px', fontWeight: 900, color: INK, letterSpacing: '-0.5px' }}>{D.amt}</div>
+          <div style={{ marginTop: '12px', background: '#f7f5fd', borderRadius: '12px', padding: '12px 14px' }}>
+            <div style={{ fontFamily: DEVA, fontSize: '13px', fontWeight: 800, color: PURPLE }}>{D.worryQ}</div>
+            <div style={{ fontFamily: DEVA, fontSize: '14px', color: INK, lineHeight: 1.5, marginTop: '6px' }}>{D.worry}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <PortraitAvatar size={32} online={false} ringed={false} />
+          <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>{D.insight}</p>
+        </div>
+        <button onClick={() => setStage('input')} style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '15px', cursor: 'pointer' }}>
+          <IcCamera size={20} color="#fff" />
+          <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>{D.cta} →</span>
+        </button>
+        <p style={{ fontFamily: DEVA, fontSize: '12.5px', color: '#5F5E5A', textAlign: 'center', margin: '2px 0 0' }}>{D.note}</p>
+      </div>
+    );
+  };
 
   // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
@@ -466,12 +517,12 @@ export default function Decoder() {
     </div>
   );
 
-  const showDock = stage === 'input' || stage === 'result';
+  const showDock = stage === 'demo' || stage === 'input' || stage === 'result';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#fff', maxWidth: '420px', margin: '0 auto' }}>
       <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
-        <button onClick={() => (stage === 'input' ? nav('/') : reset())} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
+        <button onClick={() => ((stage === 'input' || stage === 'demo') ? nav('/') : reset())} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
           <IcChevronLeft size={24} color={INK} />
         </button>
         <PortraitAvatar size={36} online ringed />
@@ -484,6 +535,7 @@ export default function Decoder() {
       </header>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
+        {stage === 'demo' && renderDemo()}
         {stage === 'input' && renderInput()}
         {stage === 'reading' && renderReading()}
         {stage === 'result' && data && renderResult()}

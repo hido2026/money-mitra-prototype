@@ -66,7 +66,10 @@ const COPY = {
 export default function Home() {
   const nav = useNavigate();
   const { state } = useApp();
-  const [lang, setLang] = useState('en'); // English-first for the validation cohort
+  const [lang, setLangState] = useState(() => { // English-first for the validation cohort
+    try { return localStorage.getItem('mm_lang') === 'hi' ? 'hi' : 'en'; } catch { return 'en'; }
+  });
+  const setLang = (l) => { try { localStorage.setItem('mm_lang', l); } catch { /* ignore */ } setLangState(l); };
   const [msgs, setMsgs] = useState([]);
   const [busy, setBusy] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -127,7 +130,7 @@ export default function Home() {
           <svg viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={18} height={18}><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <span style={{ flex: 1, fontFamily: "'JioType',sans-serif", fontSize: 17, fontWeight: 900, color: INK, letterSpacing: '-0.3px' }}>Money Mitra</span>
-        <button onClick={() => setLang(l => (l === 'hi' ? 'en' : 'hi'))} style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: 3, cursor: 'pointer' }}>
+        <button onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')} style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: 3, cursor: 'pointer' }}>
           {['en', 'hi'].map(L => (
             <span key={L} style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 999, background: lang === L ? PURPLE : 'transparent', color: lang === L ? '#fff' : '#888780' }}>{L === 'hi' ? 'हिं' : 'EN'}</span>
           ))}
@@ -177,7 +180,7 @@ export default function Home() {
         </div>
 
         {/* Document door */}
-        <button className="animate-fade-in" onClick={() => setAttachOpen(true)} style={{ animationDelay: '120ms', display: 'flex', alignItems: 'center', gap: 16, width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
+        <button className="animate-fade-in" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms', display: 'flex', alignItems: 'center', gap: 16, width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
           <span style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
           </span>
