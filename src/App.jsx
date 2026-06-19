@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 
 // ── Pages ──────────────────────────────────────────────────────────────────────
-import Registration from './pages/Registration';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Decoder from './pages/Decoder';
@@ -19,21 +17,12 @@ import {
   samjhaoSchemeStatus, samjhaoPaisaKata, samjhaoBinaBataye, samjhaoBeti,
 } from './data/conversations';
 
-// ── Registration gate ─────────────────────────────────────────────────────────
-// On every load: check localStorage for "user" key.
-// If absent → show Registration once. On submit → normal app.
-// AppProvider wraps everything so Decoder + Passbook share session state.
+// ── No registration gate ───────────────────────────────────────────────────────
+// The validation factory already captures email/name/phone, so the app boots
+// straight to Home — no name/phone landing screen. AppProvider wraps everything
+// so Decoder + Passbook share session state.
 
 export default function App() {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user') || 'null'); }
-    catch { return null; }
-  });
-
-  if (!user) {
-    return <Registration onComplete={(u) => setUser(u)} />;
-  }
-
   return (
     <AppProvider>
       <HashRouter>

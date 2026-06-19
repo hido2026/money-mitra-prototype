@@ -28,7 +28,7 @@ const groqClient = _apiKey ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser
 
 const COPY = {
   hi: {
-    greet: (n) => `नमस्ते, ${n} जी`,
+    greet: (n) => (n ? `नमस्ते, ${n} जी` : 'नमस्ते जी'),
     savedInsight: (amt) => `इस महीने आपने ${amt} बचाए`,
     askTitle: 'पैसे की बात पूछिए', askSub: 'बिल · सरकारी योजना · ठगी · बचत',
     chip1: 'सरकारी योजना का पैसा कैसे मिलता है?', chip2: 'ठगी से कैसे बचूँ?',
@@ -45,7 +45,7 @@ const COPY = {
     locale: 'hi-IN',
   },
   en: {
-    greet: (n) => `Namaste, ${n} ji`,
+    greet: (n) => (n ? `Namaste, ${n} ji` : 'Namaste ji'),
     savedInsight: (amt) => `You've saved ${amt} this month`,
     askTitle: 'Ask about money', askSub: 'Bills · govt schemes · fraud · savings',
     chip1: 'How do I get government scheme money?', chip2: 'How do I stay safe from fraud?',
@@ -66,7 +66,7 @@ const COPY = {
 export default function Home() {
   const nav = useNavigate();
   const { state } = useApp();
-  const [lang, setLang] = useState('hi');
+  const [lang, setLang] = useState('en'); // English-first for the validation cohort
   const [msgs, setMsgs] = useState([]);
   const [busy, setBusy] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -76,7 +76,7 @@ export default function Home() {
   const user = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
   }, []);
-  const userName = user.name || (lang === 'hi' ? 'दोस्त' : 'friend');
+  const userName = user.name || ''; // no registration → nameless greeting
 
   // ── हिसाब binding (no hard-coded values) ───────────────────────────────────
   const docs = state.docs;
@@ -128,7 +128,7 @@ export default function Home() {
         </button>
         <span style={{ flex: 1, fontFamily: "'JioType',sans-serif", fontSize: 17, fontWeight: 900, color: INK, letterSpacing: '-0.3px' }}>Money Mitra</span>
         <button onClick={() => setLang(l => (l === 'hi' ? 'en' : 'hi'))} style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: 3, cursor: 'pointer' }}>
-          {['hi', 'en'].map(L => (
+          {['en', 'hi'].map(L => (
             <span key={L} style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 999, background: lang === L ? PURPLE : 'transparent', color: lang === L ? '#fff' : '#888780' }}>{L === 'hi' ? 'हिं' : 'EN'}</span>
           ))}
         </button>
