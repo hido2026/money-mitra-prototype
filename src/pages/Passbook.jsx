@@ -108,9 +108,6 @@ export default function Passbook() {
             <div style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#fff' }}>कुल इनाम — {totalPoints.toLocaleString('en-IN')} अंक</div>
             <div style={{ fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>{JACKPOT_POINTS.toLocaleString('en-IN')} अंक = ₹{JACKPOT_RUPEES} · {REDEEM_PARTNER}</div>
           </div>
-          <button onClick={redeem} style={{ background: '#fff', border: 'none', borderRadius: '999px', padding: '9px 18px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: PURPLE, flexShrink: 0 }}>
-            बदलें
-          </button>
         </div>
 
         <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', margin: '0 2px', textAlign: 'center' }}>
