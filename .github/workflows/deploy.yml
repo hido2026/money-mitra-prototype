@@ -42,7 +42,7 @@ jobs:
           # Set VITE_GROQ_API_KEY in repo Settings → Secrets → Actions
           # to enable live Groq/Claude API calls in the deployed prototype.
           VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
-
+          VITE_SARVAM_API_KEY: ${{ secrets.VITE_SARVAM_API_KEY }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
@@ -51,6 +51,6 @@ jobs:
         with:
           path: dist
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages†
         id: deployment
         uses: actions/deploy-pages@v4
