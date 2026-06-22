@@ -7,8 +7,7 @@
 //
 // All callers use speakMukund(text) / stopSpeaking() / primeAudio() — unchanged.
 
-const SARVAM_API_KEY =
-  import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
+const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY;
 const SARVAM_TTS_URL = 'https://api.sarvam.ai/text-to-speech';
 const SPEAKER        = 'abhilash';   // calm male Hindi voice
 const MODEL          = 'bulbul:v2';

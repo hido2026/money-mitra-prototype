@@ -11,8 +11,7 @@
 import { useState, useRef } from 'react';
 import { primeAudio } from '../utils/tts';
 
-export const SARVAM_API_KEY =
-  import.meta.env.VITE_SARVAM_API_KEY || 'sk_afh7owtd_prjoh7ZH0nIN1HqF8wqRDuzU';
+export const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY;
 
 const SARVAM_STT_URL = 'https://api.sarvam.ai/speech-to-text';
 const SARVAM_MODEL   = 'saarika:v2.5';
