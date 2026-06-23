@@ -36,6 +36,7 @@ const COPY = {
     askGhost: 'या अपना सवाल पूछिए →',
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
     docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
+    docReward: 'हर कागज़ पर 100 अंक तक मिल सकते हैं — बिल्कुल मुफ़्त',
     connector: 'जो कागज़ दिखाते हैं, वो यहाँ अपने आप जुड़ जाता है',
     hisaabTitle: 'आपका हिसाब', tileIn: 'आया', tileOut: 'गया', tileSaved: 'बचा',
     hisaabSub: (m) => `आपकी फ़ोटो से अपने आप बना · ${m}`,
@@ -53,6 +54,7 @@ const COPY = {
     askGhost: 'Or ask your own question →',
     docTitle: 'Understand a document',
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
+    docReward: 'Each document can earn up to 100 points — free',
     connector: 'Every paper you show adds here automatically',
     hisaabTitle: 'Your हिसाब', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
     hisaabSub: (m) => `Built automatically from your photos · ${m}`,
@@ -174,13 +176,19 @@ export default function Home() {
         </div>
 
         {/* Document door */}
-        <button className="animate-fade-in" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms', display: 'flex', alignItems: 'center', gap: 16, width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
-          <span style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+        <button className="animate-fade-in" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms', display: 'flex', flexDirection: 'column', gap: 0, width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontFamily: DEVA, fontSize: 16, fontWeight: 700, color: INK }}>{t.docTitle}</span>
+              <span style={{ display: 'block', fontFamily: DEVA, fontSize: 12, color: '#5F5E5A', marginTop: 4, lineHeight: 1.4 }}>{t.docExamples}</span>
+            </span>
           </span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 16, fontWeight: 700, color: INK }}>{t.docTitle}</span>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 12, color: '#5F5E5A', marginTop: 4, lineHeight: 1.4 }}>{t.docExamples}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, background: '#FFF8E0', border: '1px solid #F0C840', borderRadius: 10, padding: '7px 12px' }}>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#B07D0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 700, color: '#7A5800' }}>{t.docReward}</span>
           </span>
         </button>
 
