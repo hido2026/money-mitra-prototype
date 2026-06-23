@@ -140,7 +140,7 @@ export default function Decoder() {
     if (stage === 'input' && !introSpokenRef.current) {
       introSpokenRef.current = true;
       setSpeaking(true);
-      speakMukund(INTRO[lang] || INTRO.hi, () => setSpeaking(false));
+      speakMukund(INTRO[lang] || INTRO.hi, () => setSpeaking(false), lang);
     }
   }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -166,7 +166,7 @@ export default function Decoder() {
     const line = insightEngine(d, state.docs, lang);
     setInsightLine(line);
     setSpeaking(true);
-    speakMukund(recogText(d, lang), () => speakMukund(line, () => setSpeaking(false)));
+    speakMukund(recogText(d, lang), () => speakMukund(line, () => setSpeaking(false), lang), lang);
     setTimeout(() => setSpeaking(false), 16000);
   };
 
@@ -464,7 +464,7 @@ export default function Decoder() {
             <PortraitAvatar size={32} online={false} ringed={false} />
             <div>
               <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>{insightLine}</p>
-              <button onClick={() => { setSpeaking(true); speakMukund(insightLine, () => setSpeaking(false)); }} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
+              <button onClick={() => { setSpeaking(true); speakMukund(insightLine, () => setSpeaking(false), lang); }} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
                 <IcSparks size={13} color="#888780" /> {lang === 'en' ? 'Listen' : 'सुनें'}
               </button>
             </div>

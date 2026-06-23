@@ -137,23 +137,29 @@ function normalizeDates(text) {
   );
 }
 
-// ── speakMukund — Sarvam first, browser fallback. onEnd() fires when playback
-//    finishes (used for the "बोल रहा है…" cue + speaking bubbles in sequence). ─
-export async function speakMukund(text, onEnd) {
+// ── speakMukund — Sarvam (Hindi) or browser EN TTS. onEnd() fires when done. ──
+// lang='hi' → Sarvam bulbul:v2 with Hindi number words + transliteration.
+// lang='en' → browser SpeechSynthesis with English voice; no Hindi preprocessing.
+export async function speakMukund(text, onEnd, lang = 'hi') {
   const done = () => { try { onEnd?.(); } catch {} };
-  // Strip markdown, normalize dates (A5), speak ₹ amounts as Hindi number words,
-  // then cap to Sarvam's 500-char limit.
-  const clean = speakableAmounts(
-    normalizeDates(
-      (text || '').replace(/[*_#`>]/g, '').replace(/\s+/g, ' ').trim(),
-    ),
-  ).slice(0, 480);
+  const raw = (text || '').replace(/[*_#`>]/g, '').replace(/\s+/g, ' ').trim();
+  if (!raw) { done(); return; }
+
+  // EN mode: browser TTS with an English voice, no Hindi preprocessing.
+  if (lang === 'en') {
+    stopSpeaking();
+    browserSpeakEN(raw, done);
+    return;
+  }
+
+  // HI mode: strip markdown, normalize dates, convert ₹ amounts to Hindi words.
+  const clean = speakableAmounts(normalizeDates(raw)).slice(0, 480);
   if (!clean) { done(); return; }
 
-  stopSpeaking();          // stops anything playing AND bumps playSeq
-  const myTurn = playSeq;  // this call's claim on the speaker
+  stopSpeaking();
+  const myTurn = playSeq;
 
-  // Transliterate English words → Devanagari so they're spoken correctly.
+  // Transliterate English words → Devanagari so the Hindi voice pronounces them correctly.
   const spoken = (await sarvamTransliterate(clean)).slice(0, 480);
 
   try {
@@ -169,7 +175,7 @@ export async function speakMukund(text, onEnd) {
         speaker:              SPEAKER,
         model:                MODEL,
         speech_sample_rate:   22050,
-        enable_preprocessing: true, // pronounce embedded English words correctly in mixed Hindi+English
+        enable_preprocessing: true,
       }),
     });
 
@@ -179,8 +185,6 @@ export async function speakMukund(text, onEnd) {
     const b64  = data?.audios?.[0];
     if (!b64) throw new Error('sarvam_empty');
 
-    // A newer speakMukund (or stopSpeaking) ran while we were fetching → abandon,
-    // else two clips overlap and you hear an echo.
     if (myTurn !== playSeq) return;
 
     const audio  = new Audio(`data:audio/wav;base64,${b64}`);
@@ -189,10 +193,41 @@ export async function speakMukund(text, onEnd) {
     await audio.play();
     return;
   } catch (err) {
-    if (myTurn !== playSeq) return; // superseded — don't fall back either
+    if (myTurn !== playSeq) return;
     console.warn('[tts] Sarvam failed → browser fallback:', err?.message || err);
     browserSpeak(clean);
     done();
+  }
+}
+
+// ── EN TTS: browser SpeechSynthesis with English voice ───────────────────────
+function browserSpeakEN(text, onEnd) {
+  const done = () => { try { onEnd?.(); } catch {} };
+  if (!window.speechSynthesis) { done(); return; }
+
+  const doSpeak = () => {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'en-IN';
+    utt.rate = 0.92;
+    utt.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang?.startsWith('en-IN'))
+                 || voices.find(v => v.lang?.startsWith('en'));
+    if (enVoice) utt.voice = enVoice;
+    utt.onend = done;
+    utt.onerror = done;
+    window.speechSynthesis.speak(utt);
+  };
+
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      doSpeak();
+    };
+    setTimeout(doSpeak, 800);
+  } else {
+    doSpeak();
   }
 }
 

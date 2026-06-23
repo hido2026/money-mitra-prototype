@@ -83,7 +83,7 @@ export default function Chat() {
     if (isStreaming) return; // still streaming
     const last = messages[messages.length - 1];
     if (last?.role === 'assistant' && last.content) {
-      speakMukund(last.content);
+      speakMukund(last.content, undefined, lang);
     }
   }, [isStreaming]); // fires only when isStreaming flips to false
 
