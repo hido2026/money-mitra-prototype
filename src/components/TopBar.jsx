@@ -5,8 +5,9 @@
 
 import { useState } from 'react';
 import PersonaAvatar from './PersonaAvatar';
+import { LangToggle } from '../hooks/useLang';
 
-export default function TopBar({ onClear, isTyping = false }) {
+export default function TopBar({ onClear, isTyping = false, lang, setLang }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -35,7 +36,12 @@ export default function TopBar({ onClear, isTyping = false }) {
           Money Mitra
         </span>
 
-        {/* ⋯ menu */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {lang != null && setLang != null && (
+            <LangToggle lang={lang} setLang={setLang} />
+          )}
+
+          {/* ⋯ menu */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setMenuOpen((o) => !o)}
@@ -94,6 +100,7 @@ export default function TopBar({ onClear, isTyping = false }) {
               </div>
             </>
           )}
+          </div>
         </div>
       </div>
 

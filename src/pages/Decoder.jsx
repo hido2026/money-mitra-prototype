@@ -4,7 +4,7 @@
 // STRICTLY from extracted JSON + computed insights — no invented numbers.
 // No manual entry. हिसाब accumulates real decodes (in-memory).
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountUp, inr } from '../utils/motion';
@@ -15,6 +15,7 @@ import { insightEngine } from '../utils/insights';
 import { Events } from '../engine/instrumentation';
 import { speakMukund } from '../utils/tts';
 import { takePendingFile } from '../utils/pendingFile';
+import { useLang, LangToggle } from '../hooks/useLang';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
 import {
@@ -44,7 +45,7 @@ const DEMO_COPY = {
     recog: "Here's a sample — an electricity bill, read in plain language.",
     insight: "₹740 this time — ₹60 more than last month. Pay by 25 June and there's no late fee.",
     worryQ: 'Should you worry?', worry: "Not much — it's only ₹60 more, likely the heat.",
-    cta: 'Show your own document', note: 'Try it with your own bill, bank SMS, or any paper.' },
+    cta: 'Check your document', note: 'Upload your bill, bank SMS, or any financial paper.' },
   hi: { sample: 'नमूना', title: 'बिजली बिल', amt: '₹740',
     recog: 'यह एक नमूना है — बिजली बिल, आसान भाषा में।',
     insight: 'इस बार ₹740 — पिछली बार से ₹60 ज़्यादा। 25 जून तक भर दें तो लेट फ़ीस नहीं लगेगी।',
@@ -102,7 +103,7 @@ export default function Decoder() {
   const { state, dispatch } = useApp();
 
   const [stage, setStage] = useState('demo'); // demo | input | reading | result | blurry | error
-  const lang = (() => { try { return localStorage.getItem('mm_lang') === 'hi' ? 'hi' : 'en'; } catch { return 'en'; } })();
+  const [lang, setLang] = useLang();
   const [errorMsg, setErrorMsg] = useState('');
   const [data, setData] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -527,11 +528,14 @@ export default function Decoder() {
         </button>
         <PortraitAvatar size={36} online ringed />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 700, color: INK }}>कागज़ समझें</div>
+          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 700, color: INK }}>
+            {lang === 'hi' ? 'कागज़ समझें' : 'Check document'}
+          </div>
           <div style={{ fontFamily: DEVA, fontSize: '11px', color: speaking ? PURPLE : '#5F5E5A', fontWeight: speaking ? 700 : 400 }}>
             {speaking ? 'मुकुंद · बोल रहा है…' : 'मुकुंद · पढ़कर समझाता है'}
           </div>
         </div>
+        <LangToggle lang={lang} setLang={setLang} />
       </header>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>

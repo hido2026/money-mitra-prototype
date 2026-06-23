@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useLang, LangToggle } from '../hooks/useLang';
 import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
 import { hisaabInsights } from '../utils/insights';
@@ -46,6 +47,7 @@ function docIcon(key, size, color) {
 export default function Passbook() {
   const nav = useNavigate();
   const { state, dispatch } = useApp();
+  const [lang, setLang] = useLang();
   const [toast, setToast] = useState(false);
   const [editId, setEditId] = useState(null);
 
@@ -79,24 +81,29 @@ export default function Passbook() {
         <button onClick={() => nav('/decoder')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
           <IcChevronLeft size={24} color={INK} />
         </button>
-        <h1 style={{ flex: 1, fontFamily: DEVA, fontSize: '18px', fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.3px' }}>मेरा हिसाब</h1>
+        <h1 style={{ flex: 1, fontFamily: DEVA, fontSize: '18px', fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.3px' }}>
+          {lang === 'en' ? 'My Ledger' : 'मेरा हिसाब'}
+        </h1>
+        <LangToggle lang={lang} setLang={setLang} />
       </header>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
         {/* Metrics — D1: आया excludes borrowed; D3: बचे suppressed without real income */}
         <div className="animate-fade-in" style={{ display: 'flex', gap: '10px' }}>
-          <Metric label="आया" value={inr(aC)} color={GREEN} />
-          <Metric label="गया" value={inr(gC)} color={PURPLE} />
+          <Metric label={lang === 'en' ? 'In' : 'आया'} value={inr(aC)} color={GREEN} />
+          <Metric label={lang === 'en' ? 'Out' : 'गया'} value={inr(gC)} color={PURPLE} />
           {hasRealIncome
-            ? <Metric label={bache >= 0 ? 'बचे' : 'कम पड़े'} value={inr(bC)} color={bache >= 0 ? INK : '#c0392b'} emphasised />
-            : <Metric label="बचे" value="—" color="#888780" emphasised />
+            ? <Metric label={lang === 'en' ? (bache >= 0 ? 'Saved' : 'Short') : (bache >= 0 ? 'बचे' : 'कम पड़े')} value={inr(bC)} color={bache >= 0 ? INK : '#c0392b'} emphasised />
+            : <Metric label={lang === 'en' ? 'Saved' : 'बचे'} value="—" color="#888780" emphasised />
           }
         </div>
         {/* D2: borrowed section shown only when present */}
         {udhar > 0 && (
           <div className="animate-fade-in" style={{ background: '#FFF8E1', border: '1px solid #F3DBA0', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#7B5C00', flex: 1 }}>उधार / ऋण मिला</span>
+            <span style={{ fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#7B5C00', flex: 1 }}>
+              {lang === 'en' ? 'Loan / Borrowed' : 'उधार / ऋण मिला'}
+            </span>
             <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#7B5C00' }}>{inr(uC)}</span>
           </div>
         )}
@@ -111,7 +118,7 @@ export default function Passbook() {
         </div>
 
         <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', margin: '0 2px', textAlign: 'center' }}>
-          सब फ़ोटो से अपने आप — कोई एंट्री नहीं।
+          {lang === 'en' ? 'Auto-built from photos — no manual entry.' : 'सब फ़ोटो से अपने आप — कोई एंट्री नहीं।'}
         </p>
 
         {/* Bill reminders — any decoded doc with a due date */}
@@ -178,9 +185,11 @@ export default function Passbook() {
 
         {docs.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <p style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780', margin: 0 }}>अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।</p>
+            <p style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780', margin: 0 }}>
+              {lang === 'en' ? 'No documents yet — show a photo and your ledger builds itself.' : 'अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।'}
+            </p>
             <button onClick={() => nav('/decoder', { state: { openCamera: true, attribution: 'points_view' } })} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '12px 22px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
-              <IcCamera size={18} color="#fff" /> फ़ोटो दिखाओ
+              <IcCamera size={18} color="#fff" /> {lang === 'en' ? 'Show a photo' : 'फ़ोटो दिखाओ'}
             </button>
           </div>
         )}

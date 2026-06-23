@@ -3,7 +3,7 @@
 // user profile + their हिसाब (state.docs). Bilingual (हिं default / EN toggle).
 // No identity block, no mission, no ₹/redeem on home.
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Groq from 'groq-sdk';
 import { useApp } from '../context/AppContext';
@@ -11,6 +11,7 @@ import { inr } from '../utils/motion';
 import { MUKUND_PROMPT } from '../config/system-prompts.js';
 import { speakMukund } from '../utils/tts';
 import { setPendingFile } from '../utils/pendingFile';
+import { useLang, LangToggle } from '../hooks/useLang';
 import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
@@ -66,10 +67,7 @@ const COPY = {
 export default function Home() {
   const nav = useNavigate();
   const { state } = useApp();
-  const [lang, setLangState] = useState(() => { // English-first for the validation cohort
-    try { return localStorage.getItem('mm_lang') === 'hi' ? 'hi' : 'en'; } catch { return 'en'; }
-  });
-  const setLang = (l) => { try { localStorage.setItem('mm_lang', l); } catch { /* ignore */ } setLangState(l); };
+  const [lang, setLang] = useLang();
   const [msgs, setMsgs] = useState([]);
   const [busy, setBusy] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -130,11 +128,7 @@ export default function Home() {
           <svg viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={18} height={18}><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <span style={{ flex: 1, fontFamily: "'JioType',sans-serif", fontSize: 17, fontWeight: 900, color: INK, letterSpacing: '-0.3px' }}>Money Mitra</span>
-        <button onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')} style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: 3, cursor: 'pointer' }}>
-          {['en', 'hi'].map(L => (
-            <span key={L} style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 999, background: lang === L ? PURPLE : 'transparent', color: lang === L ? '#fff' : '#888780' }}>{L === 'hi' ? 'हिं' : 'EN'}</span>
-          ))}
-        </button>
+        <LangToggle lang={lang} setLang={setLang} />
       </header>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>

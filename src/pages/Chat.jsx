@@ -10,6 +10,7 @@ import TypingIndicator from '../components/TypingIndicator';
 import InputBar from '../components/InputBar';
 import PersonaAvatar from '../components/PersonaAvatar';
 import { speakMukund } from '../utils/tts';
+import { useLang } from '../hooks/useLang';
 
 // ── Groq client ────────────────────────────────────────────────────────────────
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -39,9 +40,33 @@ async function streamMock(text, onChunk) {
 }
 
 // ── Chat ───────────────────────────────────────────────────────────────────────
+const WELCOME = {
+  hi: {
+    greeting: 'नमस्ते! मैं मुकुंद हूँ, आपका पैसे का साथी। पैसे के बारे में कुछ भी पूछिए।',
+    pillsLabel: 'ऐसे पूछ सकते हैं:',
+    pills: [
+      'सरकारी योजना का पैसा आया या नहीं?',
+      'मेरे पैसे कट गए — अब क्या करूँ?',
+      'बेटी के लिए सबसे अच्छी बचत कौन सी?',
+    ],
+    hint: '…या आप कुछ और भी पूछ सकते हैं',
+  },
+  en: {
+    greeting: "Hello! I'm Mukund, your money companion. Ask me anything about your finances.",
+    pillsLabel: 'You can ask:',
+    pills: [
+      'Has my government scheme money arrived?',
+      'Money was deducted — what should I do?',
+      'Best savings plan for my daughter?',
+    ],
+    hint: '…or ask anything else',
+  },
+};
+
 export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [lang, setLang] = useLang();
   const bottomRef = useRef(null);
   const location = useLocation();
   const autoSentRef = useRef(false);
@@ -143,7 +168,7 @@ export default function Chat() {
       background: '#FAF7F2',
     }}>
       {/* Header — isTyping pulses the portrait avatar */}
-      <TopBar onClear={() => setMessages([])} isTyping={isStreaming} />
+      <TopBar onClear={() => setMessages([])} isTyping={isStreaming} lang={lang} setLang={setLang} />
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -179,7 +204,7 @@ export default function Chat() {
                 color: '#1F1F1F',
                 maxWidth: '300px',
               }}>
-                नमस्ते! मैं मुकुंद हूँ, आपका पैसे का साथी। पैसे के बारे में कुछ भी पूछिए।
+                {WELCOME[lang].greeting}
               </p>
 
               {/* Pill label */}
@@ -191,7 +216,7 @@ export default function Chat() {
                 color: 'rgba(25,27,30,0.55)',
                 alignSelf: 'flex-start',
               }}>
-                ऐसे पूछ सकते हैं:
+                {WELCOME[lang].pillsLabel}
               </p>
 
               {/* Prompt pills — left-aligned, stacked */}
@@ -202,11 +227,7 @@ export default function Chat() {
                 gap: '10px',
                 width: '100%',
               }}>
-                {[
-                  'सरकारी योजना का पैसा आया या नहीं?',
-                  'मेरे पैसे कट गए — अब क्या करूँ?',
-                  'बेटी के लिए सबसे अच्छी बचत कौन सी?',
-                ].map((pill) => (
+                {WELCOME[lang].pills.map((pill) => (
                   <button
                     key={pill}
                     onClick={() => sendMessage(pill)}
@@ -245,7 +266,7 @@ export default function Chat() {
                 color: 'rgba(25,27,30,0.45)',
                 fontStyle: 'italic',
               }}>
-                …या आप कुछ और भी पूछ सकते हैं
+                {WELCOME[lang].hint}
               </p>
             </div>
           )}
