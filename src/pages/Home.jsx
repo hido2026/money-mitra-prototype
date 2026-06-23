@@ -56,10 +56,9 @@ const COPY = {
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
     docReward: 'Each document can earn up to 100 points — free',
     connector: 'Every paper you show adds here automatically',
-    hisaabTitle: 'Your हिसाब', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
+    hisaabTitle: 'Your Ledger', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
     hisaabSub: (m) => `Built automatically from your photos · ${m}`,
-    rewardChip: 'Earn rewards',
-    hisaabEmpty: 'Show your first paper — your हिसाब builds here →',
+    hisaabEmpty: 'Show your first paper — your ledger builds here →',
     trust: "We'll never ask for your OTP, PIN, or money.",
     placeholder: 'Ask or show a paper…',
     locale: 'en-IN',
@@ -206,7 +205,6 @@ export default function Home() {
               <IcReceipt size={20} color={PURPLE} />
             </span>
             <span style={{ flex: 1, fontFamily: DEVA, fontSize: 16, fontWeight: 800, color: INK }}>{t.hisaabTitle}</span>
-            <span style={{ background: PURPLE_LIGHT, color: PURPLE, borderRadius: 999, padding: '4px 10px', fontFamily: DEVA, fontSize: 11, fontWeight: 700 }}>{t.rewardChip}</span>
           </div>
 
           {hasData ? (
