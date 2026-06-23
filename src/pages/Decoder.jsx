@@ -109,7 +109,7 @@ export default function Decoder() {
   const location = useLocation();
   const { state, dispatch } = useApp();
 
-  const [stage, setStage] = useState('demo'); // demo | input | reading | result | blurry | error
+  const [stage, setStage] = useState('input'); // demo | input | reading | result | blurry | error
   const [lang, setLang] = useLang();
   const [errorMsg, setErrorMsg] = useState('');
   const [data, setData] = useState(null);
