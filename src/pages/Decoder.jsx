@@ -480,15 +480,12 @@ export default function Decoder() {
           </div>
         )}
 
-        {/* 6. हिसाब strip */}
-        {docs.length > 0 && (
-          <button onClick={() => nav('/passbook')} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', boxSizing: 'border-box', background: '#F5F4FA', border: 'none', borderRadius: '14px', padding: '14px 16px', cursor: 'pointer', textAlign: 'left' }}>
-            <span style={{ flex: 1, fontFamily: DEVA, fontSize: '13px', fontWeight: 600, color: INK }}>
-              मेरा हिसाब · आया <span style={{ color: GREEN }}>{inr(aaya)}</span> · गया <span style={{ color: PURPLE }}>{inr(gaya)}</span> · बचे <span style={{ fontWeight: 800 }}>{inr(bache)}</span>
-            </span>
-            <ChevronRight color={PURPLE} />
-          </button>
-        )}
+        {/* 6. See full हिसाब — explicit secondary button (FIX 7: was passive strip) */}
+        <button onClick={() => nav('/passbook')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', boxSizing: 'border-box', background: '#fff', border: `2px solid ${PURPLE}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
+          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: PURPLE }}>
+            {lang === 'en' ? 'See your full Hisaab →' : 'अपना पूरा हिसाब देखें →'}
+          </span>
+        </button>
 
         <button onClick={reset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '15px', cursor: 'pointer' }}>
           <IcCamera size={20} color="#fff" />

@@ -1,17 +1,15 @@
-import { useState } from 'react';
+import { useApp } from '../context/AppContext';
 
 const PURPLE      = '#534AB7';
 const PURPLE_LIGHT = '#EEEDFE';
 const DEVA        = "'Noto Sans Devanagari','JioType',sans-serif";
 
+// useLang — reads from AppContext (single global source of truth).
+// Toggling on any screen re-renders all mounted components instantly.
 export function useLang() {
-  const [lang, setLangState] = useState(() => {
-    try { return localStorage.getItem('mm_lang') === 'hi' ? 'hi' : 'en'; } catch { return 'en'; }
-  });
-  const setLang = (l) => {
-    try { localStorage.setItem('mm_lang', l); } catch { /* ignore */ }
-    setLangState(l);
-  };
+  const { state, dispatch } = useApp();
+  const lang = state.lang ?? 'hi';
+  const setLang = (l) => dispatch({ type: 'SET_LANG', payload: l });
   return [lang, setLang];
 }
 

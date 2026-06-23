@@ -72,6 +72,14 @@ function toNumber(v) {
   return isNaN(n) || n <= 0 ? null : Math.round(n);
 }
 
+// Doc types that are unambiguously expenses — override 'ambiguous' direction to 'out'
+// and boost txnConfidence to 'high' so they auto-add to हिसाब without asking the user.
+const ALWAYS_EXPENSE_TYPES = new Set([
+  'electricity_bill', 'phone_recharge', 'water_bill', 'gas_bill',
+  'internet_bill', 'kirana_receipt', 'restaurant_bill',
+  'personal_loan_emi', 'microfinance_emi', 'credit_card_bill',
+]);
+
 // Deterministic categoriser — maps merchants/keywords to the right bucket,
 // overriding the model so a Jio bill never lands in "अन्य".
 const CAT_RULES = [
@@ -221,13 +229,23 @@ export async function extractFromFile(file) {
     lineItems,
     alarming:   j.alarming === true || docType === 'bank_notice',
     date:       typeof j.date === 'string' ? j.date : null,
-    direction:  ['in', 'out', 'ambiguous'].includes(j.direction) ? j.direction : 'ambiguous',
+    direction:  (() => {
+      let d = ['in', 'out', 'ambiguous'].includes(j.direction) ? j.direction : 'ambiguous';
+      // Auto-categorize: known expense types are always outgoing — don't ask the user.
+      if (d !== 'in' && ALWAYS_EXPENSE_TYPES.has(docType)) d = 'out';
+      return d;
+    })(),
     category,
     confidence: typeof j.confidence === 'number' ? j.confidence : 0,
     borrowed,
     // ── Routing fields (step 2) ──────────────────────────────────────────────
     hasAmount:     j.has_amount === true || (amount != null && amount > 0),
-    txnConfidence: ['high', 'medium', 'none'].includes(j.transaction_confidence) ? j.transaction_confidence : (amount > 0 ? 'medium' : 'none'),
+    txnConfidence: (() => {
+      let tc = ['high', 'medium', 'none'].includes(j.transaction_confidence) ? j.transaction_confidence : (amount > 0 ? 'medium' : 'none');
+      // Boost to high for known expense types so they auto-confirm without asking.
+      if (ALWAYS_EXPENSE_TYPES.has(docType) && tc === 'medium') tc = 'high';
+      return tc;
+    })(),
     docKind:       typeof j.doc_kind === 'string' ? j.doc_kind : 'other',
     isRecurring:   j.is_recurring === true,
     recurringKey:  typeof j.recurring_key === 'string' ? j.recurring_key : null,

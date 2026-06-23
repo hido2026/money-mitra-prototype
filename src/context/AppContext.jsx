@@ -45,6 +45,7 @@ const INIT = {
   sessionDecodes:    [],
   insightFired:      false,
   lastInputModality: 'tap',
+  lang:              (() => { try { return localStorage.getItem('mm_lang') === 'en' ? 'en' : 'hi'; } catch { return 'hi'; } })(),
   // Decoded-document feed for the हिसाब — REAL decodes only, in memory only
   // (no storage, resets on reload). We keep the READING (amount/who/category/in-out),
   // never the photo. Starts empty and accumulates from actual extractions.
@@ -131,6 +132,12 @@ function reducer(state, action) {
     // ── Insight gate ──────────────────────────────────────────────────────────
     case 'MARK_INSIGHT_FIRED':
       return { ...state, insightFired: true };
+
+    // ── Language (global, persisted to localStorage) ──────────────────────────
+    case 'SET_LANG': {
+      try { localStorage.setItem('mm_lang', action.payload); } catch {}
+      return { ...state, lang: action.payload };
+    }
 
     // ── Voice I/O tracking ────────────────────────────────────────────────────
     case 'SET_INPUT_MODALITY':

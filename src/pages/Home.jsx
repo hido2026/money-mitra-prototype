@@ -3,7 +3,7 @@
 // user profile + their हिसाब (state.docs). Bilingual (हिं default / EN toggle).
 // No identity block, no mission, no ₹/redeem on home.
 
-import { useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Groq from 'groq-sdk';
 import { useApp } from '../context/AppContext';
@@ -32,7 +32,7 @@ const COPY = {
     greet: (n) => (n ? `नमस्ते, ${n} जी` : 'नमस्ते जी'),
     savedInsight: (amt) => `इस महीने आपने ${amt} बचाए`,
     askTitle: 'पैसे की बात पूछिए', askSub: 'बिल · सरकारी योजना · ठगी · बचत',
-    chip1: 'सरकारी योजना का पैसा कैसे मिलता है?', chip2: 'ठगी से कैसे बचूँ?',
+    chip1: 'लोन कैसे मिलेगा?', chip2: 'बेटी की शादी के लिए कैसे बचाएँ?',
     askGhost: 'या अपना सवाल पूछिए →',
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
     docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
@@ -49,7 +49,7 @@ const COPY = {
     greet: (n) => (n ? `Namaste, ${n} ji` : 'Namaste ji'),
     savedInsight: (amt) => `You've saved ${amt} this month`,
     askTitle: 'Ask about money', askSub: 'Bills · govt schemes · fraud · savings',
-    chip1: 'How do I get government scheme money?', chip2: 'How do I stay safe from fraud?',
+    chip1: 'How do I get a loan?', chip2: "How do I save for my daughter's marriage?",
     askGhost: 'Or ask your own question →',
     docTitle: 'Understand a document',
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',

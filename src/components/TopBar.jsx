@@ -121,7 +121,7 @@ export default function TopBar({ onClear, isTyping = false, lang, setLang }) {
           fontSize: '12px',
           color: 'rgba(25,27,30,0.55)',
         }}>
-          · आपका पैसे का साथी
+          · आपके पैसों का साथी
         </span>
       </div>
     </header>

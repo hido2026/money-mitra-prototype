@@ -9,6 +9,7 @@
 
 import { useState, forwardRef } from 'react';
 import { IcPlus, IcMicrophone } from './icons/Icons';
+import { useLang } from '../hooks/useLang';
 
 // Send arrow icon
 const IcSend = () => (
@@ -22,6 +23,7 @@ const BottomInputBar = forwardRef(function BottomInputBar(
   ref
 ) {
   const [text, setText] = useState('');
+  const [lang] = useLang();
   const plusSize  = compact ? 40 : 42;
   const hasText   = text.trim().length > 0;
 
@@ -43,12 +45,12 @@ const BottomInputBar = forwardRef(function BottomInputBar(
 
   // Text-only labels — the IcMicrophone SVG renders alongside (no emoji, per JDS).
   const speakLabel =
-    voiceStatus === 'recording'  ? 'बंद करें' :   // tap to stop early
-    voiceStatus === 'processing' ? 'समझ रहा...' :
-    voiceStatus === 'done'       ? 'हो गया' :
-    voiceStatus === 'no_mic'     ? 'इजाज़त दें' :
-    voiceStatus === 'error'      ? 'फिर कोशिश' :
-    'बोलिए';
+    voiceStatus === 'recording'  ? (lang === 'en' ? 'Stop'    : 'बंद करें') :
+    voiceStatus === 'processing' ? (lang === 'en' ? 'Thinking…' : 'समझ रहा...') :
+    voiceStatus === 'done'       ? (lang === 'en' ? 'Done'    : 'हो गया') :
+    voiceStatus === 'no_mic'     ? (lang === 'en' ? 'Allow mic' : 'इजाज़त दें') :
+    voiceStatus === 'error'      ? (lang === 'en' ? 'Retry'   : 'फिर कोशिश') :
+    (lang === 'en' ? 'Speak' : 'बोलिए');
 
   return (
     <div style={{

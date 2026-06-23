@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { useLang } from '../hooks/useLang';
 
 const IcMic = () => (
   <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
@@ -27,6 +28,7 @@ const IcSend = () => (
 
 export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
   const [text, setText] = useState('');
+  const [lang] = useLang();
   const inputRef = useRef(null);
 
   // ── Voice input — Web Speech (Chrome/Safari) → Sarvam STT fallback ──────────
@@ -105,7 +107,11 @@ export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isRecording ? 'सुन रहा हूँ… बोलिए' : isProcessing ? 'समझ रहा हूँ…' : 'मुकुंद से कुछ भी पूछिए…'}
+          placeholder={
+            isRecording  ? (lang === 'en' ? 'Listening… speak now' : 'सुन रहा हूँ… बोलिए') :
+            isProcessing ? (lang === 'en' ? 'Understanding…' : 'समझ रहा हूँ…') :
+            (lang === 'en' ? 'Ask Mukund anything…' : 'मुकुंद से कुछ भी पूछिए…')
+          }
           disabled={disabled}
           style={{
             flex: 1,
