@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useLang, LangToggle } from '../hooks/useLang';
 import { useCountUp, inr } from '../utils/motion';
-import { JACKPOT_POINTS, JACKPOT_RUPEES, REDEEM_PARTNER, directionLabel } from '../data/decoder-samples';
+import { JACKPOT_POINTS, JACKPOT_RUPEES, CAT_EN, directionLabel } from '../data/decoder-samples';
 import { hisaabInsights } from '../utils/insights';
 import EditEntrySheet from '../components/EditEntrySheet';
 import {
@@ -70,7 +70,7 @@ export default function Passbook() {
   const uC = useCountUp(udhar);
 
   // Cumulative insight cards — recompute on every render (decode / भूल जाओ).
-  const insights = hisaabInsights(docs);
+  const insights = hisaabInsights(docs, lang);
 
   const redeem = () => { setToast(true); setTimeout(() => setToast(false), 2200); };
 
@@ -82,7 +82,7 @@ export default function Passbook() {
           <IcChevronLeft size={24} color={INK} />
         </button>
         <h1 style={{ flex: 1, fontFamily: DEVA, fontSize: '18px', fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.3px' }}>
-          {lang === 'en' ? 'My Ledger' : 'मेरा हिसाब'}
+          {lang === 'en' ? 'My Passbook' : 'मेरा हिसाब'}
         </h1>
         <LangToggle lang={lang} setLang={setLang} />
       </header>
@@ -108,13 +108,35 @@ export default function Passbook() {
           </div>
         )}
 
-        {/* कुल इनाम */}
+        {/* Rewards banner — brand-neutral gift (FIX 10) */}
         <div className="animate-fade-in" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', animationDelay: '60ms' }}>
-          <IcSparks size={24} color="#FFD479" />
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#FFD479" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <polyline points="20 12 20 22 4 22 4 12" />
+            <rect x="2" y="7" width="20" height="5" />
+            <line x1="12" y1="22" x2="12" y2="7" />
+            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+          </svg>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#fff' }}>कुल इनाम — {totalPoints.toLocaleString('en-IN')} अंक</div>
-            <div style={{ fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>{JACKPOT_POINTS.toLocaleString('en-IN')} अंक = ₹{JACKPOT_RUPEES} · {REDEEM_PARTNER}</div>
+            <div style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#fff' }}>
+              {lang === 'en'
+                ? `Total rewards — ${totalPoints.toLocaleString('en-IN')} points`
+                : `कुल इनाम — ${totalPoints.toLocaleString('en-IN')} अंक`}
+            </div>
+            <div style={{ fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+              {lang === 'en'
+                ? `1,000 points = ₹${JACKPOT_RUPEES} in shopping vouchers`
+                : `1,000 अंक = शॉपिंग वाउचर और गिफ्ट`}
+            </div>
+            <div style={{ fontFamily: DEVA, fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '1px' }}>
+              {lang === 'en' ? 'Redeem at partner stores' : 'पार्टनर दुकानों पर इस्तेमाल करें'}
+            </div>
           </div>
+          {totalPoints >= JACKPOT_POINTS && (
+            <button onClick={redeem} style={{ background: '#FFD479', border: 'none', borderRadius: '999px', padding: '8px 14px', cursor: 'pointer', fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#3a2a00', flexShrink: 0 }}>
+              {lang === 'en' ? 'Redeem' : 'इनाम लें'}
+            </button>
+          )}
         </div>
 
         <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', margin: '0 2px', textAlign: 'center' }}>
@@ -124,7 +146,9 @@ export default function Passbook() {
         {/* Bill reminders — any decoded doc with a due date */}
         {reminders.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <p style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 800, color: '#888780', letterSpacing: '0.4px', margin: '4px 2px 0' }}>बिल याद दिलाएँ</p>
+            <p style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 800, color: '#888780', letterSpacing: '0.4px', margin: '4px 2px 0' }}>
+              {lang === 'en' ? 'BILL REMINDERS' : 'बिल याद दिलाएँ'}
+            </p>
             {reminders.map(d => (
               <div key={'r' + d.id} style={{ background: '#fff', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ width: 36, height: 36, borderRadius: '999px', background: '#FFF3CD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -132,7 +156,9 @@ export default function Passbook() {
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.merchant || d.docType}</div>
-                  <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>आख़िरी तारीख़ · {d.dueDate}</div>
+                  <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>
+                    {lang === 'en' ? 'Due date' : 'आख़िरी तारीख़'} · {d.dueDate}
+                  </div>
                 </div>
                 <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#c0392b' }}>{inr(d.amount)}</span>
               </div>
@@ -150,10 +176,16 @@ export default function Passbook() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK }}>{d.docType}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                  <span style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>{d.category}</span>
+                  <span style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>
+                    {lang === 'en' ? (CAT_EN[d.category] || d.category) : d.category}
+                  </span>
                   {d.borrowed
-                    ? <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: '#7B5C00', background: '#FFF3CD', borderRadius: '999px', padding: '1px 7px' }}>उधार</span>
-                    : <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>{directionLabel(d.dir)}</span>
+                    ? <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: '#7B5C00', background: '#FFF3CD', borderRadius: '999px', padding: '1px 7px' }}>
+                        {lang === 'en' ? 'Loan' : 'उधार'}
+                      </span>
+                    : <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>
+                        {directionLabel(d.dir, lang)}
+                      </span>
                   }
                   {d.ts && <span style={{ fontFamily: DEVA, fontSize: '10px', color: '#b0adb8' }}>{timeLabel(d.ts)}</span>}
                 </div>
@@ -162,7 +194,9 @@ export default function Passbook() {
                 <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: d.borrowed ? '#7B5C00' : (d.dir === 'in' ? GREEN : INK) }}>
                   {d.borrowed ? '' : (d.dir === 'in' ? '+' : '−')}{inr(d.amount)}
                 </span>
-                <span style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 700, color: '#b0adb8' }}>बदलें ›</span>
+                <span style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 700, color: '#b0adb8' }}>
+                  {lang === 'en' ? 'Edit ›' : 'बदलें ›'}
+                </span>
               </div>
             </button>
           ))}
@@ -178,7 +212,7 @@ export default function Passbook() {
               </div>
             ))}
             <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', textAlign: 'center', margin: '2px 0 0' }}>
-              जितनी ज़्यादा फ़ोटो, उतना साफ़ हिसाब।
+              {lang === 'en' ? 'More photos = clearer ledger.' : 'जितनी ज़्यादा फ़ोटो, उतना साफ़ हिसाब।'}
             </p>
           </div>
         )}
@@ -197,7 +231,7 @@ export default function Passbook() {
 
       {toast && (
         <div className="toast-animate" style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontFamily: DEVA, fontSize: '13px', padding: '10px 18px', borderRadius: '999px', zIndex: 500, whiteSpace: 'nowrap' }}>
-          इनाम — डेमो (Reliance Retail)
+          {lang === 'en' ? 'Reward — demo only' : 'इनाम — सिर्फ़ डेमो'}
         </div>
       )}
 

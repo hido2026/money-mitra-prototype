@@ -3,7 +3,16 @@
 
 export const JACKPOT_POINTS = 1000;   // 1,000 अंक = ₹10
 export const JACKPOT_RUPEES = 10;
-export const REDEEM_PARTNER = 'Reliance Retail';
+// REDEEM_PARTNER removed — rewards banner is brand-neutral (FIX 10)
+
+// Category label translations (Hindi stored value → English display)
+export const CAT_EN = {
+  'बिजली': 'Electricity', 'फ़ोन': 'Phone', 'खाना-पीना': 'Food',
+  'राशन': 'Groceries', 'तनख्वाह': 'Salary', 'रेस्तरां': 'Restaurant',
+  'बीमा': 'Insurance', 'ईएमआई': 'EMI', 'पानी': 'Water',
+  'गैस': 'Gas', 'बैंक': 'Bank', 'अन्य': 'Other',
+  'सरकारी योजना': 'Govt. Scheme', 'उधार': 'Loan',
+};
 
 // Auto-built history feed (newest-first), held in memory only (resets on reload).
 // Totals → आया 18,000 · गया 4,146 · बचे 13,854 · कुल इनाम 720
@@ -27,4 +36,6 @@ export const DECODE_CYCLE = [
     insight: 'इस महीने तनख्वाह आ गई — थोड़ा अलग रखें तो आगे काम आएगा।' },
 ];
 
-export const directionLabel = (dir) => (dir === 'in' ? 'पैसा आया' : 'पैसा गया');
+export const directionLabel = (dir, lang = 'hi') =>
+  lang === 'en' ? (dir === 'in' ? 'Money In' : 'Money Out')
+                : (dir === 'in' ? 'पैसा आया' : 'पैसा गया');
