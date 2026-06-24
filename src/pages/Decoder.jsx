@@ -123,7 +123,6 @@ export default function Decoder() {
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
-  const fileRef = useRef(null); // PDF / file picker (also images saved as files)
   const introSpokenRef = useRef(false);
   const camOpenedRef = useRef(false);
 
@@ -295,10 +294,10 @@ export default function Decoder() {
 
       {/* Helper line */}
       <p style={{ margin: '0 2px', fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A' }}>
-        {lang === 'en' ? 'Bill · Receipt · Bank notice · WhatsApp photo too' : 'बिल · रसीद · बैंक नोटिस · WhatsApp वाली फ़ोटो भी'}
+        {lang === 'en' ? 'Bill · Receipt · Bank notice · PDF · WhatsApp photo too' : 'बिल · रसीद · बैंक नोटिस · PDF · WhatsApp वाली फ़ोटो भी'}
       </p>
 
-      {/* Gallery — PRIMARY */}
+      {/* Gallery — PRIMARY (images + PDFs) */}
       <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -310,28 +309,20 @@ export default function Decoder() {
         </span>
       </button>
 
-      {/* Secondary row: camera + PDF */}
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <button onClick={() => cameraRef.current?.click()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
-          <IcCamera size={20} color={PURPLE} />
-          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>
-            {lang === 'en' ? 'Take a photo' : 'फ़ोटो खींचें'}
-          </span>
-        </button>
-        <button onClick={() => fileRef.current?.click()} style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', background: 'transparent', border: '2.2px solid #6b4ef0', borderRadius: '999px', padding: '8px 18px', cursor: 'pointer' }}>
-          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#7a5cf0' }}>PDF</span>
-          <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 500, color: '#8b80c4' }}>
-            {lang === 'en' ? 'works too' : 'भी चलेगा'}
-          </span>
-        </button>
-      </div>
+      {/* Camera — secondary */}
+      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
+        <IcCamera size={20} color={PURPLE} />
+        <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>
+          {lang === 'en' ? 'Take a photo' : 'फ़ोटो खींचें'}
+        </span>
+      </button>
 
       {/* Capability card */}
       <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '14px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
           {(lang === 'en'
-            ? ['Electricity bill', 'Bank notice', 'Receipt', 'Pay slip', '…and much more']
-            : ['बिजली बिल', 'बैंक नोटिस', 'रसीद', 'तनख्वाह पर्ची', '…और बहुत कुछ']
+            ? ['Electricity bill', 'Bank notice', 'Receipt', 'Pay slip', 'PDF', '…and more']
+            : ['बिजली बिल', 'बैंक नोटिस', 'रसीद', 'तनख्वाह पर्ची', 'PDF', '…और बहुत कुछ']
           ).map(c => (
             <span key={c} style={{ background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: PURPLE }}>{c}</span>
           ))}
@@ -352,8 +343,7 @@ export default function Decoder() {
       </div>
 
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onPick} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*" onChange={onPick} style={{ display: 'none' }} />
-      <input ref={fileRef} type="file" accept="application/pdf,image/*" onChange={onPick} style={{ display: 'none' }} />
+      <input ref={galleryRef} type="file" accept="image/*,application/pdf" onChange={onPick} style={{ display: 'none' }} />
     </div>
   );
 
