@@ -77,7 +77,7 @@ export default function Registration({ onComplete }) {
         style={{
           width: '100%', padding: '15px',
           borderRadius: '14px', border: 'none',
-          background: valid ? '#534AB7' : '#D8D7D4',
+          background: valid ? '#6D17CE' : '#D8D7D4',
           color: '#FFFFFF',
           fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
           fontSize: '16px', fontWeight: 700,
@@ -94,7 +94,7 @@ export default function Registration({ onComplete }) {
 const inputStyle = {
   width: '100%', padding: '14px 16px',
   borderRadius: '12px',
-  border: '1.5px solid #EEEDFE',
+  border: '1.5px solid #EDE7FF',
   background: '#FAFAFA',
   fontFamily: "'Noto Sans Devanagari','JioType',sans-serif",
   fontSize: '15px', color: '#2C2C2A',

@@ -35,7 +35,7 @@ export const IcDots = ({ size = 22, color = '#2C2C2A' }) => (
   </svg>
 );
 
-export const IcPlus = ({ size = 20, color = '#534AB7' }) => (
+export const IcPlus = ({ size = 20, color = '#6D17CE' }) => (
   <svg {...base(size, color)}><path d="M12 5v14M5 12h14"/></svg>
 );
 
@@ -46,7 +46,7 @@ export const IcMicrophone = ({ size = 18, color = '#FFFFFF' }) => (
   </svg>
 );
 
-export const IcBulb = ({ size = 15, color = '#534AB7' }) => (
+export const IcBulb = ({ size = 15, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M9 18h6"/>
     <path d="M10 22h4"/>
@@ -77,20 +77,20 @@ export const IcReceipt = ({ size = 15, color = '#888780' }) => (
   </svg>
 );
 
-export const IcChartLine = ({ size = 16, color = '#534AB7' }) => (
+export const IcChartLine = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M4 19h16"/>
     <path d="M4 15l4-6 4 2 6-8"/>
   </svg>
 );
 
-export const IcScale = ({ size = 16, color = '#534AB7' }) => (
+export const IcScale = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M7 20h10M12 3v17M5 12l2-7 2 7a3 3 0 0 1-4 0M15 9l2-7 2 7a3 3 0 0 1-4 0"/>
   </svg>
 );
 
-export const IcStamp = ({ size = 16, color = '#534AB7' }) => (
+export const IcStamp = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M5 21h14"/>
     <path d="M6 18h12v-2a2 2 0 0 0-2-2h-1a2 2 0 0 1-2-2V9a2 2 0 1 0-4 0v3a2 2 0 0 1-2 2H6a2 2 0 0 0-2 2v2h2z"/>
@@ -148,7 +148,7 @@ export const IcHome = ({ size = 16, color = '#3B6D11' }) => (
 
 // ── New icons for Decoder / Passbook / Products ────────────────────────────────
 
-export const IcCamera = ({ size = 16, color = '#534AB7' }) => (
+export const IcCamera = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
     <circle cx="12" cy="13" r="4"/>
@@ -161,7 +161,7 @@ export const IcZap = ({ size = 16, color = '#D85A30' }) => (
   </svg>
 );
 
-export const IcSmartphone = ({ size = 16, color = '#534AB7' }) => (
+export const IcSmartphone = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
     <path d="M12 18h.01"/>
@@ -193,7 +193,7 @@ export const IcCoins = ({ size = 16, color = '#C8961E' }) => (
   </svg>
 );
 
-export const IcBuilding = ({ size = 16, color = '#534AB7' }) => (
+export const IcBuilding = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <rect x="4" y="2" width="16" height="20" rx="2"/>
     <path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>
@@ -208,7 +208,7 @@ export const IcXMark = ({ size = 20, color = '#D85A30' }) => (
   <svg {...base(size, color)}><path d="M18 6L6 18M6 6l12 12"/></svg>
 );
 
-export const IcRepeat = ({ size = 16, color = '#534AB7' }) => (
+export const IcRepeat = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <polyline points="17 1 21 5 17 9"/>
     <path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/>
@@ -247,7 +247,7 @@ export const IcShield = ({ size = 16, color = '#D85A30' }) => (
 
 // ── Part E: icons for new doc types ──────────────────────────────────────────
 
-export const IcWallet = ({ size = 16, color = '#534AB7' }) => (
+export const IcWallet = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M20 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/>
     <circle cx="17" cy="13" r="1.5" fill={color} stroke="none"/>
@@ -255,21 +255,21 @@ export const IcWallet = ({ size = 16, color = '#534AB7' }) => (
   </svg>
 );
 
-export const IcLock = ({ size = 16, color = '#534AB7' }) => (
+export const IcLock = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
   </svg>
 );
 
-export const IcFork = ({ size = 16, color = '#534AB7' }) => (
+export const IcFork = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <line x1="12" y1="2" x2="12" y2="22"/>
     <path d="M8 2v4a4 4 0 0 0 8 0V2"/>
   </svg>
 );
 
-export const IcCart = ({ size = 16, color = '#534AB7' }) => (
+export const IcCart = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <circle cx="9" cy="21" r="1"/>
     <circle cx="20" cy="21" r="1"/>
@@ -277,7 +277,7 @@ export const IcCart = ({ size = 16, color = '#534AB7' }) => (
   </svg>
 );
 
-export const IcGas = ({ size = 16, color = '#534AB7' }) => (
+export const IcGas = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M3 22V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v15"/>
     <line x1="3" y1="22" x2="21" y2="22"/>
@@ -286,7 +286,7 @@ export const IcGas = ({ size = 16, color = '#534AB7' }) => (
   </svg>
 );
 
-export const IcUpi = ({ size = 16, color = '#534AB7' }) => (
+export const IcUpi = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <path d="M7 3l5 9 5-9"/>
     <path d="M7 21l5-9 5 9"/>
@@ -294,7 +294,7 @@ export const IcUpi = ({ size = 16, color = '#534AB7' }) => (
   </svg>
 );
 
-export const IcCoin = ({ size = 16, color = '#534AB7' }) => (
+export const IcCoin = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <circle cx="12" cy="12" r="9"/>
     <path d="M12 7v5l3 3"/>

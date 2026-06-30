@@ -15,7 +15,7 @@ function Anchor({ href, children }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      style={{ color: '#534AB7', textDecoration: 'underline', wordBreak: 'break-all' }}
+      style={{ color: '#6D17CE', textDecoration: 'underline', wordBreak: 'break-all' }}
     >
       {children}
     </a>

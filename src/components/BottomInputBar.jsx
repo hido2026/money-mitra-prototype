@@ -41,7 +41,7 @@ const BottomInputBar = forwardRef(function BottomInputBar(
     voiceStatus === 'done'       ? '#3B6D11' :
     voiceStatus === 'no_mic'     ? '#D85A30' :
     voiceStatus === 'error'      ? '#888780' :
-    '#534AB7';
+    '#6D17CE';
 
   // Text-only labels — the IcMicrophone SVG renders alongside (no emoji, per JDS).
   const speakLabel =
@@ -80,7 +80,7 @@ const BottomInputBar = forwardRef(function BottomInputBar(
           cursor: 'pointer', flexShrink: 0,
         }}
       >
-        <IcPlus size={20} color="#534AB7" />
+        <IcPlus size={20} color="#6D17CE" />
       </button>
 
       {/* Text pill + send button */}
@@ -112,7 +112,7 @@ const BottomInputBar = forwardRef(function BottomInputBar(
             onClick={submit}
             style={{
               width: '32px', height: '32px', borderRadius: '50%',
-              border: 'none', background: '#534AB7', color: '#fff',
+              border: 'none', background: '#6D17CE', color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', flexShrink: 0,
             }}

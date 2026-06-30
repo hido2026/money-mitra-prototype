@@ -5,7 +5,7 @@
 import { IcCamera, IcMicrophone } from './icons/Icons';
 
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const PURPLE = '#534AB7';
+const PURPLE = '#6D17CE';
 
 export default function MicCameraDual({ onCamera, onVoice }) {
   return (

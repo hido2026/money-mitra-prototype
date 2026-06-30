@@ -55,8 +55,8 @@ const PRODUCTS = [
     emoji: '🏦',
     labelHi: 'Fixed Deposit',
     subHi: 'गारंटीड रिटर्न · DICGC covered',
-    accent: '#534AB7',
-    accentLight: '#EEEDFE',
+    accent: '#6D17CE',
+    accentLight: '#EDE7FF',
     needsDisclosure: false,
     illustrative: {
       note: 'उदाहरण (illustrative — real rate must be sourced before live use):',
@@ -91,7 +91,7 @@ function TopBar({ onBack }) {
   );
 }
 
-function MukundBubble({ text, bg = '#EEEDFE' }) {
+function MukundBubble({ text, bg = '#EDE7FF' }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', maxWidth: '92%' }}>
       <div style={{ marginTop: '2px' }}><PortraitAvatar size={28} online={false} ringed={false} /></div>
@@ -156,16 +156,16 @@ function GoldDisclosureGate({ product, onPassed, onAbort }) {
       </div>
 
       {/* Replay */}
-      <button onClick={() => playStep(step)} style={{ background: 'none', border: '1.5px solid #EEEDFE', borderRadius: '10px', padding: '10px', cursor: 'pointer', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#534AB7' }}>
+      <button onClick={() => playStep(step)} style={{ background: 'none', border: '1.5px solid #EDE7FF', borderRadius: '10px', padding: '10px', cursor: 'pointer', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#6D17CE' }}>
         🔊 फिर से सुनें
       </button>
 
       {/* Understood / Not clear */}
       <div style={{ display: 'flex', gap: '10px' }}>
-        <button onClick={markHeard} style={{ flex: 2, padding: '14px', borderRadius: '12px', border: 'none', background: '#534AB7', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={markHeard} style={{ flex: 2, padding: '14px', borderRadius: '12px', border: 'none', background: '#6D17CE', color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
           समझ गया {step < 2 ? '→' : '✓'}
         </button>
-        <button onClick={markUnclear} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', color: '#888780', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
+        <button onClick={markUnclear} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1.5px solid #EDE7FF', background: '#fff', color: '#888780', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', cursor: 'pointer' }}>
           समझ नहीं आया
         </button>
       </div>
@@ -207,7 +207,7 @@ function DiscoveryView({ product, onHandoff, onBack }) {
       </div>
 
       <div style={{ display: 'flex', gap: '10px' }}>
-        <button onClick={onBack} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#534AB7', cursor: 'pointer' }}>← वापस</button>
+        <button onClick={onBack} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #EDE7FF', background: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#6D17CE', cursor: 'pointer' }}>← वापस</button>
         <button onClick={onHandoff} style={{ flex: 2, padding: '13px', borderRadius: '12px', border: 'none', background: product.accent, color: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>JFS पर जाएं →</button>
       </div>
     </div>
@@ -228,7 +228,7 @@ function HandoffStub({ product, onReturn }) {
       <div style={{ background: '#F5F4FA', borderRadius: '10px', padding: '12px 16px', fontFamily: "'JioType',sans-serif", fontSize: '10px', color: '#888780', lineHeight: 1.4 }}>
         [SDK STUB — real JFS integration goes here]
       </div>
-      <button onClick={onReturn} style={{ padding: '14px 32px', borderRadius: '12px', border: '1.5px solid #EEEDFE', background: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#534AB7', cursor: 'pointer' }}>
+      <button onClick={onReturn} style={{ padding: '14px 32px', borderRadius: '12px', border: '1.5px solid #EDE7FF', background: '#fff', fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '14px', color: '#6D17CE', cursor: 'pointer' }}>
         ← Money Mitra पर वापस
       </button>
     </div>
@@ -279,7 +279,7 @@ export default function Products() {
       {view === 'grid' && (
         <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div style={{ padding: '0 4px' }}>
-            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#534AB7' }}>INTEGRATED PRODUCTS</div>
+            <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#6D17CE' }}>INTEGRATED PRODUCTS</div>
             <div style={{ fontFamily: "'Noto Sans Devanagari','JioType',sans-serif", fontSize: '13px', color: '#5F5E5A', marginTop: '1px' }}>JFS से सीधे जोड़ा हुआ</div>
           </div>
 

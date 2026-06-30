@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "schema_source": "money_mitra_rules_schema.sql",
+    "slice": "pm_kisan_payment_status",
+    "partner_bank": "SBI",
+    "target_state": "Karnataka",
+    "generated": "2026-06-12",
+    "governance_note": "DRAFT for review. The bot may quote a row ONLY if its signoff_status is 'signed_off'. Rows marked 'pending' are NOT quotable until Legal signs off — the orchestrator must fall back to the official helpline for those."
+  },
+
+  "schemes": {
+    "PM_KISAN":      { "name": "PM-Kisan", "category": "income_support" },
+    "SUKANYA":       { "name": "Sukanya Samriddhi", "category": "savings" },
+    "APY":           { "name": "Atal Pension Yojana", "category": "pension" },
+    "SCH_MINORITY":  { "name": "Post-Matric Scholarship for Minorities", "category": "scholarship" },
+    "SCH_VIDYASIRI": { "name": "Karnataka Vidyasiri Scheme", "category": "scholarship" }
+  },
+
+  "intents": {
+    "scheme_payment_status": {
+      "description": "User was expecting government scheme money that has not arrived; wants to know status / why.",
+      "required_slots": [
+        {
+          "slot": "scheme_id",
+          "priority": 1,
+          "clarify_prompt": {
+            "hinglish": "Kaunsi yojana ka paisa — PM-Kisan, pension (APY), ya scholarship?",
+            "hi": "कौन सी योजना का पैसा — PM-Kisan, पेंशन (APY), या scholarship?"
+          }
+        },
+        {
+          "slot": "state",
+          "priority": 2,
+          "clarify_prompt": {
+            "hinglish": "Aap kis state se hain?",
+            "hi": "आप किस राज्य से हैं?"
+          }
+        }
+      ],
+      "retrieval": { "table": "scheme_payment_status_facts", "key": ["scheme_id"] }
+    },
+
+    "pm_kisan_eligibility": {
+      "description": "Whether the user qualifies for PM-Kisan.",
+      "required_slots": [
+        {
+          "slot": "state",
+          "priority": 1,
+          "clarify_prompt": {
+            "hinglish": "Aap kis state mein kheti karte hain?",
+            "hi": "आप किस राज्य में खेती करते हैं?"
+          }
+        }
+      ],
+      "retrieval": { "table": "state_scheme_rules", "key": ["state", "scheme_id"], "fixed": { "scheme_id": "PM_KISAN" } }
+    },
+
+    "fraud_or_unauthorized": {
+      "description": "Money lost, unauthorized debit, OTP/PIN/CVV shared, suspicious link, scam suspected.",
+      "hard_stop": true,
+      "action": "surface_1930"
+    },
+
+    "out_of_scope": {
+      "description": "Not a supported money topic in this slice.",
+      "fallback": true
+    }
+  },
+
+  "state_scheme_rules": {
+    "Karnataka|PM_KISAN": {
+      "state": "Karnataka",
+      "scheme_id": "PM_KISAN",
+      "eligibility": "Only landholding farmer families with cultivable land in their own name are eligible. Tenant / sharecropper (bataidaar) farmers are excluded.",
+      "process": "Surrender via the 'Voluntary Surrender of PM-Kisan Benefits' module on the national portal, or physically at the local Tahsildar / Nadakacheri office.",
+      "handling_office": "Tahsildar / Nadakacheri office",
+      "income_limit_inr": null,
+      "version": 1,
+      "effective_date": "2026-06-10",
+      "source_ref": "PM-Kisan operational guidelines (Karnataka)",
+      "signoff_status": "signed_off"
+    }
+  },
+
+  "scheme_payment_status_facts": {
+    "PM_KISAN": {
+      "installment_inr": 2000,
+      "installments_per_year": 3,
+      "annual_inr": 6000,
+      "status_check": "Check beneficiary status on the official PM-Kisan portal (pmkisan.gov.in) under 'Know Your Status', using the registration number or Aadhaar.",
+      "common_delay_reasons": "Pending e-KYC, land records not seeded/verified, or an Aadhaar-bank name mismatch are the usual reasons an installment is held.",
+      "helpline": "PM-Kisan helpline 155261 / 011-24300606",
+      "local_office": "Local Tahsildar / Nadakacheri office",
+      "version": 1,
+      "effective_date": "2026-06-12",
+      "source_ref": "PM-Kisan portal / PFMS — PROPOSED, NEEDS LEGAL SIGN-OFF",
+      "signoff_status": "pending"
+    }
+  },
+
+  "compliance_constants": [
+    { "const_key": "cyber_fraud_helpline", "const_value": "1930", "source_ref": "National cyber-fraud helpline", "effective_date": "2026-06-10", "signoff_status": "signed_off" },
+    { "const_key": "uidai_helpline", "const_value": "1947", "source_ref": "UIDAI", "effective_date": "2026-06-10", "signoff_status": "signed_off" },
+    { "const_key": "rbi_limited_liability", "const_value": "Report within 3 working days to ensure zero liability.", "source_ref": "RBI limited-liability circular", "effective_date": "2026-06-10", "signoff_status": "signed_off" },
+    { "const_key": "rbi_failed_txn_tat", "const_value": "Auto-reversal TAT per RBI: T+1 / 5 days; penalty Rs 100 per day of delay.", "source_ref": "RBI Notification Id 11693", "effective_date": "2026-06-10", "signoff_status": "signed_off" }
+  ],
+
+  "fraud_triggers": {
+    "action": "surface_1930",
+    "keywords_en": ["scam", "stolen", "unauthorized", "unauthorised", "fraud"],
+    "keywords_hinglish_PROPOSED": ["otp", "pin", "cvv", "kat gaye", "kat gaya", "apne aap kat", "galat transaction", "paisa nikal gaya", "link bheja", "kyc update karo", "thag", "dhokha", "blackmail"],
+    "note": "Primary fraud detection is the LLM intent 'fraud_or_unauthorized'. These keywords are a deterministic safety net. The Hinglish list is PROPOSED and needs review — a missed fraud case is the worst failure mode."
+  },
+
+  "banks": {
+    "SBI": {
+      "name": "State Bank of India",
+      "customer_care": "1800 1234 / 1800 2100",
+      "fraud_block_helpline": "1800 1234 / 1800 2100",
+      "charges_schedule_uri": "https://sbi.co.in/web/personal-banking/information-services/service-charges"
+    }
+  },
+
+  "microcopy": {
+    "not_verified": {
+      "hinglish": "Iska pakka verified jawab abhi mere paas nahi hai. Galat jaankari dene se accha hai main aapko sahi official jagah bhej doon.",
+      "hi": "इसका पक्का verified जवाब अभी मेरे पास नहीं है। गलत जानकारी देने से अच्छा है मैं आपको सही official जगह भेज दूँ।"
+    },
+    "fraud_stop": {
+      "hinglish": "Ruko — yeh fraud ho sakta hai. Turant 1930 par call karo (cyber-fraud helpline) aur apne bank ko batao. OTP/PIN/CVV kisi ko mat batao — mujhe bhi nahi.",
+      "hi": "रुको — यह fraud हो सकता है। तुरंत 1930 पर call करो (cyber-fraud helpline) और अपने bank को बताओ। OTP/PIN/CVV किसी को मत बताओ — मुझे भी नहीं।"
+    }
+  }
+}

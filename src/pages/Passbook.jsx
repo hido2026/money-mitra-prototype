@@ -18,8 +18,8 @@ import {
 } from '../components/icons/Icons';
 
 const timeLabel = (ts) => ts ? new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
-const PURPLE = '#534AB7';
-const PURPLE_LIGHT = '#EEEDFE';
+const PURPLE = '#6D17CE';
+const PURPLE_LIGHT = '#EDE7FF';
 const GREEN = '#1a7d4b';
 const INK = '#2C2C2A';
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";

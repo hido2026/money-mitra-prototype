@@ -30,8 +30,8 @@ const _seenTypes = new Set();
 // Recurring-doc memory (in-memory session): recurringKey → 'add' | 'skip'.
 const _recurringChoices = new Map();
 
-const PURPLE = '#534AB7';
-const PURPLE_LIGHT = '#EEEDFE';
+const PURPLE = '#6D17CE';
+const PURPLE_LIGHT = '#EDE7FF';
 const GREEN = '#1a7d4b';
 const INK = '#2C2C2A';
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";

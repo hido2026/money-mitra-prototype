@@ -32,7 +32,7 @@ export default function PortraitAvatar({
         width: size,
         height: size,
         borderRadius: '50%',
-        background: ring ? '#EEEDFE' : 'transparent',
+        background: ring ? '#EDE7FF' : 'transparent',
         border: ring ? '1.5px solid rgba(83, 74, 183, 0.3)' : 'none',
         boxSizing: 'border-box',
         padding: `${padding}px`,
@@ -45,7 +45,7 @@ export default function PortraitAvatar({
           height: innerSize,
           borderRadius: '50%',
           overflow: 'hidden',
-          background: '#534AB7',
+          background: '#6D17CE',
         }}>
           {err ? (
             <div style={{

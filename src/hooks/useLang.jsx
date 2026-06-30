@@ -1,7 +1,7 @@
 import { useApp } from '../context/AppContext';
 
-const PURPLE      = '#534AB7';
-const PURPLE_LIGHT = '#EEEDFE';
+const PURPLE      = '#6D17CE';
+const PURPLE_LIGHT = '#EDE7FF';
 const DEVA        = "'Noto Sans Devanagari','JioType',sans-serif";
 
 // useLang — reads from AppContext (single global source of truth).

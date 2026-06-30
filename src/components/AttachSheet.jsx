@@ -6,8 +6,8 @@ import { useRef } from 'react';
 import { IcCamera } from './icons/Icons';
 
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const PURPLE = '#534AB7';
-const PURPLE_LIGHT = '#EEEDFE';
+const PURPLE = '#6D17CE';
+const PURPLE_LIGHT = '#EDE7FF';
 const INK = '#2C2C2A';
 
 export default function AttachSheet({ open, onClose, onFile }) {

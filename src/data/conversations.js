@@ -15,8 +15,8 @@ export const samjhaoPriya = {
   title: 'Samjhao',
   subtitle: 'Explain in plain Hindi',
   userName: 'Priya',
-  accent: '#534AB7',      // purple
-  accentSoft: '#EEEBFB',  // soft fill for Mukund bubbles
+  accent: '#6D17CE',      // purple
+  accentSoft: '#EDE7FF',  // soft fill for Mukund bubbles
   messages: [
     { from: 'user',   voice: 'Mujhe apne paise rakhna hai thoda', time: '2:14 PM' },
     { from: 'mukund', text:  'बिल्कुल। पहले एक बात बताओ — अपने नाम पे रखना है, या परिवार के साथ?', time: '2:14 PM' },
@@ -59,8 +59,8 @@ export const samjhaoSchemeStatus = {
   title: 'Samjhao',
   subtitle: 'सरकारी योजना का पैसा',
   userName: 'Sunita',
-  accent: '#534AB7',
-  accentSoft: '#EEEBFB',
+  accent: '#6D17CE',
+  accentSoft: '#EDE7FF',
   messages: [
     { from: 'user',   voice: 'Sarkari yojana ka paisa aaya ya nahi — kaise dekhu?', time: '10:30 AM' },
     // Beat 1 — one clarifying question
@@ -80,8 +80,8 @@ export const samjhaoPaisaKata = {
   title: 'Samjhao',
   subtitle: 'पैसे कट गए — अब क्या करूँ?',
   userName: 'Sunita',
-  accent: '#534AB7',
-  accentSoft: '#EEEBFB',
+  accent: '#6D17CE',
+  accentSoft: '#EDE7FF',
   messages: [
     { from: 'user',   voice: 'Paise kat gaye — ab kya karu?',                        time: '2:15 PM' },
     // Beat 1 — one clarifying question
@@ -102,8 +102,8 @@ export const samjhaoBinaBataye = {
   title: 'Samjhao',
   subtitle: 'बिना बताए पैसा क्यों कटा?',
   userName: 'Sunita',
-  accent: '#534AB7',
-  accentSoft: '#EEEBFB',
+  accent: '#6D17CE',
+  accentSoft: '#EDE7FF',
   messages: [
     { from: 'user',   voice: 'Bina bataye khate se paisa kyun kata?',                time: '11:45 AM' },
     // Beat 1 — one clarifying question
@@ -125,8 +125,8 @@ export const samjhaoBeti = {
   title: 'Samjhao',
   subtitle: 'बेटी के लिए बचत',
   userName: 'Sunita',
-  accent: '#534AB7',
-  accentSoft: '#EEEBFB',
+  accent: '#6D17CE',
+  accentSoft: '#EDE7FF',
   messages: [
     { from: 'user',   voice: 'Beti ke liye sabse acchi bachat kaun si?',              time: '9:20 AM' },
     // Beat 1 — one clarifying question (age matters for Sukanya eligibility)

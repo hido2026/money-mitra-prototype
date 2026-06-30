@@ -16,15 +16,15 @@ const ACTION_LABEL = {
 
 const TIER_ACCENT = {
   0: '#888780',
-  1: '#534AB7',
+  1: '#6D17CE',
   2: '#3B6D11',
-  3: '#534AB7',
+  3: '#6D17CE',
 };
 
 export default function InsightBubble({ payload, onAction, onDismiss }) {
   if (!payload) return null;
 
-  const accent = TIER_ACCENT[payload.tier] ?? '#534AB7';
+  const accent = TIER_ACCENT[payload.tier] ?? '#6D17CE';
 
   return (
     <div

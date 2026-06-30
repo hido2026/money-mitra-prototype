@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 
 const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const PURPLE = '#534AB7';
+const PURPLE = '#6D17CE';
 const GREEN = '#1a7d4b';
 const AMBER = '#d97706';
 const INK = '#2C2C2A';
