@@ -185,10 +185,6 @@ export default function Home() {
               <span style={{ display: 'block', fontFamily: DEVA, fontSize: 12, color: '#5F5E5A', marginTop: 4, lineHeight: 1.4 }}>{t.docExamples}</span>
             </span>
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, background: '#FFF8E0', border: '1px solid #F0C840', borderRadius: 10, padding: '7px 12px' }}>
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#B07D0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 700, color: '#7A5800' }}>{t.docReward}</span>
-          </span>
         </button>
 
         {/* A3. Connector: vertical line + down arrow + caption */}
