@@ -38,7 +38,7 @@ export default function PersonaAvatar({ persona, size = 'md', isTyping = false, 
     animation: isTyping ? 'avatar-typing-pulse 1.4s ease-in-out infinite' : undefined,
     // Welcome-screen depth shadow
     boxShadow: shadow
-      ? '0 8px 28px rgba(57, 0, 173, 0.18), 0 2px 8px rgba(0,0,0,0.10)'
+      ? '0 8px 28px rgba(109, 23, 206, 0.18), 0 2px 8px rgba(0,0,0,0.10)'
       : undefined,
     position: 'relative',
   };
