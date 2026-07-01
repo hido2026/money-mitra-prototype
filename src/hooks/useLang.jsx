@@ -1,9 +1,5 @@
 import { useApp } from '../context/AppContext';
 
-const PURPLE      = '#6D17CE';
-const PURPLE_LIGHT = '#EDE7FF';
-const DEVA        = "'Noto Sans Devanagari','JioType',sans-serif";
-
 // useLang — reads from AppContext (single global source of truth).
 // Toggling on any screen re-renders all mounted components instantly.
 export function useLang() {
@@ -13,15 +9,21 @@ export function useLang() {
   return [lang, setLang];
 }
 
-// Reusable EN/हिं pill — drop anywhere in a header flex row.
+// Reusable EN/हिं pill — drop anywhere in a header flex row. JDS tokens only.
 export function LangToggle({ lang, setLang }) {
   return (
     <button
+      aria-label="Toggle language"
       onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')}
-      style={{ display: 'flex', background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: 999, padding: 3, cursor: 'pointer', flexShrink: 0 }}
+      className="border-primary-20 flex shrink-0 rounded-full border bg-surface p-[3px]"
     >
       {['en', 'hi'].map(L => (
-        <span key={L} style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 999, background: lang === L ? PURPLE : 'transparent', color: lang === L ? '#fff' : '#888780' }}>
+        <span
+          key={L}
+          className={`font-deva rounded-full px-2.5 py-1 text-xs font-extrabold ${
+            lang === L ? 'bg-primary-50 text-white' : 'text-ink-soft bg-transparent'
+          }`}
+        >
           {L === 'hi' ? 'हिं' : 'EN'}
         </span>
       ))}

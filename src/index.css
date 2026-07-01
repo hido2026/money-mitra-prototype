@@ -51,6 +51,64 @@
   --jds-error:           #fa2f40;
 }
 
+/* ── Tailwind utility mapping (a2ui MCP / JDS) ───────────────
+ * Exposes the --jds-* custom properties above as real Tailwind
+ * utility classes (bg-primary-50, text-ink, rounded-md, etc.),
+ * using the SAME names as the intelligence-prototype shell so both
+ * repos speak one design-token vocabulary. Light mode only — no
+ * dark-mode pairing needed here (unlike the shell).
+ * Brand violet source of truth: --jds-surface-bold (#6D17CE),
+ * matching the shell's validated primary-50. The stale
+ * --jds-primary-20/50/60 blue tokens above are left untouched for
+ * backward compat but are no longer the brand color. */
+@theme {
+  --color-primary-20: #ede7ff;
+  --color-primary-50: var(--jds-surface-bold);
+  --color-primary-60: #310064;
+  --color-primary-70: #1f0042;
+
+  --color-surface: var(--jds-surface-default);
+  --color-surface-ghost: var(--jds-surface-ghost);
+  --color-surface-minimal: var(--jds-surface-minimal);
+  --color-surface-bold: var(--jds-surface-bold);
+
+  --color-ink: var(--jds-text-high);
+  --color-ink-soft: var(--jds-text-low);
+  --color-ink-disabled: var(--jds-text-disabled);
+  --color-stroke-subtle: var(--jds-stroke-subtle);
+
+  --color-success: #25ab21;
+  --color-warning: #f06d0f;
+  --color-warning-soft: #fff3e8;
+  --color-error: var(--jds-error);
+  --color-error-soft: #fdecec;
+
+  /* Consolidates the ad-hoc secondary-grey (#888780) used everywhere in this
+   * codebase for disabled/processing/neutral states — one real token instead
+   * of a repeated literal. */
+  --color-neutral: #888780;
+
+  /* Rewards/jackpot accent — intentionally its own gold family, distinct
+   * from the warning-orange scale (matches the shell's "brand-neutral
+   * gift" treatment for points/redeem UI, never used for status/alerts). */
+  --color-reward: #ffd479;
+  --color-reward-soft: #fff3cd;
+  --color-reward-ink: #7b5c00;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --font-jio: "JioType", -apple-system, "Segoe UI", sans-serif;
+  /* Devanagari glyph coverage — JioType has none, so bilingual copy (हिं/EN)
+   * uses this stack instead. Not a JDS violation: this is glyph coverage,
+   * not a brand-font substitution (Noto Sans Devanagari falls back to
+   * JioType for Latin characters, matching JDS visually for EN copy too). */
+  --font-deva: "Noto Sans Devanagari", "JioType", sans-serif;
+}
+
 /* ── Base ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 

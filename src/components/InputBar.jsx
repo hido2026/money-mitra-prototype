@@ -1,5 +1,6 @@
 // InputBar — text input + WORKING mic (Web Speech primary, Sarvam STT fallback).
 // Text input auto-focused on load. Tap mic → speak → transcript is sent.
+// JDS: violet brand tokens throughout (was a legacy maroon/cream skin).
 
 import { useState, useRef, useEffect } from 'react';
 import { useVoiceInput } from '../hooks/useVoiceInput';
@@ -73,34 +74,17 @@ export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
   };
 
   // Mic button appearance reflects live voice status
-  const micBg =
-    isRecording  ? '#8B2C2C' :
-    isProcessing ? 'rgba(139,44,44,0.12)' :
-    'transparent';
-  const micColor =
-    isRecording  ? '#fff' :
-    isProcessing ? '#8B2C2C' :
-    '#8B2C2C';
+  const micClass = isRecording
+    ? 'bg-primary-50 text-white border-0'
+    : isProcessing
+      ? 'bg-primary-20 text-primary-50 border-0'
+      : 'bg-transparent text-primary-50 border-primary-20 border-[1.5px]';
 
   return (
-    <div style={{
-      position: 'sticky',
-      bottom: 0,
-      background: '#FAF7F2',
-      borderTop: '1px solid rgba(139,44,44,0.18)',
-      padding: '12px 16px 24px',
-    }}>
+    <div className="border-primary-20 sticky bottom-0 border-t bg-surface-minimal px-4 pt-3 pb-6">
 
       {/* ── Primary row: text input + mic + send ── */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        background: '#fff',
-        border: '1.5px solid rgba(139,44,44,0.22)',
-        borderRadius: '14px',
-        padding: '10px 12px',
-      }}>
+      <div className="border-primary-20 flex items-center gap-2 rounded-xl border-[1.5px] bg-surface px-3 py-2.5">
         <input
           ref={inputRef}
           type="text"
@@ -113,16 +97,7 @@ export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
             (lang === 'en' ? 'Ask Mukund anything…' : 'मुकुंद से कुछ भी पूछिए…')
           }
           disabled={disabled}
-          style={{
-            flex: 1,
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            fontFamily: "'JioType', sans-serif",
-            fontWeight: 400,
-            fontSize: '15px',
-            color: '#1F1F1F',
-          }}
+          className="font-jio text-ink flex-1 border-0 bg-transparent text-[15px] outline-none"
         />
 
         {/* Mic — WORKING. Tap to record, tap again to stop. */}
@@ -130,21 +105,7 @@ export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
           onClick={toggleVoice}
           aria-label={isRecording ? 'Stop recording' : 'Speak'}
           title={isRecording ? 'बंद करें' : 'बोलिए'}
-          className={isRecording ? 'mic-recording' : ''}
-          style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%',
-            border: isRecording ? 'none' : '1.5px solid rgba(139,44,44,0.28)',
-            background: micBg,
-            color: micColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            flexShrink: 0,
-            transition: 'background 0.15s',
-          }}
+          className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors ${isRecording ? 'mic-recording' : ''} ${micClass}`}
         >
           {isRecording ? <IcStop /> : <IcMic />}
         </button>
@@ -154,20 +115,7 @@ export default function InputBar({ onSend, disabled, autoStartVoice = false }) {
           <button
             onClick={handleSubmit}
             disabled={disabled}
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              border: 'none',
-              background: '#8B2C2C',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              flexShrink: 0,
-              opacity: disabled ? 0.6 : 1,
-            }}
+            className={`bg-primary-50 flex size-9 shrink-0 items-center justify-center rounded-full text-white ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
           >
             <IcSend />
           </button>

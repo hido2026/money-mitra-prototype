@@ -1,126 +1,77 @@
 // TopBar — renders first in HTML so Mukund identity appears
 // on 2G/3G before chat content finishes loading.
-// Row 1: "Money Mitra" (serif, deep red) + "⋯" menu
+// Row 1: "Money Mitra" (violet brand) + "⋯" menu
 // Row 2: portrait avatar (pulsing when typing) + "Mukund" + subtitle
+// JDS: violet brand tokens throughout (was a legacy maroon/cream skin).
 
 import { useState } from 'react';
 import PersonaAvatar from './PersonaAvatar';
 import { LangToggle } from '../hooks/useLang';
 
+const IcMore = ({ size = 20, color = 'currentColor' }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill={color}>
+    <circle cx="5" cy="12" r="1.8" />
+    <circle cx="12" cy="12" r="1.8" />
+    <circle cx="19" cy="12" r="1.8" />
+  </svg>
+);
+
 export default function TopBar({ onClear, isTyping = false, lang, setLang }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 10,
-      background: '#FAF7F2',
-      borderBottom: '1px solid rgba(139,44,44,0.18)',
-      padding: '12px 16px 10px',
-    }}>
+    <header className="border-primary-20 sticky top-0 z-10 border-b bg-surface-minimal px-4 pt-3 pb-2.5">
       {/* ── Row 1: title + menu ── */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '8px',
-      }}>
-        <span style={{
-          fontFamily: 'Georgia, serif',
-          fontWeight: 600,
-          fontSize: '20px',
-          color: '#8B2C2C',
-          letterSpacing: '-0.01em',
-        }}>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-jio text-primary-50 text-xl font-black tracking-tight">
           Money Mitra
         </span>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex items-center gap-2">
           {lang != null && setLang != null && (
             <LangToggle lang={lang} setLang={setLang} />
           )}
 
           {/* ⋯ menu */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setMenuOpen((o) => !o)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '22px',
-              color: '#8B2C2C',
-              padding: '2px 8px',
-              lineHeight: 1,
-              letterSpacing: '2px',
-            }}
-            title="Menu"
-          >
-            ···
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="text-primary-50 flex bg-transparent p-1.5"
+              title="Menu"
+              aria-label="Menu"
+            >
+              <IcMore size={20} color="var(--color-primary-50)" />
+            </button>
 
-          {menuOpen && (
-            <>
-              {/* Backdrop */}
-              <div
-                onClick={() => setMenuOpen(false)}
-                style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-              />
-              {/* Dropdown */}
-              <div style={{
-                position: 'absolute',
-                right: 0,
-                top: 'calc(100% + 6px)',
-                zIndex: 50,
-                background: '#fff',
-                borderRadius: '12px',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.13)',
-                minWidth: '200px',
-                overflow: 'hidden',
-              }}>
-                <button
-                  onClick={() => { onClear(); setMenuOpen(false); }}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '14px 18px',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    fontFamily: "'JioType', sans-serif",
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    color: '#1F1F1F',
-                  }}
-                >
-                  Conversation clear karein
-                </button>
-              </div>
-            </>
-          )}
+            {menuOpen && (
+              <>
+                {/* Backdrop */}
+                <div
+                  onClick={() => setMenuOpen(false)}
+                  className="fixed inset-0 z-40"
+                />
+                {/* Dropdown */}
+                <div className="border-primary-20 absolute top-[calc(100%+6px)] right-0 z-50 min-w-[200px] overflow-hidden rounded-lg border bg-surface">
+                  <button
+                    onClick={() => { onClear(); setMenuOpen(false); }}
+                    className="font-jio text-ink block w-full bg-transparent px-4.5 py-3.5 text-left text-sm font-medium"
+                  >
+                    Conversation clear karein
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
       {/* ── Row 2: Mukund identity ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="flex items-center gap-2">
         <PersonaAvatar persona="Mukund" size="sm" isTyping={isTyping} />
-        <span style={{
-          fontFamily: "'JioType', sans-serif",
-          fontWeight: 700,
-          fontSize: '13px',
-          color: '#1F1F1F',
-        }}>
+        <span className="font-jio text-ink text-[13px] font-bold">
           Mukund
         </span>
-        <span style={{
-          fontFamily: "'JioType', sans-serif",
-          fontWeight: 400,
-          fontSize: '12px',
-          color: 'rgba(25,27,30,0.55)',
-        }}>
+        <span className="font-deva text-ink-soft text-xs">
           · आपके पैसों का साथी
         </span>
       </div>

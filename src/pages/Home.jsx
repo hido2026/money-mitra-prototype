@@ -2,6 +2,7 @@
 // No hard-coded money/name/date — greeting, insight and In/Out/Saved bind to the
 // user profile + their हिसाब (state.docs). Bilingual (हिं default / EN toggle).
 // No identity block, no mission, no ₹/redeem on home.
+// JDS (a2ui MCP): all colour/radius via tokens (index.css @theme) + jds.jsx recipes.
 
 import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,13 +18,6 @@ import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
 import { IcReceipt, IcShield } from '../components/icons/Icons';
 
-const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const PURPLE = '#6D17CE';
-const PURPLE_LIGHT = '#EDE7FF';
-const GREEN = '#1a7d4b';
-const AMBER = '#d97706';
-const INK = '#2C2C2A';
-
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
 const groqClient = _apiKey ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser: true }) : null;
 
@@ -36,11 +30,9 @@ const COPY = {
     askGhost: 'या अपना सवाल पूछिए →',
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
     docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
-    docReward: 'हर कागज़ पर 100 अंक तक मिल सकते हैं — बिल्कुल मुफ़्त',
     connector: 'जो कागज़ दिखाते हैं, वो यहाँ अपने आप जुड़ जाता है',
     hisaabTitle: 'आपका हिसाब', tileIn: 'आया', tileOut: 'गया', tileSaved: 'बचा',
     hisaabSub: (m) => `आपकी फ़ोटो से अपने आप बना · ${m}`,
-    rewardChip: 'इनाम पाइए',
     hisaabEmpty: 'पहली फ़ोटो दिखाइए, हिसाब यहीं बनेगा →',
     trust: 'हम कभी आपसे OTP, PIN या पैसे नहीं माँगते।',
     placeholder: 'कुछ पूछिए या कागज़ दिखाइए…',
@@ -54,7 +46,6 @@ const COPY = {
     askGhost: 'Or ask your own question →',
     docTitle: 'Understand a document',
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
-    docReward: 'Each document can earn up to 100 points — free',
     connector: 'Every paper you show adds here automatically',
     hisaabTitle: 'Your Ledger', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
     hisaabSub: (m) => `Built automatically from your photos · ${m}`,
@@ -122,22 +113,26 @@ export default function Home() {
   const onFile = (f) => { setPendingFile(f); nav('/decoder', { state: { attribution: 'home_camera' } }); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#F6F5FB', maxWidth: 420, margin: '0 auto' }}>
+    <div className="mx-auto flex min-h-dvh max-w-[420px] flex-col bg-surface-minimal">
       {/* Header: ← · Money Mitra · हिं/EN */}
-      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', flexShrink: 0 }}>
-        <button aria-label="Back" onClick={() => (window.location.hash = '#/')} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={18} height={18}><polyline points="15 18 9 12 15 6" /></svg>
+      <header className="flex shrink-0 items-center gap-2.5 px-4 py-2.5">
+        <button
+          aria-label="Back"
+          onClick={() => (window.location.hash = '#/')}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={18} height={18} className="text-ink"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
-        <span style={{ flex: 1, fontFamily: "'JioType',sans-serif", fontSize: 17, fontWeight: 900, color: INK, letterSpacing: '-0.3px' }}>Money Mitra</span>
+        <span className="font-jio text-ink flex-1 text-[17px] font-black tracking-tight">Money Mitra</span>
         <LangToggle lang={lang} setLang={setLang} />
       </header>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-4 pt-1 pb-3">
         {/* A1. Greeting + insight (bound to user + हिसाब) */}
-        <div className="animate-fade-in" style={{ margin: '4px 2px 0' }}>
-          <h1 style={{ fontFamily: DEVA, fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.4px', margin: 0 }}>{t.greet(userName)}</h1>
+        <div className="animate-fade-in mx-0.5 mt-1">
+          <h1 className="font-deva text-ink m-0 text-[22px] font-black tracking-tight">{t.greet(userName)}</h1>
           {hasData && bacha >= 0 && (
-            <p style={{ fontFamily: DEVA, fontSize: 13, color: '#888780', margin: '4px 0 0' }}>
+            <p className="font-deva text-ink-soft mt-1 mb-0 text-[13px]">
               {t.savedInsight(inr(bacha))}{reminder ? ` · ${reminder.docType} ${reminder.dueDate}` : ''}
             </p>
           )}
@@ -145,86 +140,86 @@ export default function Home() {
 
         {/* Inline chat thread — home is a working chat */}
         {msgs.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="flex flex-col gap-2.5">
             {msgs.map((m, i) => m.role === 'user' ? (
-              <div key={i} style={{ alignSelf: 'flex-end', background: PURPLE, color: '#fff', borderRadius: '16px 16px 4px 16px', padding: '10px 14px', maxWidth: '85%', fontFamily: DEVA, fontSize: 14, lineHeight: 1.5 }}>{m.content}</div>
+              <div key={i} className="font-deva bg-primary-50 max-w-[85%] self-end rounded-tl-2xl rounded-tr-2xl rounded-br-sm rounded-bl-2xl px-3.5 py-2.5 text-sm leading-relaxed text-white">{m.content}</div>
             ) : (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <div key={i} className="flex items-start gap-2">
                 <PortraitAvatar size={28} />
-                <div style={{ background: '#fff', borderRadius: '4px 16px 16px 16px', padding: '10px 14px', maxWidth: '85%', fontFamily: DEVA, fontSize: 14, lineHeight: 1.55, color: INK }}>{m.content || '…'}</div>
+                <div className="font-deva text-ink bg-surface max-w-[85%] rounded-tl-sm rounded-tr-2xl rounded-br-2xl rounded-bl-2xl px-3.5 py-2.5 text-sm leading-relaxed">{m.content || '…'}</div>
               </div>
             ))}
-            {busy && <div style={{ marginLeft: 36, fontFamily: DEVA, fontSize: 12, color: '#888780' }}>मुकुंद सोच रहा है…</div>}
+            {busy && <div className="font-deva text-ink-soft ml-9 text-xs">मुकुंद सोच रहा है…</div>}
             <div ref={endRef} />
           </div>
         )}
 
         {/* Ask hero (पैसे की बात पूछिए) — 2 example pills + A2 ghost pill */}
-        <div className="animate-fade-in" style={{ animationDelay: '60ms', background: PURPLE, borderRadius: 20, padding: 18 }}>
-          <div style={{ fontFamily: DEVA, fontSize: 18, fontWeight: 800, color: '#fff' }}>{t.askTitle}</div>
-          <div style={{ fontFamily: DEVA, fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 3 }}>{t.askSub}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+        <div className="animate-fade-in bg-primary-50 rounded-xl p-[18px]" style={{ animationDelay: '60ms' }}>
+          <div className="font-deva text-[18px] font-extrabold text-white">{t.askTitle}</div>
+          <div className="font-deva mt-[3px] text-xs text-white/85">{t.askSub}</div>
+          <div className="mt-3 flex flex-wrap gap-2">
             {[t.chip1, t.chip2].map(c => (
-              <button key={c} onClick={() => send(c)} style={{ background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 999, padding: '8px 14px', cursor: 'pointer', fontFamily: DEVA, fontSize: 13, fontWeight: 600, color: '#fff', textAlign: 'left' }}>{c}</button>
+              <button key={c} onClick={() => send(c)} className="font-deva rounded-full bg-white/16 px-3.5 py-2 text-left text-[13px] font-semibold text-white">{c}</button>
             ))}
           </div>
           {/* A2. ghost "ask anything" pill → open chat with empty input */}
-          <button onClick={() => nav('/chat')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', boxSizing: 'border-box', marginTop: 10, background: 'transparent', border: '1.5px dashed rgba(255,255,255,0.5)', borderRadius: 999, padding: '10px', cursor: 'pointer', fontFamily: DEVA, fontSize: 13, fontWeight: 700, color: '#fff' }}>
+          <button onClick={() => nav('/chat')} className="font-deva mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-full border-[1.5px] border-dashed border-white/50 bg-transparent p-2.5 text-[13px] font-bold text-white">
             {t.askGhost}
           </button>
         </div>
 
         {/* Document door */}
-        <button className="animate-fade-in" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms', display: 'flex', flexDirection: 'column', gap: 0, width: '100%', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+        <button className="animate-fade-in bg-surface flex w-full flex-col rounded-xl p-[18px] text-left" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms' }}>
+          <span className="flex items-center gap-4">
+            <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
             </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontFamily: DEVA, fontSize: 16, fontWeight: 700, color: INK }}>{t.docTitle}</span>
-              <span style={{ display: 'block', fontFamily: DEVA, fontSize: 12, color: '#5F5E5A', marginTop: 4, lineHeight: 1.4 }}>{t.docExamples}</span>
+            <span className="min-w-0 flex-1">
+              <span className="font-deva text-ink block text-base font-bold">{t.docTitle}</span>
+              <span className="font-deva text-ink-soft mt-1 block text-xs leading-relaxed">{t.docExamples}</span>
             </span>
           </span>
         </button>
 
         {/* A3. Connector: vertical line + down arrow + caption */}
-        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, margin: '-4px 0' }}>
-          <span style={{ width: 2, height: 14, background: PURPLE_LIGHT, borderRadius: 1 }} />
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={PURPLE} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><polyline points="6 13 12 19 18 13" /></svg>
-          <span style={{ fontFamily: DEVA, fontSize: 12, fontWeight: 600, color: '#5F5E5A', textAlign: 'center', maxWidth: 280 }}>{t.connector}</span>
+        <div className="animate-fade-in -my-1 flex flex-col items-center gap-1">
+          <span className="bg-primary-20 h-3.5 w-0.5 rounded" />
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-50"><line x1="12" y1="5" x2="12" y2="19" /><polyline points="6 13 12 19 18 13" /></svg>
+          <span className="font-deva text-ink-soft max-w-[280px] text-center text-xs font-semibold">{t.connector}</span>
         </div>
 
-        {/* A4. हिसाब widget — In/Out/Saved + split bar (bound), accent outline, इनाम chip */}
-        <button className="animate-fade-in" onClick={() => nav('/passbook')} style={{ animationDelay: '180ms', display: 'block', width: '100%', boxSizing: 'border-box', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: 20, padding: 18, cursor: 'pointer', textAlign: 'left' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <span style={{ width: 36, height: 36, borderRadius: 12, background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <IcReceipt size={20} color={PURPLE} />
+        {/* A4. हिसाब widget — In/Out/Saved + split bar (bound), accent outline */}
+        <button className="animate-fade-in bg-surface border-primary-20 block w-full rounded-xl border-[1.5px] p-[18px] text-left" onClick={() => nav('/passbook')} style={{ animationDelay: '180ms' }}>
+          <div className="mb-3.5 flex items-center gap-2.5">
+            <span className="bg-primary-20 flex size-9 shrink-0 items-center justify-center rounded-lg">
+              <IcReceipt size={20} color="var(--color-primary-50)" />
             </span>
-            <span style={{ flex: 1, fontFamily: DEVA, fontSize: 16, fontWeight: 800, color: INK }}>{t.hisaabTitle}</span>
+            <span className="font-deva text-ink flex-1 text-base font-extrabold">{t.hisaabTitle}</span>
           </div>
 
           {hasData ? (
             <>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <Tile label={t.tileIn} value={inr(aaya)} color={GREEN} />
-                <Tile label={t.tileOut} value={inr(gaya)} color={AMBER} />
-                <Tile label={t.tileSaved} value={inr(Math.abs(bacha))} color={PURPLE} emphasised />
+              <div className="flex gap-2.5">
+                <Tile label={t.tileIn} value={inr(aaya)} colorClass="text-success" />
+                <Tile label={t.tileOut} value={inr(gaya)} colorClass="text-warning" />
+                <Tile label={t.tileSaved} value={inr(Math.abs(bacha))} colorClass="text-primary-50" emphasised />
               </div>
-              <div style={{ display: 'flex', height: 8, borderRadius: 999, overflow: 'hidden', background: '#EFEDF7', marginTop: 12 }}>
-                <span style={{ width: `${greenPct}%`, background: GREEN }} />
-                <span style={{ width: `${amberPct}%`, background: AMBER }} />
+              <div className="bg-surface-ghost mt-3 flex h-2 overflow-hidden rounded-full">
+                <span className="bg-success block h-full" style={{ width: `${greenPct}%` }} />
+                <span className="bg-warning block h-full" style={{ width: `${amberPct}%` }} />
               </div>
-              <p style={{ fontFamily: DEVA, fontSize: 12, color: '#888780', margin: '10px 0 0' }}>{t.hisaabSub(month)}</p>
+              <p className="font-deva text-ink-soft mt-2.5 mb-0 text-xs">{t.hisaabSub(month)}</p>
             </>
           ) : (
-            <p style={{ fontFamily: DEVA, fontSize: 14, fontWeight: 600, color: PURPLE, margin: 0 }}>{t.hisaabEmpty}</p>
+            <p className="font-deva text-primary-50 m-0 text-sm font-semibold">{t.hisaabEmpty}</p>
           )}
         </button>
 
         {/* A5. Trust line (above bottom bar) */}
-        <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '2px 0' }}>
-          <IcShield size={16} color={GREEN} />
-          <span style={{ fontFamily: DEVA, fontSize: 12, color: '#1a5c38', textAlign: 'center' }}>{t.trust}</span>
+        <div className="animate-fade-in flex items-center justify-center gap-2 py-0.5">
+          <IcShield size={16} color="var(--color-success)" />
+          <span className="font-deva text-success text-center text-xs">{t.trust}</span>
         </div>
       </div>
 
@@ -240,11 +235,11 @@ export default function Home() {
   );
 }
 
-function Tile({ label, value, color, emphasised }) {
+function Tile({ label, value, colorClass, emphasised }) {
   return (
-    <div style={{ flex: 1, background: emphasised ? PURPLE_LIGHT : '#F7F6FB', borderRadius: 12, padding: '10px 8px', textAlign: 'center' }}>
-      <div style={{ fontFamily: DEVA, fontSize: 11, fontWeight: 600, color: '#888780', marginBottom: 3 }}>{label}</div>
-      <div style={{ fontFamily: DEVA, fontSize: 15, fontWeight: 800, color, letterSpacing: '-0.3px' }}>{value}</div>
+    <div className={`flex-1 rounded-lg px-2 py-2.5 text-center ${emphasised ? 'bg-primary-20' : 'bg-surface-minimal'}`}>
+      <div className="font-deva text-ink-soft mb-0.5 text-[11px] font-semibold">{label}</div>
+      <div className={`font-deva text-[15px] font-extrabold tracking-tight ${colorClass}`}>{value}</div>
     </div>
   );
 }

@@ -8,6 +8,14 @@ import { speakMukund } from '../utils/tts';
 const MD_LINK  = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
 const BARE_URL = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/g;
 
+// JDS SVG icon — never emoji (a2ui MCP Hard Rule §9).
+const IcSpeaker = ({ size = 13, color = 'currentColor' }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9v6h4l5 5V4L7 9H3z" fill={color} stroke="none" />
+    <path d="M16 8a5 5 0 0 1 0 8" />
+  </svg>
+);
+
 function Anchor({ href, children }) {
   const url = href.startsWith('http') ? href : `https://${href}`;
   return (
@@ -15,7 +23,7 @@ function Anchor({ href, children }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      style={{ color: '#6D17CE', textDecoration: 'underline', wordBreak: 'break-all' }}
+      className="text-primary-50 break-all underline"
     >
       {children}
     </a>
@@ -55,39 +63,25 @@ export default function Message({ role, content, persona }) {
   const isUser = role === 'user';
 
   return (
-    <div
-      className="animate-fade-in"
-      style={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        gap: '8px',
-        justifyContent: isUser ? 'flex-end' : 'flex-start',
-      }}
-    >
+    <div className={`animate-fade-in flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && <PersonaAvatar persona={persona} size="sm" />}
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '72%' }}>
-        <div style={{
-          padding: '12px 16px',
-          borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-          fontFamily: "'JioType', sans-serif",
-          fontWeight: 400,
-          fontSize: '15px',
-          lineHeight: 1.5,
-          color: 'var(--jds-text-high)',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          background: isUser ? 'var(--jds-primary-20)' : 'var(--jds-surface-default)',
-          border: isUser ? 'none' : '1px solid var(--jds-stroke-subtle)',
-        }}>
+      <div className="flex max-w-[72%] flex-col items-start">
+        <div
+          className={`font-jio text-ink px-4 py-3 text-[15px] leading-relaxed whitespace-pre-wrap break-words ${
+            isUser
+              ? 'bg-primary-20 rounded-tl-2xl rounded-tr-2xl rounded-br-sm rounded-bl-2xl'
+              : 'bg-surface border-stroke-subtle rounded-tl-2xl rounded-tr-2xl rounded-br-2xl rounded-bl-sm border'
+          }`}
+        >
           {renderRichText(content)}
         </div>
         {!isUser && content && (
           <button
             onClick={() => speakMukund(content)}
-            style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888780', padding: '2px 6px', borderRadius: '6px' }}
+            className="font-deva text-ink-soft mt-1 ml-1 inline-flex items-center gap-1 rounded-md bg-transparent px-1.5 py-0.5 text-xs"
           >
-            🔊 सुनिए
+            <IcSpeaker size={13} color="var(--color-ink-soft)" /> सुनिए
           </button>
         )}
       </div>

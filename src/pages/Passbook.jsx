@@ -2,6 +2,8 @@
 // Auto-built from decoded documents only. NO manual entry: no amount buttons,
 // no amount field, no category chips, no मिला/खर्च/आगे flow. Nothing typed.
 // In-memory feed (state.docs). "भूल जाओ" removes a row — memory is the user's to clear.
+// JDS (a2ui MCP): StatDisplay §11.59 tiles, InfoBox §11.50 borrowed strip,
+// TagChip §11.69 direction/loan tags, IconCircle §11.44 — all token-driven.
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,18 +13,14 @@ import { useCountUp, inr } from '../utils/motion';
 import { JACKPOT_POINTS, JACKPOT_RUPEES, CAT_EN, directionLabel } from '../data/decoder-samples';
 import { hisaabInsights } from '../utils/insights';
 import EditEntrySheet from '../components/EditEntrySheet';
+import { StatDisplay, InfoBox, TagChip, IconCircle } from '../components/jds';
 import {
-  IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcXMark, IcCamera,
+  IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcCamera,
   IcShield, IcChartLine, IcBuilding,
   IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
 } from '../components/icons/Icons';
 
 const timeLabel = (ts) => ts ? new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
-const PURPLE = '#6D17CE';
-const PURPLE_LIGHT = '#EDE7FF';
-const GREEN = '#1a7d4b';
-const INK = '#2C2C2A';
-const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 
 function docIcon(key, size, color) {
   switch (key) {
@@ -75,126 +73,125 @@ export default function Passbook() {
   const redeem = () => { setToast(true); setTimeout(() => setToast(false), 2200); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#F6F5FB', maxWidth: '420px', margin: '0 auto' }}>
+    <div className="mx-auto flex min-h-dvh max-w-[420px] flex-col bg-surface-minimal">
       {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 12px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
-        <button onClick={() => nav('/decoder')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
-          <IcChevronLeft size={24} color={INK} />
+      <header className="border-stroke-subtle flex shrink-0 items-center gap-2.5 border-b bg-surface px-4 py-2 pb-3">
+        <button onClick={() => nav('/decoder')} className="flex border-0 bg-transparent p-0" aria-label="Back">
+          <IcChevronLeft size={24} color="var(--color-ink)" />
         </button>
-        <h1 style={{ flex: 1, fontFamily: DEVA, fontSize: '18px', fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.3px' }}>
+        <h1 className="font-deva text-ink flex-1 text-lg font-black tracking-tight">
           {lang === 'en' ? 'My Passbook' : 'मेरा हिसाब'}
         </h1>
         <LangToggle lang={lang} setLang={setLang} />
       </header>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto p-4">
 
         {/* Metrics — D1: आया excludes borrowed; D3: बचे suppressed without real income */}
-        <div className="animate-fade-in" style={{ display: 'flex', gap: '10px' }}>
-          <Metric label={lang === 'en' ? 'In' : 'आया'} value={inr(aC)} color={GREEN} />
-          <Metric label={lang === 'en' ? 'Out' : 'गया'} value={inr(gC)} color={PURPLE} />
+        <div className="animate-fade-in flex gap-2.5">
+          <Metric label={lang === 'en' ? 'In' : 'आया'} value={inr(aC)} colorClass="text-success" />
+          <Metric label={lang === 'en' ? 'Out' : 'गया'} value={inr(gC)} colorClass="text-primary-50" />
           {hasRealIncome
-            ? <Metric label={lang === 'en' ? (bache >= 0 ? 'Saved' : 'Short') : (bache >= 0 ? 'बचे' : 'कम पड़े')} value={inr(bC)} color={bache >= 0 ? INK : '#c0392b'} emphasised />
-            : <Metric label={lang === 'en' ? 'Saved' : 'बचे'} value="—" color="#888780" emphasised />
+            ? <Metric label={lang === 'en' ? (bache >= 0 ? 'Saved' : 'Short') : (bache >= 0 ? 'बचे' : 'कम पड़े')} value={inr(bC)} colorClass={bache >= 0 ? 'text-ink' : 'text-error'} emphasised />
+            : <Metric label={lang === 'en' ? 'Saved' : 'बचे'} value="—" colorClass="text-ink-soft" emphasised />
           }
         </div>
+
         {/* D2: borrowed section shown only when present */}
         {udhar > 0 && (
-          <div className="animate-fade-in" style={{ background: '#FFF8E1', border: '1px solid #F3DBA0', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#7B5C00', flex: 1 }}>
-              {lang === 'en' ? 'Loan / Borrowed' : 'उधार / ऋण मिला'}
-            </span>
-            <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#7B5C00' }}>{inr(uC)}</span>
+          <div className="animate-fade-in">
+            <InfoBox tone="warning">
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-deva text-reward-ink font-bold">
+                  {lang === 'en' ? 'Loan / Borrowed' : 'उधार / ऋण मिला'}
+                </span>
+                <span className="font-deva text-reward-ink text-[15px] font-extrabold">{inr(uC)}</span>
+              </span>
+            </InfoBox>
           </div>
         )}
 
         {/* Rewards banner — brand-neutral gift (FIX 10) */}
-        <div className="animate-fade-in" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', animationDelay: '60ms' }}>
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#FFD479" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <div className="animate-fade-in bg-primary-50 flex items-center gap-3 rounded-xl p-4" style={{ animationDelay: '60ms' }}>
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--color-reward)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
             <polyline points="20 12 20 22 4 22 4 12" />
             <rect x="2" y="7" width="20" height="5" />
             <line x1="12" y1="22" x2="12" y2="7" />
             <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
             <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
           </svg>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#fff' }}>
+          <div className="min-w-0 flex-1">
+            <div className="font-deva text-[15px] font-extrabold text-white">
               {lang === 'en'
                 ? `Total rewards — ${totalPoints.toLocaleString('en-IN')} points`
                 : `कुल इनाम — ${totalPoints.toLocaleString('en-IN')} अंक`}
             </div>
-            <div style={{ fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+            <div className="font-deva mt-0.5 text-xs text-white/85">
               {lang === 'en'
                 ? `1,000 points = ₹${JACKPOT_RUPEES} in shopping vouchers`
                 : `1,000 अंक = शॉपिंग वाउचर और गिफ्ट`}
             </div>
-            <div style={{ fontFamily: DEVA, fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '1px' }}>
+            <div className="font-deva mt-px text-[11px] text-white/70">
               {lang === 'en' ? 'Redeem at partner stores' : 'पार्टनर दुकानों पर इस्तेमाल करें'}
             </div>
           </div>
           {totalPoints >= JACKPOT_POINTS && (
-            <button onClick={redeem} style={{ background: '#FFD479', border: 'none', borderRadius: '999px', padding: '8px 14px', cursor: 'pointer', fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#3a2a00', flexShrink: 0 }}>
+            <button onClick={redeem} className="font-deva bg-reward text-ink shrink-0 rounded-full px-3.5 py-2 text-[13px] font-bold">
               {lang === 'en' ? 'Redeem' : 'इनाम लें'}
             </button>
           )}
         </div>
 
-        <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', margin: '0 2px', textAlign: 'center' }}>
+        <p className="font-deva text-ink-soft mx-0.5 text-center text-xs">
           {lang === 'en' ? 'Auto-built from photos — no manual entry.' : 'सब फ़ोटो से अपने आप — कोई एंट्री नहीं।'}
         </p>
 
         {/* Bill reminders — any decoded doc with a due date */}
         {reminders.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <p style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 800, color: '#888780', letterSpacing: '0.4px', margin: '4px 2px 0' }}>
+          <div className="flex flex-col gap-2">
+            <p className="font-deva text-ink-soft mx-0.5 mt-1 text-[11px] font-extrabold tracking-wide uppercase">
               {lang === 'en' ? 'BILL REMINDERS' : 'बिल याद दिलाएँ'}
             </p>
             {reminders.map(d => (
-              <div key={'r' + d.id} style={{ background: '#fff', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ width: 36, height: 36, borderRadius: '999px', background: '#FFF3CD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
+              <div key={'r' + d.id} className="bg-surface flex items-center gap-3 rounded-lg px-3.5 py-3">
+                <span className="bg-reward-soft flex size-9 shrink-0 items-center justify-center rounded-full">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--color-reward-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
                 </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.merchant || d.docType}</div>
-                  <div style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>
+                <div className="min-w-0 flex-1">
+                  <div className="font-deva text-ink overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap">{d.merchant || d.docType}</div>
+                  <div className="font-deva text-ink-soft text-[11px]">
                     {lang === 'en' ? 'Due date' : 'आख़िरी तारीख़'} · {d.dueDate}
                   </div>
                 </div>
-                <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: '#c0392b' }}>{inr(d.amount)}</span>
+                <span className="font-deva text-error text-[15px] font-extrabold">{inr(d.amount)}</span>
               </div>
             ))}
           </div>
         )}
 
         {/* Auto-logged feed — tap a row to सही करें (edit amount/आया-गया/उधार) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="flex flex-col gap-2.5">
           {docs.map((d, i) => (
-            <button key={d.id} onClick={() => setEditId(d.id)} className="animate-fade-in" style={{ width: '100%', textAlign: 'left', background: '#fff', border: 'none', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', animationDelay: `${Math.min(i, 8) * 45}ms` }}>
-              <span style={{ width: 40, height: 40, borderRadius: '12px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {docIcon(d.icon, 20, PURPLE)}
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK }}>{d.docType}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                  <span style={{ fontFamily: DEVA, fontSize: '11px', color: '#888780' }}>
+            <button key={d.id} onClick={() => setEditId(d.id)} className="animate-fade-in bg-surface flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-left" style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}>
+              <IconCircle tinted icon={docIcon(d.icon, 20, 'var(--color-primary-50)')} />
+              <div className="min-w-0 flex-1">
+                <div className="font-deva text-ink text-sm font-bold">{d.docType}</div>
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  <span className="font-deva text-ink-soft text-[11px]">
                     {lang === 'en' ? (CAT_EN[d.category] || d.category) : d.category}
                   </span>
                   {d.borrowed
-                    ? <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: '#7B5C00', background: '#FFF3CD', borderRadius: '999px', padding: '1px 7px' }}>
-                        {lang === 'en' ? 'Loan' : 'उधार'}
-                      </span>
-                    : <span style={{ fontFamily: DEVA, fontSize: '10px', fontWeight: 700, color: d.dir === 'in' ? GREEN : PURPLE, background: d.dir === 'in' ? '#e6f5ec' : PURPLE_LIGHT, borderRadius: '999px', padding: '1px 7px' }}>
-                        {directionLabel(d.dir, lang)}
-                      </span>
+                    ? <TagChip tone="warning">{lang === 'en' ? 'Loan' : 'उधार'}</TagChip>
+                    : <TagChip tone={d.dir === 'in' ? 'success' : 'brand'}>{directionLabel(d.dir, lang)}</TagChip>
                   }
-                  {d.ts && <span style={{ fontFamily: DEVA, fontSize: '10px', color: '#b0adb8' }}>{timeLabel(d.ts)}</span>}
+                  {d.ts && <span className="font-deva text-ink-disabled text-[10px]">{timeLabel(d.ts)}</span>}
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 800, color: d.borrowed ? '#7B5C00' : (d.dir === 'in' ? GREEN : INK) }}>
+              <div className="flex flex-col items-end gap-1">
+                <span className={`font-deva text-[15px] font-extrabold ${d.borrowed ? 'text-reward-ink' : (d.dir === 'in' ? 'text-success' : 'text-ink')}`}>
                   {d.borrowed ? '' : (d.dir === 'in' ? '+' : '−')}{inr(d.amount)}
                 </span>
-                <span style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 700, color: '#b0adb8' }}>
+                <span className="font-deva text-ink-disabled text-[11px] font-bold">
                   {lang === 'en' ? 'Edit ›' : 'बदलें ›'}
                 </span>
               </div>
@@ -204,25 +201,25 @@ export default function Passbook() {
 
         {/* Cumulative insight cards — each unlocks when its data condition is met */}
         {docs.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="flex flex-col gap-2">
             {insights.map((c, i) => (
-              <div key={c.id} className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', borderRadius: '14px', padding: '12px 14px', animationDelay: `${i * 50}ms` }}>
-                <IcSparks size={16} color={PURPLE} />
-                <span style={{ fontFamily: DEVA, fontSize: '13px', color: INK }}>{c.text}</span>
+              <div key={c.id} className="animate-fade-in bg-surface flex items-center gap-2 rounded-lg px-3.5 py-3" style={{ animationDelay: `${i * 50}ms` }}>
+                <IcSparks size={16} color="var(--color-primary-50)" />
+                <span className="font-deva text-ink text-[13px]">{c.text}</span>
               </div>
             ))}
-            <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', textAlign: 'center', margin: '2px 0 0' }}>
+            <p className="font-deva text-ink-soft mt-0.5 text-center text-xs">
               {lang === 'en' ? 'More photos = clearer ledger.' : 'जितनी ज़्यादा फ़ोटो, उतना साफ़ हिसाब।'}
             </p>
           </div>
         )}
 
         {docs.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <p style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780', margin: 0 }}>
+          <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+            <p className="font-deva text-ink-soft m-0 text-sm">
               {lang === 'en' ? 'No documents yet — show a photo and your ledger builds itself.' : 'अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।'}
             </p>
-            <button onClick={() => nav('/decoder', { state: { openCamera: true, attribution: 'points_view' } })} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '12px 22px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+            <button onClick={() => nav('/decoder', { state: { openCamera: true, attribution: 'points_view' } })} className="font-deva bg-primary-50 flex items-center gap-2 rounded-full px-5.5 py-3 text-[15px] font-bold text-white">
               <IcCamera size={18} color="#fff" /> {lang === 'en' ? 'Show a photo' : 'फ़ोटो दिखाओ'}
             </button>
           </div>
@@ -230,7 +227,7 @@ export default function Passbook() {
       </div>
 
       {toast && (
-        <div className="toast-animate" style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontFamily: DEVA, fontSize: '13px', padding: '10px 18px', borderRadius: '999px', zIndex: 500, whiteSpace: 'nowrap' }}>
+        <div className="toast-animate font-deva bg-ink fixed bottom-8 left-1/2 z-500 -translate-x-1/2 rounded-full px-4.5 py-2.5 text-[13px] whitespace-nowrap text-white">
           {lang === 'en' ? 'Reward — demo only' : 'इनाम — सिर्फ़ डेमो'}
         </div>
       )}
@@ -247,11 +244,10 @@ export default function Passbook() {
   );
 }
 
-function Metric({ label, value, color, emphasised }) {
+function Metric({ label, value, colorClass, emphasised }) {
   return (
-    <div style={{ flex: 1, background: '#fff', borderRadius: '14px', padding: emphasised ? '14px 10px' : '12px 10px', textAlign: 'center', border: emphasised ? `1.5px solid ${PURPLE_LIGHT}` : 'none' }}>
-      <div style={{ fontFamily: DEVA, fontSize: '11px', fontWeight: 600, color: '#888780', marginBottom: '4px' }}>{label}</div>
-      <div style={{ fontFamily: DEVA, fontSize: emphasised ? '18px' : '15px', fontWeight: emphasised ? 900 : 800, color, letterSpacing: '-0.3px' }}>{value}</div>
+    <div className={`flex-1 rounded-lg text-center ${emphasised ? 'border-primary-20 border-[1.5px] px-2.5 py-3.5' : 'py-3 px-2.5'} bg-surface`}>
+      <StatDisplay value={value} label={label} colorClass={colorClass} align="center" />
     </div>
   );
 }

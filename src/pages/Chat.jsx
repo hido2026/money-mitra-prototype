@@ -39,6 +39,13 @@ async function streamMock(text, onChunk) {
   }
 }
 
+// JDS SVG icon — never emoji (a2ui MCP Hard Rule §9).
+const IcChatBubble = ({ size = 16, color = 'currentColor' }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </svg>
+);
+
 // ── Chat ───────────────────────────────────────────────────────────────────────
 const WELCOME = {
   hi: {
@@ -161,111 +168,46 @@ export default function Chat() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100dvh',
-      background: '#FAF7F2',
-    }}>
+    <div className="flex min-h-dvh flex-col bg-surface-minimal">
       {/* Header — isTyping pulses the portrait avatar */}
       <TopBar onClear={() => setMessages([])} isTyping={isStreaming} lang={lang} setLang={setLang} />
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{
-          maxWidth: '520px',
-          margin: '0 auto',
-          padding: '24px 16px 8px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-        }}>
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto flex max-w-[520px] flex-col gap-3 px-4 pt-6 pb-2">
 
           {/* ── Welcome state ── */}
           {isEmpty && (
-            <div className="animate-fade-in" style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              paddingTop: '16px',
-              paddingBottom: '8px',
-            }}>
+            <div className="animate-fade-in flex flex-col items-center pt-4 pb-2 text-center">
               {/* Large portrait — 120px, shadow for depth */}
-              <PersonaAvatar persona="Mukund" size="xl" shadow={true} />
+              <PersonaAvatar persona="Mukund" size="xl" />
 
               {/* Greeting */}
-              <p style={{
-                margin: '20px 0 20px',
-                fontFamily: "'JioType', sans-serif",
-                fontWeight: 700,
-                fontSize: '18px',
-                lineHeight: 1.45,
-                color: '#1F1F1F',
-                maxWidth: '300px',
-              }}>
+              <p className="font-jio text-ink my-5 max-w-[300px] text-lg leading-snug font-bold">
                 {WELCOME[lang].greeting}
               </p>
 
               {/* Pill label */}
-              <p style={{
-                margin: '0 0 12px',
-                fontFamily: "'JioType', sans-serif",
-                fontWeight: 500,
-                fontSize: '13px',
-                color: 'rgba(25,27,30,0.55)',
-                alignSelf: 'flex-start',
-              }}>
+              <p className="font-jio text-ink-soft mb-3 self-start text-[13px] font-medium">
                 {WELCOME[lang].pillsLabel}
               </p>
 
               {/* Prompt pills — left-aligned, stacked */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                gap: '10px',
-                width: '100%',
-              }}>
+              <div className="flex w-full flex-col items-start gap-2.5">
                 {WELCOME[lang].pills.map((pill) => (
                   <button
                     key={pill}
                     onClick={() => sendMessage(pill)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(109, 23, 206,0.15)',
-                      background: '#f0eeff',
-                      fontFamily: "'JioType', sans-serif",
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      color: '#6D17CE',
-                      cursor: 'pointer',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = '#e3dcff'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = '#f0eeff'; }}
+                    className="font-jio bg-primary-20 text-primary-50 flex w-full items-center gap-2.5 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors active:opacity-70"
                   >
-                    <span style={{ fontSize: '16px' }}>💬</span>
+                    <IcChatBubble size={16} color="var(--color-primary-50)" />
                     {pill}
                   </button>
                 ))}
               </div>
 
               {/* Footer hint */}
-              <p style={{
-                margin: '16px 0 0',
-                fontFamily: "'JioType', sans-serif",
-                fontWeight: 400,
-                fontSize: '13px',
-                color: 'rgba(25,27,30,0.45)',
-                fontStyle: 'italic',
-              }}>
+              <p className="font-jio text-ink-disabled mt-4 text-[13px] italic">
                 {WELCOME[lang].hint}
               </p>
             </div>

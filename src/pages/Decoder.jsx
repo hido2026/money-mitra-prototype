@@ -3,6 +3,8 @@
 // replies as Mukund in short bubbles that AUTO-SPEAK (Sarvam hi-IN). Renders
 // STRICTLY from extracted JSON + computed insights — no invented numbers.
 // No manual entry. हिसाब accumulates real decodes (in-memory).
+// JDS (a2ui MCP): IconCircle §11.44, TagChip §11.69, InfoBox §11.50, jdsBtn §6 —
+// all colour/radius via tokens (index.css @theme).
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -18,6 +20,7 @@ import { takePendingFile } from '../utils/pendingFile';
 import { useLang, LangToggle } from '../hooks/useLang';
 import PortraitAvatar from '../components/PortraitAvatar';
 import BottomInputBar from '../components/BottomInputBar';
+import { IconCircle, TagChip, InfoBox, jdsBtn } from '../components/jds';
 import {
   IcChevronLeft, IcCamera, IcCheck, IcShield, IcAlertOctagon,
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
@@ -30,11 +33,6 @@ const _seenTypes = new Set();
 // Recurring-doc memory (in-memory session): recurringKey → 'add' | 'skip'.
 const _recurringChoices = new Map();
 
-const PURPLE = '#6D17CE';
-const PURPLE_LIGHT = '#EDE7FF';
-const GREEN = '#1a7d4b';
-const INK = '#2C2C2A';
-const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
 const LOW_CONF = 0.6;
 
 const INTRO = {
@@ -56,6 +54,8 @@ const DEMO_COPY = {
     cta: 'अपना कागज़ दिखाइए', note: 'अपना बिल, बैंक SMS, या कोई भी कागज़ दिखाकर आज़माइए।' },
 };
 
+const CARD = 'bg-surface border-primary-20 ml-[42px] rounded-xl border p-4';
+
 function docIcon(key, size, color) {
   switch (key) {
     case 'zap':       return <IcZap size={size} color={color} />;
@@ -76,12 +76,6 @@ function docIcon(key, size, color) {
   }
 }
 
-const ChevronRight = ({ size = 18, color = '#aaa' }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
-
 // The spoken/printed recognition line (real doc + total; never "कागज़" when avoidable).
 function recogText(d, lang = 'hi') {
   const who = d.merchant || docLabel(d.docType);
@@ -95,9 +89,9 @@ function recogText(d, lang = 'hi') {
 
 function Bubble({ children, delay = 0 }) {
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', animationDelay: `${delay}ms` }}>
+    <div className="animate-fade-in flex items-start gap-2.5" style={{ animationDelay: `${delay}ms` }}>
       <PortraitAvatar size={32} online={false} ringed={false} />
-      <div style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>
+      <div className="font-deva bg-primary-20 text-ink max-w-[85%] rounded-tl-sm rounded-tr-2xl rounded-br-2xl rounded-bl-2xl px-3.5 py-2.5 text-sm leading-relaxed">
         {children}
       </div>
     </div>
@@ -258,104 +252,95 @@ export default function Decoder() {
   const renderDemo = () => {
     const D = DEMO_COPY[lang];
     return (
-      <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <span style={{ alignSelf: 'flex-start', background: '#fff5dc', color: '#8a6a00', fontFamily: DEVA, fontSize: '11px', fontWeight: 800, padding: '4px 11px', borderRadius: '999px' }}>{D.sample}</span>
+      <div className="animate-fade-in flex flex-col gap-3 p-4">
+        <TagChip tone="warning">{D.sample}</TagChip>
         <Bubble>{D.recog}</Bubble>
-        <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ width: 34, height: 34, borderRadius: '10px', background: '#fcf1e6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7z" stroke="#a8620f" strokeWidth="2" strokeLinejoin="round"/></svg>
+        <div className={CARD}>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="bg-reward-soft flex size-8.5 items-center justify-center rounded-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7z" stroke="var(--color-reward-ink)" strokeWidth="2" strokeLinejoin="round"/></svg>
             </span>
-            <span style={{ background: PURPLE_LIGHT, color: PURPLE, borderRadius: '999px', padding: '4px 11px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>{D.title}</span>
+            <TagChip tone="brand">{D.title}</TagChip>
           </div>
-          <div style={{ fontFamily: DEVA, fontSize: '30px', fontWeight: 900, color: INK, letterSpacing: '-0.5px' }}>{D.amt}</div>
-          <div style={{ marginTop: '12px', background: '#f7f5fd', borderRadius: '12px', padding: '12px 14px' }}>
-            <div style={{ fontFamily: DEVA, fontSize: '13px', fontWeight: 800, color: PURPLE }}>{D.worryQ}</div>
-            <div style={{ fontFamily: DEVA, fontSize: '14px', color: INK, lineHeight: 1.5, marginTop: '6px' }}>{D.worry}</div>
+          <div className="font-deva text-ink text-[30px] font-black tracking-tight">{D.amt}</div>
+          <div className="bg-surface-minimal mt-3 rounded-lg px-3.5 py-3">
+            <div className="font-deva text-primary-50 text-[13px] font-extrabold">{D.worryQ}</div>
+            <div className="font-deva text-ink mt-1.5 text-sm leading-relaxed">{D.worry}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+        <div className="flex items-start gap-2.5">
           <PortraitAvatar size={32} online={false} ringed={false} />
-          <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>{D.insight}</p>
+          <p className="font-deva bg-primary-20 text-ink m-0 max-w-[85%] rounded-tl-sm rounded-tr-2xl rounded-br-2xl rounded-bl-2xl px-3.5 py-2.5 text-sm leading-relaxed">{D.insight}</p>
         </div>
-        <button onClick={() => setStage('input')} style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '15px', cursor: 'pointer' }}>
+        <button onClick={() => setStage('input')} className={`${jdsBtn('primary')} mt-1 w-full`}>
           <IcCamera size={20} color="#fff" />
-          <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>{D.cta} →</span>
+          <span>{D.cta} →</span>
         </button>
-        <p style={{ fontFamily: DEVA, fontSize: '12.5px', color: '#5F5E5A', textAlign: 'center', margin: '2px 0 0' }}>{D.note}</p>
+        <p className="font-deva text-ink-soft mt-0.5 text-center text-[12.5px]">{D.note}</p>
       </div>
     );
   };
 
   // ── Screen 1: input (chat front door) ──
   const renderInput = () => (
-    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div className="animate-fade-in flex flex-col gap-3.5 p-4">
       <Bubble>{INTRO[lang] || INTRO.hi}</Bubble>
 
       {/* Helper line */}
-      <p style={{ margin: '0 2px', fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A' }}>
+      <p className="font-deva text-ink-soft mx-0.5 text-[13px]">
         {lang === 'en' ? 'Bill · Receipt · Bank notice · PDF · WhatsApp photo too' : 'बिल · रसीद · बैंक नोटिस · PDF · WhatsApp वाली फ़ोटो भी'}
       </p>
 
       {/* Gallery — PRIMARY (images + PDFs) */}
-      <button onClick={() => galleryRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '16px', cursor: 'pointer' }}>
+      <button onClick={() => galleryRef.current?.click()} className={jdsBtn('primary')}>
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
           <circle cx="8.5" cy="8.5" r="1.5" />
           <polyline points="21 15 16 10 5 21" />
         </svg>
-        <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>
-          {lang === 'en' ? 'Upload from gallery' : 'गैलरी से चुनें'}
-        </span>
+        <span>{lang === 'en' ? 'Upload from gallery' : 'गैलरी से चुनें'}</span>
       </button>
 
       {/* Camera — secondary */}
-      <button onClick={() => cameraRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
-        <IcCamera size={20} color={PURPLE} />
-        <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 600, color: PURPLE }}>
-          {lang === 'en' ? 'Take a photo' : 'फ़ोटो खींचें'}
-        </span>
+      <button onClick={() => cameraRef.current?.click()} className={jdsBtn('tertiary')}>
+        <IcCamera size={20} color="var(--color-primary-50)" />
+        <span>{lang === 'en' ? 'Take a photo' : 'फ़ोटो खींचें'}</span>
       </button>
 
       {/* Capability card */}
-      <div style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '14px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+      <div className="bg-surface border-primary-20 rounded-xl border p-3.5">
+        <div className="mb-2 flex flex-wrap gap-2">
           {(lang === 'en'
             ? ['Electricity bill', 'Bank notice', 'Receipt', 'Pay slip', 'PDF', '…and more']
             : ['बिजली बिल', 'बैंक नोटिस', 'रसीद', 'तनख्वाह पर्ची', 'PDF', '…और बहुत कुछ']
-          ).map(c => (
-            <span key={c} style={{ background: '#F5F4FA', borderRadius: '999px', padding: '5px 12px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: PURPLE }}>{c}</span>
-          ))}
+          ).map(c => <TagChip key={c} tone="brand">{c}</TagChip>)}
         </div>
-        <p style={{ margin: 0, fontFamily: DEVA, fontSize: '12px', color: '#5F5E5A' }}>
+        <p className="font-deva text-ink-soft m-0 text-xs">
           {lang === 'en' ? 'Works in Hindi or your language too.' : 'हिंदी या आपकी भाषा में भी पढ़ लूँगा।'}
         </p>
       </div>
 
       {/* Privacy disclaimer */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#e9f6ee', borderRadius: '12px', padding: '12px 14px' }}>
-        <IcShield size={20} color={GREEN} />
-        <span style={{ fontFamily: DEVA, fontSize: '12.5px', color: '#1a5c38', lineHeight: 1.5 }}>
-          {lang === 'en'
-            ? "Don't worry — we don't keep the photo, just the key details."
-            : 'बेफ़िक्र रहिए — फ़ोटो हम रखते नहीं, बस ज़रूरी बात याद रखते हैं।'}
-        </span>
-      </div>
+      <InfoBox tone="success" icon={<IcShield size={20} color="var(--color-success)" />}>
+        {lang === 'en'
+          ? "Don't worry — we don't keep the photo, just the key details."
+          : 'बेफ़िक्र रहिए — फ़ोटो हम रखते नहीं, बस ज़रूरी बात याद रखते हैं।'}
+      </InfoBox>
 
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onPick} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*,application/pdf" onChange={onPick} style={{ display: 'none' }} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onPick} className="hidden" />
+      <input ref={galleryRef} type="file" accept="image/*,application/pdf" onChange={onPick} className="hidden" />
     </div>
   );
 
   const renderReading = () => (
-    <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }} aria-busy="true" aria-label={lang === 'en' ? 'Mukund is reading' : 'मुकुंद पढ़ रहा है'}>
+    <div className="animate-fade-in flex flex-col gap-3.5 p-4" aria-busy="true" aria-label={lang === 'en' ? 'Mukund is reading' : 'मुकुंद पढ़ रहा है'}>
       <Shimmer h={28} w="55%" />
       <Shimmer h={120} />
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div className="flex gap-2.5">
         <Shimmer h={32} w={32} round />
         <Shimmer h={56} grow />
       </div>
-      <p style={{ textAlign: 'center', fontFamily: DEVA, fontSize: '14px', fontWeight: 600, color: '#888780', margin: '4px 0 0' }}>
+      <p className="font-deva text-ink-soft mt-1 text-center text-sm font-semibold">
         {lang === 'en' ? 'Mukund is reading…' : 'मुकुंद पढ़ रहा है…'}
       </p>
     </div>
@@ -372,59 +357,53 @@ export default function Decoder() {
     const explainedOnly = route === 'none' || (route === 'uncertain' && askResolved === 'skipped');
 
     return (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="flex flex-col gap-3 p-4">
         {/* 1. Recognition bubble */}
         <Bubble delay={0}>{recogText(data, lang)}</Bubble>
 
         {/* 2. Breakdown widget */}
-        <div className="animate-fade-in" style={{ background: '#fff', border: `1px solid ${PURPLE_LIGHT}`, borderRadius: '16px', padding: '16px', marginLeft: '42px', animationDelay: '80ms' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ width: 34, height: 34, borderRadius: '10px', background: PURPLE_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {docIcon(iconForCategory(data.category), 18, PURPLE)}
-            </span>
-            {!ambiguous && (
-              <span className="animate-pop" style={{ background: isIn ? '#e6f5ec' : PURPLE_LIGHT, color: isIn ? GREEN : PURPLE, borderRadius: '999px', padding: '4px 11px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700 }}>{directionLabel(data.direction, lang)}</span>
-            )}
+        <div className={`${CARD} animate-fade-in`} style={{ animationDelay: '80ms' }}>
+          <div className="mb-2 flex items-center gap-2">
+            <IconCircle size="sm" tinted icon={docIcon(iconForCategory(data.category), 18, 'var(--color-primary-50)')} />
+            {!ambiguous && <TagChip tone={isIn ? 'success' : 'brand'}>{directionLabel(data.direction, lang)}</TagChip>}
             {data.category && (
-              <span style={{ background: '#F5F4FA', borderRadius: '999px', padding: '4px 11px', fontFamily: DEVA, fontSize: '12px', fontWeight: 600, color: '#5F5E5A' }}>
-                {lang === 'en' ? (CAT_EN[data.category] || data.category) : data.category}
-              </span>
+              <TagChip tone="muted">{lang === 'en' ? (CAT_EN[data.category] || data.category) : data.category}</TagChip>
             )}
           </div>
 
           {data.amount ? (
-            <div style={{ fontFamily: DEVA, fontSize: '30px', fontWeight: 900, color: isIn ? GREEN : INK, letterSpacing: '-0.5px' }}>{isIn ? '+' : ''}{inr(shownAmt)}</div>
+            <div className={`font-deva text-[30px] font-black tracking-tight ${isIn ? 'text-success' : 'text-ink'}`}>{isIn ? '+' : ''}{inr(shownAmt)}</div>
           ) : (
-            <div style={{ fontFamily: DEVA, fontSize: '14px', color: '#888780' }}>
+            <div className="font-deva text-ink-soft text-sm">
               {lang === 'en' ? "Couldn't read the amount clearly." : 'रकम साफ़ नहीं पढ़ पाया।'}
             </div>
           )}
 
           {/* line items */}
           {data.lineItems?.length > 0 && (
-            <div style={{ marginTop: '10px', borderTop: `1px solid ${PURPLE_LIGHT}`, paddingTop: '8px' }}>
+            <div className="border-primary-20 mt-2.5 border-t pt-2">
               {data.lineItems.map((li, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontFamily: DEVA, fontSize: '13px' }}>
-                  <span style={{ color: '#5F5E5A' }}>{li.label}</span>
-                  <span style={{ color: INK, fontWeight: 600 }}>{inr(li.amount)}</span>
+                <div key={i} className="font-deva flex justify-between py-0.5 text-[13px]">
+                  <span className="text-ink-soft">{li.label}</span>
+                  <span className="text-ink font-semibold">{inr(li.amount)}</span>
                 </div>
               ))}
             </div>
           )}
           {data.dueDate && (
-            <div style={{ marginTop: '8px', fontFamily: DEVA, fontSize: '12.5px', color: '#5F5E5A' }}>
+            <div className="font-deva text-ink-soft mt-2 text-[12.5px]">
               {lang === 'en' ? 'Due date: ' : 'आख़िरी तारीख़: '}
-              <span style={{ color: INK, fontWeight: 700 }}>{data.dueDate}</span>
+              <span className="text-ink font-bold">{data.dueDate}</span>
             </div>
           )}
 
           {lowConf && (
-            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A' }}>{lang === 'en' ? 'Looks right?' : 'सही है?'}</span>
-              <button onClick={() => setConfirmed(true)} style={{ background: GREEN, border: 'none', borderRadius: '999px', padding: '6px 16px', cursor: 'pointer', fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+            <div className="mt-3 flex items-center gap-2">
+              <span className="font-deva text-ink-soft text-[13px]">{lang === 'en' ? 'Looks right?' : 'सही है?'}</span>
+              <button onClick={() => setConfirmed(true)} className="font-deva bg-success rounded-full px-4 py-1.5 text-[13px] font-bold text-white">
                 {lang === 'en' ? 'Yes' : 'हाँ'}
               </button>
-              <button onClick={reset} style={{ background: '#fff', border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '6px 16px', cursor: 'pointer', fontFamily: DEVA, fontSize: '13px', fontWeight: 700, color: PURPLE }}>
+              <button onClick={reset} className="font-deva bg-surface border-primary-20 text-primary-50 rounded-full border-[1.5px] px-4 py-1.5 text-[13px] font-bold">
                 {lang === 'en' ? 'Show again' : 'दुबारा दिखाएँ'}
               </button>
             </div>
@@ -433,29 +412,31 @@ export default function Decoder() {
 
         {/* ambiguous → one question */}
         {ambiguous && (
-          <div style={{ background: '#FFFBEA', border: '1px solid #F2E2A8', borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
-            <p style={{ margin: '0 0 12px', fontFamily: DEVA, fontSize: '14px', fontWeight: 600, color: INK }}>
-              {lang === 'en' ? 'Did you pay this, or did you receive it?' : 'यह पैसा आपने दिया, या आपको मिला?'}
-            </p>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => resolveDirection('out')} style={{ flex: 1, background: PURPLE, color: '#fff', border: 'none', borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>
-                {lang === 'en' ? 'I paid · Expense' : 'मैंने दिया · खर्च'}
-              </button>
-              <button onClick={() => resolveDirection('in')} style={{ flex: 1, background: '#fff', color: GREEN, border: `1.5px solid #cde7d8`, borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>
-                {lang === 'en' ? 'I received · Income' : 'मुझे मिला · कमाई'}
-              </button>
-            </div>
+          <div className="ml-[42px]">
+            <InfoBox tone="warning">
+              <span className="font-deva text-ink mb-3 block font-semibold">
+                {lang === 'en' ? 'Did you pay this, or did you receive it?' : 'यह पैसा आपने दिया, या आपको मिला?'}
+              </span>
+              <span className="flex gap-2.5">
+                <button onClick={() => resolveDirection('out')} className={`${jdsBtn('primary')} flex-1`}>
+                  {lang === 'en' ? 'I paid · Expense' : 'मैंने दिया · खर्च'}
+                </button>
+                <button onClick={() => resolveDirection('in')} className={`${jdsBtn('tertiary')} flex-1`}>
+                  {lang === 'en' ? 'I received · Income' : 'मुझे मिला · कमाई'}
+                </button>
+              </span>
+            </InfoBox>
           </div>
         )}
 
         {/* 3. Insight bubble — leads with the specific extracted fact */}
         {!ambiguous && insightLine && (
-          <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', animationDelay: '160ms' }}>
+          <div className="animate-fade-in flex items-start gap-2.5" style={{ animationDelay: '160ms' }}>
             <PortraitAvatar size={32} online={false} ringed={false} />
             <div>
-              <p style={{ background: PURPLE_LIGHT, borderRadius: '4px 16px 16px 16px', padding: '11px 14px', margin: 0, fontFamily: DEVA, fontSize: '14px', lineHeight: 1.55, color: INK, maxWidth: '85%' }}>{insightLine}</p>
-              <button onClick={() => { setSpeaking(true); speakMukund(insightLine, () => setSpeaking(false), lang); }} style={{ marginTop: '4px', marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', padding: '2px 4px' }}>
-                <IcSparks size={13} color="#888780" /> {lang === 'en' ? 'Listen' : 'सुनें'}
+              <p className="font-deva bg-primary-20 text-ink m-0 max-w-[85%] rounded-tl-sm rounded-tr-2xl rounded-br-2xl rounded-bl-2xl px-3.5 py-2.5 text-sm leading-relaxed">{insightLine}</p>
+              <button onClick={() => { setSpeaking(true); speakMukund(insightLine, () => setSpeaking(false), lang); }} className="font-deva text-ink-soft mt-1 ml-1 inline-flex items-center gap-1 bg-transparent px-1 py-0.5 text-xs font-bold">
+                <IcSparks size={13} color="var(--color-ink-soft)" /> {lang === 'en' ? 'Listen' : 'सुनें'}
               </button>
             </div>
           </div>
@@ -463,40 +444,42 @@ export default function Decoder() {
 
         {/* B. UNCERTAIN → explain, then ASK before adding */}
         {askPending && (
-          <div className="animate-fade-in" style={{ background: '#FFFBEA', border: '1px solid #F2E2A8', borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
-            <p style={{ margin: '0 0 12px', fontFamily: DEVA, fontSize: '14px', fontWeight: 700, color: INK }}>
-              {lang === 'en' ? 'Did you take this? Should I add it to your ledger?' : 'क्या यह आपने लिया है? हिसाब में जोड़ूँ?'}
-            </p>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={askYes} style={{ flex: 1, background: PURPLE, color: '#fff', border: 'none', borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>
-                {lang === 'en' ? 'Yes, add it' : 'हाँ, जोड़ें'}
-              </button>
-              <button onClick={askNo} style={{ flex: 1, background: '#fff', color: PURPLE, border: `1.5px solid ${PURPLE_LIGHT}`, borderRadius: '999px', padding: '12px', cursor: 'pointer', fontFamily: DEVA, fontSize: '14px', fontWeight: 700 }}>
-                {lang === 'en' ? 'Just wanted to understand' : 'सिर्फ़ समझना था'}
-              </button>
-            </div>
-            <p style={{ margin: '10px 0 0', fontFamily: DEVA, fontSize: '12px', color: '#8a7a3a' }}>
-              {lang === 'en' ? "If you're not sure, I won't add it." : 'पक्का पता न हो, तो अपने आप नहीं जोड़ता।'}
-            </p>
+          <div className="animate-fade-in ml-[42px]">
+            <InfoBox tone="warning">
+              <span className="font-deva text-ink mb-3 block font-bold">
+                {lang === 'en' ? 'Did you take this? Should I add it to your ledger?' : 'क्या यह आपने लिया है? हिसाब में जोड़ूँ?'}
+              </span>
+              <span className="flex gap-2.5">
+                <button onClick={askYes} className={`${jdsBtn('primary')} flex-1`}>
+                  {lang === 'en' ? 'Yes, add it' : 'हाँ, जोड़ें'}
+                </button>
+                <button onClick={askNo} className={`${jdsBtn('tertiary')} flex-1`}>
+                  {lang === 'en' ? 'Just wanted to understand' : 'सिर्फ़ समझना था'}
+                </button>
+              </span>
+              <span className="font-deva text-reward-ink mt-2.5 block text-xs">
+                {lang === 'en' ? "If you're not sure, I won't add it." : 'पक्का पता न हो, तो अपने आप नहीं जोड़ता।'}
+              </span>
+            </InfoBox>
           </div>
         )}
 
         {/* 4. Reward — variable points + bonus reason chips (only when entry entered हिसाब) */}
         {added && reward && (
-          <div className="animate-pop" style={{ background: PURPLE, borderRadius: '16px', padding: '16px', marginLeft: '42px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <IcSparks size={20} color="#FFD479" />
-              <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 800, color: '#fff' }}>
+          <div className="animate-pop bg-primary-50 ml-[42px] rounded-xl p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <IcSparks size={20} color="var(--color-reward)" />
+              <span className="font-deva text-[16px] font-extrabold text-white">
                 {lang === 'en' ? `${reward.total} points earned!` : `${reward.total} अंक मिले!`}
               </span>
               {reward.reasons.filter(r => r.why !== 'फ़ोटो जोड़ी').map(r => (
-                <span key={r.why} style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '999px', padding: '3px 10px', fontFamily: DEVA, fontSize: '11px', fontWeight: 700, color: '#FFD479' }}>+{r.pts} {r.why}</span>
+                <span key={r.why} className="font-deva rounded-full bg-white/18 px-2.5 py-1 text-[11px] font-bold" style={{ color: 'var(--color-reward)' }}>+{r.pts} {r.why}</span>
               ))}
             </div>
-            <div style={{ marginTop: '12px', height: '8px', borderRadius: '999px', background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: '999px', background: '#FFD479', transformOrigin: 'left', transform: `scaleX(${Math.min(totalPoints, JACKPOT_POINTS) / JACKPOT_POINTS})`, transition: 'transform 500ms ease-out' }} />
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/25">
+              <div className="h-full origin-left rounded-full transition-transform duration-500 ease-out" style={{ background: 'var(--color-reward)', transform: `scaleX(${Math.min(totalPoints, JACKPOT_POINTS) / JACKPOT_POINTS})` }} />
             </div>
-            <div style={{ marginTop: '8px', fontFamily: DEVA, fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+            <div className="font-deva mt-2 text-xs text-white/90">
               {Math.min(totalPoints, JACKPOT_POINTS)} / {JACKPOT_POINTS.toLocaleString('en-IN')} {lang === 'en' ? 'points' : 'अंक'} · {lang === 'en' ? `Reward at ${JACKPOT_POINTS.toLocaleString('en-IN')} points — keep going.` : `${JACKPOT_POINTS.toLocaleString('en-IN')} अंक पूरे होने पर इनाम — पढ़ते रहिए।`}
             </div>
           </div>
@@ -504,8 +487,8 @@ export default function Decoder() {
 
         {/* 5a. Added → confirmation (+ recurring note if remembered) */}
         {added && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '42px', fontFamily: DEVA, fontSize: '12px', color: GREEN }}>
-            <IcCheck size={14} color={GREEN} />
+          <div className="font-deva text-success ml-[42px] flex items-center gap-1.5 text-xs">
+            <IcCheck size={14} color="var(--color-success)" />
             {lang === 'en'
               ? (recurringNote ? 'Same as last time — added to your ledger' : 'Added to your ledger')
               : (recurringNote ? 'पिछली बार की तरह — हिसाब में जोड़ दिया' : 'हिसाब में जुड़ गया')}
@@ -514,7 +497,7 @@ export default function Decoder() {
 
         {/* 5b. Explain-only → never touched हिसाब */}
         {explainedOnly && (
-          <div style={{ marginLeft: '42px', fontFamily: DEVA, fontSize: '12px', color: '#888780' }}>
+          <div className="font-deva text-ink-soft ml-[42px] text-xs">
             {lang === 'en'
               ? `Not added to ledger — ${route === 'none' ? 'information only' : 'just explained'}.`
               : `हिसाब में नहीं जोड़ा — सिर्फ़ ${route === 'none' ? 'जानकारी' : 'समझाया'}।`}
@@ -522,47 +505,43 @@ export default function Decoder() {
         )}
 
         {/* 6. See full हिसाब — explicit secondary button (FIX 7: was passive strip) */}
-        <button onClick={() => nav('/passbook')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', boxSizing: 'border-box', background: '#fff', border: `2px solid ${PURPLE}`, borderRadius: '999px', padding: '14px', cursor: 'pointer' }}>
-          <span style={{ fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: PURPLE }}>
-            {lang === 'en' ? 'See your full Hisaab →' : 'अपना पूरा हिसाब देखें →'}
-          </span>
+        <button onClick={() => nav('/passbook')} className={`${jdsBtn('tertiary')} w-full border-2`}>
+          {lang === 'en' ? 'See your full Hisaab →' : 'अपना पूरा हिसाब देखें →'}
         </button>
 
-        <button onClick={reset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: PURPLE, border: 'none', borderRadius: '999px', padding: '15px', cursor: 'pointer' }}>
+        <button onClick={reset} className={jdsBtn('primary')}>
           <IcCamera size={20} color="#fff" />
-          <span style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: '#fff' }}>
-            {lang === 'en' ? 'Check another document' : 'एक और कागज़ दिखाओ'}
-          </span>
+          <span>{lang === 'en' ? 'Check another document' : 'एक और कागज़ दिखाओ'}</span>
         </button>
       </div>
     );
   };
 
   const renderError = () => (
-    <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
-      <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IcAlertOctagon size={28} color="#D85A30" /></span>
-      <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: INK, margin: 0 }}>
+    <div className="animate-fade-in flex flex-col items-center gap-4 px-6 py-10 text-center">
+      <span className="bg-error-soft flex size-16 items-center justify-center rounded-full"><IcAlertOctagon size={28} color="var(--color-error)" /></span>
+      <p className="font-deva text-ink m-0 text-base font-bold">
         {lang === 'en' ? 'Something went wrong' : 'तकनीकी गड़बड़'}
       </p>
-      <p style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A', margin: 0, lineHeight: 1.5 }}>{errorMsg}</p>
-      <button onClick={reset} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+      <p className="font-deva text-ink-soft m-0 text-[13px] leading-relaxed">{errorMsg}</p>
+      <button onClick={reset} className={jdsBtn('primary')}>
         {lang === 'en' ? 'Try again' : 'दोबारा कोशिश'}
       </button>
     </div>
   );
 
   const renderBlurry = () => (
-    <div className="animate-fade-in" style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', textAlign: 'center' }}>
-      <span style={{ width: 64, height: 64, borderRadius: '50%', background: '#FDECEC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <IcCamera size={28} color="#fa2f40" />
+    <div className="animate-fade-in flex flex-col items-center gap-4 px-6 py-10 text-center">
+      <span className="bg-error-soft flex size-16 items-center justify-center rounded-full">
+        <IcCamera size={28} color="var(--color-error)" />
       </span>
-      <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 700, color: INK, margin: 0 }}>
+      <p className="font-deva text-ink m-0 text-base font-bold">
         {lang === 'en' ? "Couldn't read the document clearly — try again?" : 'कागज़ साफ़ नहीं दिखा — दुबारा दिखाइए?'}
       </p>
-      <p style={{ fontFamily: DEVA, fontSize: '13px', color: '#5F5E5A', margin: 0, lineHeight: 1.5 }}>
+      <p className="font-deva text-ink-soft m-0 text-[13px] leading-relaxed">
         {lang === 'en' ? 'Good lighting, full document in frame.' : 'साफ़ रोशनी में, पूरा कागज़ फ्रेम के अंदर रखें।'}
       </p>
-      <button onClick={reset} style={{ background: PURPLE, border: 'none', borderRadius: '999px', padding: '13px 28px', cursor: 'pointer', fontFamily: DEVA, fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+      <button onClick={reset} className={jdsBtn('primary')}>
         {lang === 'en' ? 'Try again' : 'दुबारा दिखाइए'}
       </button>
     </div>
@@ -571,17 +550,17 @@ export default function Decoder() {
   const showDock = stage === 'demo' || stage === 'input' || stage === 'result';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#fff', maxWidth: '420px', margin: '0 auto' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
-        <button onClick={() => ((stage === 'input' || stage === 'demo') ? nav('/') : reset())} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="Back">
-          <IcChevronLeft size={24} color={INK} />
+    <div className="mx-auto flex min-h-dvh max-w-[420px] flex-col bg-surface">
+      <header className="border-stroke-subtle flex shrink-0 items-center gap-2.5 border-b px-4 py-2 pb-3">
+        <button onClick={() => ((stage === 'input' || stage === 'demo') ? nav('/') : reset())} className="flex border-0 bg-transparent p-0" aria-label="Back">
+          <IcChevronLeft size={24} color="var(--color-ink)" />
         </button>
         <PortraitAvatar size={36} online ringed />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'JioType',sans-serif", fontSize: '15px', fontWeight: 700, color: INK }}>
+        <div className="min-w-0 flex-1">
+          <div className="font-jio text-ink text-[15px] font-bold">
             {lang === 'hi' ? 'कागज़ समझें' : 'Check document'}
           </div>
-          <div style={{ fontFamily: DEVA, fontSize: '11px', color: speaking ? PURPLE : '#5F5E5A', fontWeight: speaking ? 700 : 400 }}>
+          <div className={`font-deva text-[11px] ${speaking ? 'text-primary-50 font-bold' : 'text-ink-soft'}`}>
             {speaking
               ? (lang === 'en' ? 'Mukund · speaking…' : 'मुकुंद · बोल रहा है…')
               : (lang === 'en' ? 'Mukund · reads & explains' : 'मुकुंद · पढ़कर समझाता है')}
@@ -590,7 +569,7 @@ export default function Decoder() {
         <LangToggle lang={lang} setLang={setLang} />
       </header>
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="flex-1 overflow-y-auto">
         {stage === 'demo' && renderDemo()}
         {stage === 'input' && renderInput()}
         {stage === 'reading' && renderReading()}
@@ -613,6 +592,9 @@ export default function Decoder() {
 
 function Shimmer({ h, w = '100%', round = false, grow = false }) {
   return (
-    <div className="mm-shimmer" style={{ height: h, width: round ? h : w, flex: grow ? 1 : undefined, borderRadius: round ? '50%' : '12px', background: '#ECEAF5' }} />
+    <div
+      className={`mm-shimmer bg-surface-ghost ${round ? 'rounded-full' : 'rounded-lg'} ${grow ? 'flex-1' : ''}`}
+      style={{ height: h, width: round ? h : w }}
+    />
   );
 }

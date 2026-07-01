@@ -3,14 +3,10 @@
 //   amount · direction (आया/गया) · उधार (borrowed). No category/title edit.
 // Mirrors the localhost (Next) edit flow so the experience is uniform.
 // Points are NEVER re-awarded — only the entry's fields change.
+// JDS (a2ui MCP): FieldLabel §11.62, jdsBtn §6, §12.0a scrim/sheet — tokens only.
 
 import { useEffect, useState } from 'react';
-
-const DEVA = "'Noto Sans Devanagari','JioType',sans-serif";
-const PURPLE = '#6D17CE';
-const GREEN = '#1a7d4b';
-const AMBER = '#d97706';
-const INK = '#2C2C2A';
+import { FieldLabel, jdsBtn } from './jds';
 
 export default function EditEntrySheet({ open, initial, title, onSave, onDelete, onClose }) {
   const [amount, setAmount] = useState('');
@@ -33,45 +29,45 @@ export default function EditEntrySheet({ open, initial, title, onSave, onDelete,
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 600, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+    <div className="fixed inset-0 z-[600] flex items-end justify-center">
       {/* Scrim */}
-      <button aria-label="बंद करें" onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer' }} />
+      <button aria-label="बंद करें" onClick={onClose} className="absolute inset-0 border-0 bg-[rgba(12,13,16,0.45)] backdrop-blur-md" />
       {/* Sheet */}
-      <div className="toast-animate" style={{ position: 'relative', width: '100%', maxWidth: 420, background: '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px calc(env(safe-area-inset-bottom,0px) + 20px)' }}>
-        <div style={{ width: 40, height: 4, borderRadius: 999, background: '#d8d5e0', margin: '0 auto 16px' }} />
-        <p style={{ fontFamily: DEVA, fontSize: '16px', fontWeight: 900, color: INK, margin: '0 0 2px' }}>सही करें</p>
-        <p style={{ fontFamily: DEVA, fontSize: '12px', color: '#888780', margin: '0 0 16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</p>
+      <div className="toast-animate bg-surface relative w-full max-w-[420px] rounded-t-2xl px-5 pt-5" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 20px)' }}>
+        <div className="bg-ink-disabled mx-auto mb-4 h-1 w-10 rounded-full" />
+        <p className="font-deva text-ink mb-0.5 text-base font-black">सही करें</p>
+        <p className="font-deva text-neutral mb-4 overflow-hidden text-xs text-ellipsis whitespace-nowrap">{title}</p>
 
         {/* Amount */}
-        <label style={{ display: 'block', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', marginBottom: 6 }}>रकम</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F5F4FA', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
-          <span style={{ fontFamily: DEVA, fontSize: 18, fontWeight: 900, color: INK }}>₹</span>
+        <FieldLabel>रकम</FieldLabel>
+        <div className="bg-surface-minimal mt-1.5 mb-4 flex items-center gap-2 rounded-lg px-4 py-3">
+          <span className="font-deva text-ink text-lg font-black">₹</span>
           <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0"
-            style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', fontFamily: DEVA, fontSize: 18, fontWeight: 900, color: INK }} />
+            className="font-deva text-ink w-full border-0 bg-transparent text-lg font-black outline-none" />
         </div>
 
         {/* Direction toggle */}
-        <label style={{ display: 'block', fontFamily: DEVA, fontSize: '12px', fontWeight: 700, color: '#888780', marginBottom: 6 }}>यह पैसा</label>
-        <div style={{ display: 'flex', gap: 4, background: '#F5F4FA', borderRadius: 12, padding: 4, marginBottom: 16 }}>
-          <button onClick={() => setDir('in')} style={{ flex: 1, border: 'none', borderRadius: 8, padding: '10px', cursor: 'pointer', fontFamily: DEVA, fontSize: 14, fontWeight: 700, background: dir === 'in' ? GREEN : 'transparent', color: dir === 'in' ? '#fff' : '#888780' }}>आया · कमाई</button>
-          <button onClick={() => setDir('out')} style={{ flex: 1, border: 'none', borderRadius: 8, padding: '10px', cursor: 'pointer', fontFamily: DEVA, fontSize: 14, fontWeight: 700, background: dir === 'out' ? PURPLE : 'transparent', color: dir === 'out' ? '#fff' : '#888780' }}>गया · खर्च</button>
+        <FieldLabel>यह पैसा</FieldLabel>
+        <div className="bg-surface-minimal mt-1.5 mb-4 flex gap-1 rounded-lg p-1">
+          <button onClick={() => setDir('in')} className={`font-deva flex-1 rounded-md px-0 py-2.5 text-sm font-bold ${dir === 'in' ? 'bg-success text-white' : 'text-neutral bg-transparent'}`}>आया · कमाई</button>
+          <button onClick={() => setDir('out')} className={`font-deva flex-1 rounded-md px-0 py-2.5 text-sm font-bold ${dir === 'out' ? 'bg-primary-50 text-white' : 'text-neutral bg-transparent'}`}>गया · खर्च</button>
         </div>
 
         {/* उधार toggle */}
-        <button onClick={() => setBorrowed((b) => !b)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: '#F5F4FA', border: 'none', borderRadius: 12, padding: '12px 16px', marginBottom: 20, cursor: 'pointer' }}>
-          <span style={{ textAlign: 'left' }}>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 14, fontWeight: 700, color: INK }}>उधार / ऋण है</span>
-            <span style={{ display: 'block', fontFamily: DEVA, fontSize: 12, color: '#888780' }}>वापस करना है — आया में नहीं गिनेंगे</span>
+        <button onClick={() => setBorrowed((b) => !b)} className="bg-surface-minimal mb-5 flex w-full items-center justify-between rounded-lg px-4 py-3">
+          <span className="text-left">
+            <span className="font-deva text-ink block text-sm font-bold">उधार / ऋण है</span>
+            <span className="font-deva text-neutral block text-xs">वापस करना है — आया में नहीं गिनेंगे</span>
           </span>
-          <span style={{ position: 'relative', width: 44, height: 26, borderRadius: 999, flexShrink: 0, background: borrowed ? AMBER : '#cbcbcb', transition: 'background 150ms' }}>
-            <span style={{ position: 'absolute', top: 3, left: borrowed ? 21 : 3, width: 20, height: 20, borderRadius: 999, background: '#fff', transition: 'left 150ms' }} />
+          <span className={`relative h-6.5 w-11 shrink-0 rounded-full transition-colors duration-150 ${borrowed ? 'bg-warning' : 'bg-gray-300'}`}>
+            <span className="absolute top-[3px] size-5 rounded-full bg-white transition-[left] duration-150" style={{ left: borrowed ? 21 : 3 }} />
           </span>
         </button>
 
         {/* Actions */}
-        <button onClick={save} style={{ width: '100%', background: PURPLE, border: 'none', borderRadius: 999, padding: '14px', cursor: 'pointer', fontFamily: DEVA, fontSize: 16, fontWeight: 800, color: '#fff' }}>हो गया</button>
+        <button onClick={save} className={`${jdsBtn('primary')} w-full`}>हो गया</button>
         {onDelete && (
-          <button onClick={onDelete} style={{ width: '100%', background: 'none', border: 'none', borderRadius: 999, padding: '12px', marginTop: 8, cursor: 'pointer', fontFamily: DEVA, fontSize: 14, fontWeight: 700, color: '#c0392b' }}>भूल जाओ</button>
+          <button onClick={onDelete} className="font-deva text-error mt-2 w-full rounded-full bg-transparent py-3 text-sm font-bold">भूल जाओ</button>
         )}
       </div>
     </div>
