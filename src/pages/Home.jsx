@@ -26,10 +26,8 @@ const COPY = {
   hi: {
     greet: (n) => (n ? `नमस्ते, ${n} जी` : 'नमस्ते जी'),
     savedInsight: (amt) => `इस महीने आपने ${amt} बचाए`,
-    askTitle: 'पैसे की बात पूछिए', askSub: 'बिल · सरकारी योजना · ठगी · बचत',
+    askTitle: 'पैसे की बात पूछिए',
     askPopular: 'ज़्यादातर पूछे गए सवाल',
-    chip1: 'लोन कैसे मिलेगा?', chip2: 'बेटी की शादी के लिए कैसे बचाएँ?',
-    askGhost: 'या अपना सवाल पूछिए →',
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
     docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
     connector: 'जो कागज़ दिखाते हैं, वो यहाँ अपने आप जुड़ जाता है',
@@ -45,10 +43,8 @@ const COPY = {
   en: {
     greet: (n) => (n ? `Namaste, ${n} ji` : 'Namaste ji'),
     savedInsight: (amt) => `You've saved ${amt} this month`,
-    askTitle: 'Ask about money', askSub: 'Bills · govt schemes · fraud · savings',
+    askTitle: 'Ask about money',
     askPopular: 'Most asked questions',
-    chip1: 'How do I get a loan?', chip2: "How do I save for my daughter's marriage?",
-    askGhost: 'Or ask your own question →',
     docTitle: 'Understand a document',
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
     connector: 'Every paper you show adds here automatically',
@@ -162,43 +158,39 @@ export default function Home() {
           </div>
         )}
 
-        {/* Ask hero (पैसे की बात पूछिए) — 2 example pills + A2 ghost pill */}
-        <div className="animate-fade-in bg-primary-50 rounded-xl p-[18px]" style={{ animationDelay: '60ms' }}>
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="font-deva text-[18px] font-extrabold text-white">{t.askTitle}</div>
-              <div className="font-deva mt-[3px] text-xs text-white/85">{t.askSub}</div>
-            </div>
-            {/* Popularity signal, not a streak — IcSparks stays distinct from
-                IcFlame, which is reserved for Paisa Gyaan's day-count so the
-                two mechanics never blur into one meaning. */}
-            <span className="font-deva flex shrink-0 items-center gap-1 rounded-full bg-white/16 px-2.5 py-1 text-[10.5px] font-bold text-white">
+        {/* Ask entry — compact card matching Document/Ledger/Paisa Gyaan, not an
+            oversized hero. Icon circle is solid primary-50 (highest weight of
+            the four cards, since this is still the primary entry point); the
+            "most asked" signal lives as a badge under the title instead of a
+            separate hero block. Example prompts + free-text ghost pill live
+            one tap in, on the actual Ask screen (AnswerBank), not duplicated
+            here. */}
+        <button className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left" onClick={() => nav('/chat')} style={{ animationDelay: '60ms' }}>
+          <span className="bg-primary-50 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="font-deva text-ink block text-base font-bold">{t.askTitle}</span>
+            <span className="font-deva bg-primary-50 mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-bold text-white">
               <IcSparks size={11} color="currentColor" />
               {t.askPopular}
             </span>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {[t.chip1, t.chip2].map(c => (
-              <button key={c} onClick={() => send(c)} className="font-deva rounded-full bg-white/16 px-3.5 py-2 text-left text-[13px] font-semibold text-white">{c}</button>
-            ))}
-          </div>
-          {/* A2. ghost "ask anything" pill → open chat with empty input */}
-          <button onClick={() => nav('/chat')} className="font-deva mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-full border-[1.5px] border-dashed border-white/50 bg-transparent p-2.5 text-[13px] font-bold text-white">
-            {t.askGhost}
-          </button>
-        </div>
-
-        {/* Document door */}
-        <button className="animate-fade-in bg-surface flex w-full flex-col rounded-xl p-[18px] text-left" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms' }}>
-          <span className="flex items-center gap-4">
-            <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="font-deva text-ink block text-base font-bold">{t.docTitle}</span>
-              <span className="font-deva text-ink-soft mt-1 block text-xs leading-relaxed">{t.docExamples}</span>
-            </span>
           </span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ink-disabled shrink-0"><polyline points="9 6 15 12 9 18" /></svg>
+        </button>
+
+        {/* Document door — mid-strength violet tint (primary-50 at 30% opacity,
+            token-based, no raw hex) sits between Ask's solid circle and Ledger/
+            Paisa Gyaan's light tint, giving the list some weight variation. */}
+        <button className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms' }}>
+          <span className="bg-primary-50/30 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-60"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="font-deva text-ink block text-base font-bold">{t.docTitle}</span>
+            <span className="font-deva text-ink-soft mt-1 block text-xs leading-relaxed">{t.docExamples}</span>
+          </span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ink-disabled shrink-0"><polyline points="9 6 15 12 9 18" /></svg>
         </button>
 
         {/* A3. Connector: vertical line + down arrow + caption */}
