@@ -10,7 +10,7 @@
 // ── §11.38 StatusBadge — dot + label pill ────────────────────────────────────
 const BADGE = {
   out: { bg: 'bg-warning-soft', text: 'text-warning', dot: 'bg-warning' },
-  in: { bg: 'bg-[#E6F7E6]', text: 'text-success', dot: 'bg-success' },
+  in: { bg: 'bg-success-soft', text: 'text-success', dot: 'bg-success' },
   borrowed: { bg: 'bg-primary-20', text: 'text-primary-50', dot: 'bg-primary-50' },
   due: { bg: 'bg-surface-ghost', text: 'text-ink-soft', dot: 'bg-ink-soft' },
 };
@@ -27,8 +27,10 @@ export function StatusBadge({ variant, label }) {
 // ── §11.69 TagChip ────────────────────────────────────────────────────────────
 const TAG = {
   default: 'bg-surface-ghost text-ink',
-  success: 'bg-[#E6F7E6] text-success',
+  success: 'bg-success-soft text-success',
   warning: 'bg-warning-soft text-warning',
+  danger: 'bg-error-soft text-error',
+  info: 'bg-topic-blue-soft text-topic-blue',
   muted: 'bg-surface-ghost text-ink-soft',
   brand: 'bg-primary-20 text-primary-50',
 };
@@ -44,7 +46,7 @@ export function TagChip({ tone = 'default', children }) {
 const INFO = {
   primary: 'bg-primary-20',
   warning: 'bg-warning-soft',
-  success: 'bg-[#E6F7E6]',
+  success: 'bg-success-soft',
 };
 export function InfoBox({ tone = 'primary', icon, children }) {
   return (

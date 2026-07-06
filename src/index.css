@@ -78,10 +78,22 @@
   --color-stroke-subtle: var(--jds-stroke-subtle);
 
   --color-success: #25ab21;
+  --color-success-soft: #e9f7e8;
   --color-warning: #f06d0f;
   --color-warning-soft: #fff3e8;
   --color-error: var(--jds-error);
   --color-error-soft: #fdecec;
+
+  /* Category/topic tints — decorative variety for browse grids (e.g. the
+   * "Ask about money" topic list) only. Never reused for status/verification
+   * badges, which stay on success/warning/error/muted so meaning never
+   * collides with decoration. */
+  --color-topic-blue: #1a4fa0;
+  --color-topic-blue-soft: #eaf0fa;
+  --color-topic-rose: #a6285a;
+  --color-topic-rose-soft: #fceaf1;
+  --color-topic-teal: #0e7c86;
+  --color-topic-teal-soft: #e5f5f6;
 
   /* Consolidates the ad-hoc secondary-grey (#888780) used everywhere in this
    * codebase for disabled/processing/neutral states — one real token instead

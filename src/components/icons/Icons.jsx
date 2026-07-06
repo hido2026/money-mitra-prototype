@@ -314,6 +314,21 @@ export const IcThumbUp = ({ size = 16, color = '#0F8A6B' }) => (
   </svg>
 );
 
+export const IcBriefcase = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <rect x="2" y="7" width="20" height="14" rx="2"/>
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16M2 13h20"/>
+  </svg>
+);
+
+export const IcUmbrella = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <path d="M12 2a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/>
+    <path d="M12 11v9a2 2 0 0 1-4 0"/>
+    <line x1="12" y1="2" x2="12" y2="4"/>
+  </svg>
+);
+
 export const IcGift = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <rect x="3" y="8" width="18" height="4" rx="1"/>

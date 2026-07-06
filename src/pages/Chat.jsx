@@ -8,7 +8,7 @@ import TopBar from '../components/TopBar';
 import Message from '../components/Message';
 import TypingIndicator from '../components/TypingIndicator';
 import InputBar from '../components/InputBar';
-import AnswerBank from '../components/AnswerBank';
+import MoneyQuestions from '../components/MoneyQuestions';
 import { speakMukund } from '../utils/tts';
 import { useLang } from '../hooks/useLang';
 
@@ -150,7 +150,7 @@ export default function Chat() {
                Every tap resolves deterministically to one Answer Bank row; no LLM
                call happens here. Free text below still goes to sendMessage/Groq
                unchanged (DS-3, L1 non-goal). ── */}
-          {isEmpty && <AnswerBank />}
+          {isEmpty && <MoneyQuestions />}
 
           {/* ── Messages ── */}
           {messages.map((msg, i) => (
