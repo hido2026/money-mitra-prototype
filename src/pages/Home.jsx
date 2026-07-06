@@ -16,7 +16,7 @@ import { useLang, LangToggle } from '../hooks/useLang';
 import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
-import { IcReceipt, IcShield, IcSchool, IcFlame } from '../components/icons/Icons';
+import { IcReceipt, IcShield, IcSchool, IcFlame, IcSparks } from '../components/icons/Icons';
 import { getStreak } from '../data/nuskha-bank';
 
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -27,6 +27,7 @@ const COPY = {
     greet: (n) => (n ? `नमस्ते, ${n} जी` : 'नमस्ते जी'),
     savedInsight: (amt) => `इस महीने आपने ${amt} बचाए`,
     askTitle: 'पैसे की बात पूछिए', askSub: 'बिल · सरकारी योजना · ठगी · बचत',
+    askPopular: 'ज़्यादातर पूछे गए सवाल',
     chip1: 'लोन कैसे मिलेगा?', chip2: 'बेटी की शादी के लिए कैसे बचाएँ?',
     askGhost: 'या अपना सवाल पूछिए →',
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
@@ -45,6 +46,7 @@ const COPY = {
     greet: (n) => (n ? `Namaste, ${n} ji` : 'Namaste ji'),
     savedInsight: (amt) => `You've saved ${amt} this month`,
     askTitle: 'Ask about money', askSub: 'Bills · govt schemes · fraud · savings',
+    askPopular: 'Most asked questions',
     chip1: 'How do I get a loan?', chip2: "How do I save for my daughter's marriage?",
     askGhost: 'Or ask your own question →',
     docTitle: 'Understand a document',
@@ -162,8 +164,19 @@ export default function Home() {
 
         {/* Ask hero (पैसे की बात पूछिए) — 2 example pills + A2 ghost pill */}
         <div className="animate-fade-in bg-primary-50 rounded-xl p-[18px]" style={{ animationDelay: '60ms' }}>
-          <div className="font-deva text-[18px] font-extrabold text-white">{t.askTitle}</div>
-          <div className="font-deva mt-[3px] text-xs text-white/85">{t.askSub}</div>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="font-deva text-[18px] font-extrabold text-white">{t.askTitle}</div>
+              <div className="font-deva mt-[3px] text-xs text-white/85">{t.askSub}</div>
+            </div>
+            {/* Popularity signal, not a streak — IcSparks stays distinct from
+                IcFlame, which is reserved for Paisa Gyaan's day-count so the
+                two mechanics never blur into one meaning. */}
+            <span className="font-deva flex shrink-0 items-center gap-1 rounded-full bg-white/16 px-2.5 py-1 text-[10.5px] font-bold text-white">
+              <IcSparks size={11} color="currentColor" />
+              {t.askPopular}
+            </span>
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {[t.chip1, t.chip2].map(c => (
               <button key={c} onClick={() => send(c)} className="font-deva rounded-full bg-white/16 px-3.5 py-2 text-left text-[13px] font-semibold text-white">{c}</button>
