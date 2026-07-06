@@ -301,6 +301,14 @@ export const IcCoin = ({ size = 16, color = '#6D17CE' }) => (
   </svg>
 );
 
+export const IcGift = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <rect x="3" y="8" width="18" height="4" rx="1"/>
+    <path d="M12 8v13M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>
+    <path d="M12 8a2.5 2.5 0 1 1-2.5-2.5c1.9 0 2.5 2.5 2.5 2.5zM12 8a2.5 2.5 0 1 0 2.5-2.5c-1.9 0-2.5 2.5-2.5 2.5z"/>
+  </svg>
+);
+
 export const IcGoldCoin = ({ size = 16, color = '#C8961E' }) => (
   <svg {...base(size, color)}>
     <circle cx="12" cy="12" r="9"/>
