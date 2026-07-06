@@ -16,7 +16,8 @@ import { useLang, LangToggle } from '../hooks/useLang';
 import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
-import { IcReceipt, IcShield } from '../components/icons/Icons';
+import { IcReceipt, IcShield, IcSchool, IcFlame } from '../components/icons/Icons';
+import { getStreak } from '../data/nuskha-bank';
 
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
 const groqClient = _apiKey ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser: true }) : null;
@@ -31,6 +32,8 @@ const COPY = {
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
     docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
     connector: 'जो कागज़ दिखाते हैं, वो यहाँ अपने आप जुड़ जाता है',
+    gyaanTitle: 'पैसा ज्ञान', gyaanSub: 'रोज़ का एक नुस्खा, 30 सेकंड में',
+    gyaanStreak: (n) => `${n}-दिन`,
     hisaabTitle: 'आपका हिसाब', tileIn: 'आया', tileOut: 'गया', tileSaved: 'बचा',
     hisaabSub: (m) => `आपकी फ़ोटो से अपने आप बना · ${m}`,
     hisaabEmpty: 'पहली फ़ोटो दिखाइए, हिसाब यहीं बनेगा →',
@@ -47,6 +50,8 @@ const COPY = {
     docTitle: 'Understand a document',
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
     connector: 'Every paper you show adds here automatically',
+    gyaanTitle: 'Paisa Gyaan', gyaanSub: 'One 30-second nuskha, every day',
+    gyaanStreak: (n) => `${n}-day`,
     hisaabTitle: 'Your Ledger', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
     hisaabSub: (m) => `Built automatically from your photos · ${m}`,
     hisaabEmpty: 'Show your first paper — your ledger builds here →',
@@ -70,6 +75,7 @@ export default function Home() {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
   }, []);
   const userName = user.name || ''; // no registration → nameless greeting
+  const gyaanStreak = useMemo(() => getStreak().current_streak, []);
 
   // ── हिसाब binding (no hard-coded values) ───────────────────────────────────
   const docs = state.docs;
@@ -213,6 +219,28 @@ export default function Home() {
             </>
           ) : (
             <p className="font-deva text-primary-50 m-0 text-sm font-semibold">{t.hisaabEmpty}</p>
+          )}
+        </button>
+
+        {/* Paisa Gyaan entry — secondary to the 3 scoped cards above, per
+            CLAUDE.md's Home contract; daily nuskha + streak habit loop. */}
+        <button
+          className="animate-fade-in bg-surface flex w-full items-center gap-3 rounded-xl p-3.5 text-left"
+          onClick={() => nav('/paisa-gyaan')}
+          style={{ animationDelay: '210ms' }}
+        >
+          <span className="bg-primary-20 flex size-11 shrink-0 items-center justify-center rounded-full">
+            <IcSchool size={20} color="var(--color-primary-50)" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="font-deva text-ink block text-sm font-bold">{t.gyaanTitle}</span>
+            <span className="font-deva text-ink-soft mt-0.5 block text-xs">{t.gyaanSub}</span>
+          </span>
+          {gyaanStreak > 0 && (
+            <span className="bg-reward-soft text-reward-ink flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-extrabold">
+              <IcFlame size={12} color="var(--color-reward-ink)" />
+              {t.gyaanStreak(gyaanStreak)}
+            </span>
           )}
         </button>
 

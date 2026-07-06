@@ -7,6 +7,7 @@ import Chat from './pages/Chat';
 import Decoder from './pages/Decoder';
 import Passbook from './pages/Passbook';
 import Products from './pages/Products';
+import PaisaGyaan from './pages/PaisaGyaan';
 import CorridorEntry from './pages/CorridorEntry';
 import ConversationShowcase from './pages/ConversationShowcase';
 
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/decoder"            element={<Decoder />} />
           <Route path="/passbook"           element={<Passbook />} />
           <Route path="/products"           element={<Products />} />
+          <Route path="/paisa-gyaan"        element={<PaisaGyaan />} />
 
           {/* ── Legacy corridors (still reachable, not on home) ── */}
           <Route path="/samjho-entry"       element={<CorridorEntry corridor={samjhoCorridor} />} />

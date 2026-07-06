@@ -301,6 +301,19 @@ export const IcCoin = ({ size = 16, color = '#6D17CE' }) => (
   </svg>
 );
 
+export const IcFlame = ({ size = 16, color = '#B5740F' }) => (
+  <svg {...base(size, color)}>
+    <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 3 5 3 7a7 7 0 1 1-14 0c0-3 2-5 3-8 .5 1.5 1.5 2 2 1-1-2-1-5 0-7z" />
+  </svg>
+);
+
+export const IcThumbUp = ({ size = 16, color = '#0F8A6B' }) => (
+  <svg {...base(size, color)}>
+    <path d="M7 10v11" />
+    <path d="M11 21h6.5a2 2 0 0 0 2-1.6l1.2-6A2 2 0 0 0 18.7 11H14V5.5a2.5 2.5 0 0 0-5 0L7 10H3v11h4" />
+  </svg>
+);
+
 export const IcGift = ({ size = 16, color = '#6D17CE' }) => (
   <svg {...base(size, color)}>
     <rect x="3" y="8" width="18" height="4" rx="1"/>
