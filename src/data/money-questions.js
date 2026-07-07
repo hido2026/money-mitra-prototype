@@ -1,11 +1,11 @@
 // Money Questions — the real 100-question Answer Bank (Gemini + Meta demand
 // research, deduped and ranked), ported from MoneyMitra_MoneyQuestions_Interactive_v3.html.
-// Content is Hinglish (primary, as authored and reviewed) + an English gloss
-// for the question only -- there is no separate verified English/Devanagari
-// answer yet, so this screen always shows both together rather than switching
-// on the app's EN/hi. toggle (which would otherwise show an empty answer in
-// English). Every fact traces to the row's own link/authority -- nothing here
-// is generated at render time.
+// Content is authored in Hinglish (q/answer) with a reviewed English
+// translation (qEn/answerEn) for every row -- the screen switches fully
+// between the two based on the app's EN/hi. toggle. Every fact traces to the
+// row's own link/authority -- nothing here is generated at render time, and
+// the English text is a translation of the same verified fact, not a
+// separately-sourced one.
 
 export const CATEGORIES = [
   { id: "upi", label: "UPI and payments", icon: "upi" },
@@ -57,6 +57,7 @@ export const QUESTIONS = [
     q: "Zero balance khate me bhi paisa kat sakta hai kya?",
     qEn: "Can money be deducted from a zero balance account?",
     answer: "Achha sawaal. Zero-balance (Jan Dhan/BSBDA) me minimum-balance ki penalty nahi lagti, par SMS ya card jaise chhote charge ho sakte hain. Exact charge bank site pe. Bataun BSBDA kya hota hai?",
+    answerEn: "Good question. Zero-balance accounts (Jan Dhan/BSBDA) don't have a minimum-balance penalty, but small charges like SMS or card fees may still apply. Check the exact charge on your bank's site. Want me to explain what BSBDA is?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -64,6 +65,7 @@ export const QUESTIONS = [
     q: "ATM se paise nahi nikle par kat gaye, kya karein?",
     qEn: "ATM didn't dispense but debited",
     answer: "Ghabraiye mat — aise case me paisa aksar 5 kaam-kaaji din me khud wapas aa jata hai; der hui to bank ₹100/din muaavza deta hai (RBI niyam). Na aaye to likhit complaint dijiye. Bataun complaint kaise karein?",
+    answerEn: "Don't worry — in cases like this, the money usually comes back on its own within 5 working days; if it's delayed, the bank pays ₹100/day as compensation (RBI rule). If it doesn't come back, file a written complaint. Want me to explain how to complain?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -71,6 +73,7 @@ export const QUESTIONS = [
     q: "Cheque bounce par penalty kitna aur jail?",
     qEn: "Cheque bounce penalty and jail",
     answer: "Cheque bounce pe bank penalty leta hai (amount bank pe depend) aur kanooni case bhi ho sakta hai — isliye account me paisa rakh ke hi cheque dijiye. Exact penalty aapke bank pe. Bataun bachne ka tareeka?",
+    answerEn: "For a cheque bounce, the bank charges a penalty (the amount depends on your bank) and a legal case can also be filed — so only issue a cheque when there's enough money in the account. The exact penalty is on your bank. Want me to explain how to avoid this?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -78,6 +81,7 @@ export const QUESTIONS = [
     q: "WiFi/DTH recharge fail to paise kitne din me?",
     qEn: "Refund time for failed recharge",
     answer: "Ghabraiye mat — RBI ke niyam se fail recharge/bill ka paisa aksar agle din (T+1) apne aap wapas aa jata hai; der hui to bank ₹100/din muaavza deta hai. Na aaye to app/bank me complaint. Bataun complaint kahan karein?",
+    answerEn: "Don't worry — under RBI rules, money from a failed recharge/bill payment usually comes back automatically the next day (T+1); if it's delayed, the bank pays ₹100/day as compensation. If it doesn't come back, complain via the app or bank. Want me to explain where to complain?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -85,6 +89,7 @@ export const QUESTIONS = [
     q: "Ghar baithe mobile se mahine ka 5-10 hazar kaise kamayein?",
     qEn: "Earn 5-10k/month from home on mobile",
     answer: "Ho sakta hai — par pehle zaroori baat: koi 'paise jama karke ghar baithe kamao' bole to wo aksar thagi hai, paisa/OTP mat dijiye. Asli tareeke: reselling, silai/tiffin, tutoring. Kis pe detail chahiye?",
+    answerEn: "It's possible — but first, an important note: if anyone says 'deposit money and earn from home,' it's usually a scam — never share money or an OTP. Real options include reselling, tailoring/tiffin service, or tutoring. Which one do you want details on?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -92,6 +97,7 @@ export const QUESTIONS = [
     q: "Meesho/GlowRoad par bina invest kapde bechkar kaise?",
     qEn: "Reselling with zero investment",
     answer: "Bilkul ho sakta hai. Meesho/GlowRoad jaise app pe bina paisa lagaye saman doosron ko bech kar commission kama sakti hain — koi 'registration fees' maange to savdhaan. Bataun kaise shuru karein?",
+    answerEn: "Absolutely possible. On apps like Meesho/GlowRoad, you can earn commission by reselling products to others without investing any money — be careful if anyone asks for a 'registration fee.' Want me to explain how to get started?",
     link: null, linkText: "Check within your payment app", authority: null,
   },
   {
@@ -99,6 +105,7 @@ export const QUESTIONS = [
     q: "WhatsApp par online job offer real?",
     qEn: "Are WhatsApp job offers genuine",
     answer: "Dhyaan se — WhatsApp pe aaye 'like karke kamao / ghar baithe job' offer aksar thagi hote hain, aage paise maangte hain. Asli job kabhi advance paisa nahi maangti. Bataun asli/nakli kaise pehchanein?",
+    answerEn: "Be careful — 'earn by liking/work from home' offers on WhatsApp are usually scams that eventually ask for money. A real job never asks for money upfront. Want me to explain how to spot real vs. fake?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -106,6 +113,7 @@ export const QUESTIONS = [
     q: "Ladki ke naam par sarkaari yojana me sabse jyada fayda kisme?",
     qEn: "Best govt scheme return for a girl child",
     answer: "Main 'sabse achhi' nahi keh sakta — har pariwar ki zaroorat alag. Beti ke liye popular hain Sukanya Samriddhi (lambi bachat) aur Mahila Samman — main dono ka farak samjha deta hoon. Bataun farak?",
+    answerEn: "I can't say which is 'the best' — every family's needs differ. Popular options for a daughter are Sukanya Samriddhi (long-term savings) and Mahila Samman — I can explain the difference between the two. Want me to?",
     link: "nsiindia.gov.in", linkText: null, authority: "National Savings Institute",
   },
   {
@@ -113,6 +121,7 @@ export const QUESTIONS = [
     q: "Sukanya Samriddhi khata kholne ke kaun se kagaj?",
     qEn: "Documents to open Sukanya",
     answer: "Sukanya ke liye: beti ka birth certificate, aap (parent) ka ID + address proof, aur photo. Bank ya post office me kam se kam ₹250 se khulta hai. Bataun aur kya niyam hain?",
+    answerEn: "For Sukanya Samriddhi you need: the daughter's birth certificate, the parent's ID + address proof, and a photo. It can be opened at a bank or post office with as little as ₹250. Want me to explain the other rules?",
     link: "nsiindia.gov.in", linkText: null, authority: "National Savings Institute",
   },
   {
@@ -120,6 +129,7 @@ export const QUESTIONS = [
     q: "APY me kitna jama karne par 5000 pension?",
     qEn: "APY deposit for 5000 pension",
     answer: "APY me ₹1,000 se ₹5,000 tak monthly pension chun sakti hain; ₹5,000 ke liye kitna daalna hoga wo aapki umar pe depend karta hai (jitni kam umar, utna kam). Exact chart site pe. Bataun kaise chunein?",
+    answerEn: "Under APY you can choose a monthly pension from ₹1,000 to ₹5,000; how much you need to deposit for ₹5,000 depends on your age (the younger you start, the less you pay). The exact chart is on the official site. Want me to explain how to choose?",
     link: "jansuraksha.gov.in", linkText: null, authority: "Jan Suraksha (PMJJBY / PMSBY / APY)",
   },
   {
@@ -127,6 +137,7 @@ export const QUESTIONS = [
     q: "Ayushman Card se private hospital me muft ilaj kaise?",
     qEn: "Free treatment via Ayushman",
     answer: "Ayushman (PM-JAY) se empanelled private hospital me ₹5 lakh tak ka cashless ilaj muft hota hai, agar naam list me ho. Naam + paas ka hospital site pe check hota hai. Bataun naam kaise check karein?",
+    answerEn: "Under Ayushman (PM-JAY), you get cashless treatment up to ₹5 lakh for free at empanelled private hospitals, if your name is on the list. You can check your name and nearby hospitals on the official site. Want me to explain how to check?",
     link: "pmjay.gov.in", linkText: null, authority: "National Health Authority",
   },
   {
@@ -134,6 +145,7 @@ export const QUESTIONS = [
     q: "PM Awas Yojana ke 2.5 lakh khate me kab aate?",
     qEn: "When does PM Awas subsidy arrive",
     answer: "PM Awas ki madad kist me aati hai, par exact amount aur timing aapke case pe depend karti hai — main galat nahi bataunga. Apna status site pe dikhta hai. Bataun status kaise check karein?",
+    answerEn: "PM Awas assistance comes in installments, but the exact amount and timing depend on your case — I won't guess wrong. You can see your status on the official site. Want me to explain how to check it?",
     link: "pmayg.nic.in", linkText: null, authority: "Ministry of Rural Development (PMAY-G)",
   },
   {
@@ -141,6 +153,7 @@ export const QUESTIONS = [
     q: "Free silai machine yojana ka paisa kaise?",
     qEn: "Govt free sewing machine scheme",
     answer: "Dhyaan se — 'free silai machine' ke naam pe bahut fake form/message chalte hain, paisa ya OTP mat dijiye. Asli yojana state ki official site pe hoti hai. Bataun asli/nakli kaise pehchanein?",
+    answerEn: "Be careful — lots of fake forms/messages circulate in the name of 'free sewing machine' schemes; never share money or an OTP. Real schemes are listed on the state's official site. Want me to explain how to spot real vs. fake?",
     link: "india.gov.in", linkText: null, authority: "Government of India (National Portal)",
   },
   {
@@ -148,6 +161,7 @@ export const QUESTIONS = [
     q: "PM Mudra se 50000 Shishu loan kaise?",
     qEn: "50k Shishu loan under Mudra",
     answer: "Haan — PM Mudra ka Shishu loan (₹50,000 tak) chhote business ke liye bina guarantee milta hai. Bank ya JFS se apply hota hai. Bataun kya kagaz lagte hain?",
+    answerEn: "Yes — PM Mudra's Shishu loan (up to ₹50,000) is available for small businesses without any guarantee. You can apply through a bank or JFS. Want me to explain what documents are needed?",
     link: "mudra.org.in", linkText: null, authority: "PM Mudra / Ministry of MSME",
   },
   {
@@ -155,6 +169,7 @@ export const QUESTIONS = [
     q: "Gas subsidy khate me kyu nahi aa rahi, check kaise?",
     qEn: "Why no gas subsidy, how to check",
     answer: "Ghabraiye mat — subsidy na aaye to aksar Aadhaar-DBT link adhoora hota hai ya bank badla hota hai. Apni gas company ki site/app pe status dikhta hai. Bataun DBT link kaise check karein?",
+    answerEn: "Don't worry — if the subsidy isn't coming, it's usually because the Aadhaar-DBT link is incomplete or the bank account changed. You can check status on your gas company's site/app. Want me to explain how to check the DBT link?",
     link: "mylpg.in", linkText: null, authority: "Ministry of Petroleum and Natural Gas",
   },
   {
@@ -162,6 +177,7 @@ export const QUESTIONS = [
     q: "Jan Dhan me 10000 overdraft kaise milta?",
     qEn: "Claim 10k Jan Dhan overdraft",
     answer: "Jan Dhan me kuch samay baad overdraft (chhota loan) mil sakta hai agar khaata sahi chala ho — par exact limit ko lekar jaankari alag-alag hai, isliye main pakka number nahi bataunga. Site pe confirm hota hai. Bataun eligibility kya hai?",
+    answerEn: "After some time, a Jan Dhan account can get an overdraft (a small loan) if it's been run properly — but the exact limit varies by source, so I won't state a fixed number. It's confirmed on the official site. Want me to explain the eligibility?",
     link: "pmjdy.gov.in", linkText: null, authority: "PMJDY / Dept of Financial Services",
   },
   {
@@ -169,6 +185,7 @@ export const QUESTIONS = [
     q: "PMSBY ka claim maut ke baad kaise?",
     qEn: "Claim PMSBY after death",
     answer: "PMSBY (accident bima) ka claim: nominee ko bank me claim form + death certificate + accident ka proof (FIR/postmortem) dena hota hai, tay samay me. Bataun poori list kya hai?",
+    answerEn: "For a PMSBY (accident insurance) claim, the nominee needs to submit a claim form + death certificate + accident proof (FIR/post-mortem) to the bank within the set time. Want me to give the full list?",
     link: "jansuraksha.gov.in", linkText: null, authority: "Jan Suraksha (PMJJBY / PMSBY / APY)",
   },
   {
@@ -176,6 +193,7 @@ export const QUESTIONS = [
     q: "PMJJBY/PMSBY me 20 aur 436 katte hain, fayda?",
     qEn: "Benefit of small govt insurance debits",
     answer: "Ye do sasti sarkari bima hain — PMSBY (₹20/saal) ₹2 lakh accident cover deti hai, PMJJBY (₹436/saal) ₹2 lakh life cover. Bahut kaam ki. Bataun claim kaise hota hai?",
+    answerEn: "These are two cheap government insurance schemes — PMSBY (₹20/year) gives ₹2 lakh accident cover, and PMJJBY (₹436/year) gives ₹2 lakh life cover. Very worthwhile. Want me to explain how to claim?",
     link: "jansuraksha.gov.in", linkText: null, authority: "Jan Suraksha (PMJJBY / PMSBY / APY)",
   },
   {
@@ -183,6 +201,7 @@ export const QUESTIONS = [
     q: "Bima paise policy poori hone se pehle nikal sakte?",
     qEn: "Withdraw insurance before maturity",
     answer: "Kuch policy (endowment/LIC) me maturity se pehle 'surrender' kar sakte hain, par tab poora paisa nahi — kata hua milta hai. Term me kuch wapas nahi aata. Kaunsi policy hai, bataun uska niyam?",
+    answerEn: "For some policies (endowment/LIC), you can 'surrender' before maturity, but you won't get the full amount — it comes with a deduction. With term insurance, nothing comes back. Which policy do you have — want me to explain its rule?",
     link: "policyholder.gov.in", linkText: null, authority: "IRDAI",
   },
   {
@@ -190,6 +209,7 @@ export const QUESTIONS = [
     q: "Aadhaar me mobile number bina bank gaye kaise change karein?",
     qEn: "Update Aadhaar mobile without bank",
     answer: "Mobile number Aadhaar me online change nahi hota — nazdeeki Aadhaar kendra jaana padta hai (bank zaroori nahi), chhoti fees lagti hai. Bataun paas ka kendra kaise dhundhein?",
+    answerEn: "You can't change your mobile number on Aadhaar online — you need to visit your nearest Aadhaar centre (a bank isn't required), and a small fee applies. Want me to explain how to find the nearest centre?",
     link: "myaadhaar.uidai.gov.in", linkText: null, authority: "UIDAI",
   },
   {
@@ -197,6 +217,7 @@ export const QUESTIONS = [
     q: "KYC na karwane par account band ho jayega kya?",
     qEn: "Account blocked if no KYC",
     answer: "Haan, KYC adhoori rahe to account freeze/band ho sakta hai. Ghabraiye mat — branch ya app me ID update karke chaalu ho jata hai. Bataun kya kagaz lagte hain?",
+    answerEn: "Yes, if KYC is incomplete, the account can get frozen/blocked. Don't worry — it gets reactivated once you update your ID at the branch or in the app. Want me to explain which documents are needed?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -204,6 +225,7 @@ export const QUESTIONS = [
     q: "PAN ko Aadhaar se link na karne par nuksan?",
     qEn: "Consequences of not linking PAN-Aadhaar",
     answer: "PAN-Aadhaar link na ho to PAN 'inoperative' ho jata hai — refund ruk sakta hai aur zyada TDS katta hai. incometax.gov.in pe status check + link ho jata hai (fees ke saath). Bataun status kaise dekhein?",
+    answerEn: "If PAN-Aadhaar isn't linked, the PAN becomes 'inoperative' — refunds can get stuck and more TDS gets deducted. You can check status and link it (with a fee) on incometax.gov.in. Want me to explain how to check?",
     link: "incometax.gov.in", linkText: null, authority: "Income Tax Department",
   },
   {
@@ -211,6 +233,7 @@ export const QUESTIONS = [
     q: "CIBIL kharab hai, urgent loan kaise milega?",
     qEn: "Bad CIBIL, urgent loan",
     answer: "Samajh sakta hoon, tension hoti hai. Kam CIBIL pe bade bank mushkil dete hain — par gold loan jaisa secured loan aksar mil jata hai. '5-minute instant loan' apps se bachiye. Bataun gold loan kaise?",
+    answerEn: "I understand, it's stressful. With a low CIBIL score, big banks rarely lend — but a secured loan like a gold loan is often available. Stay away from '5-minute instant loan' apps. Want me to explain how a gold loan works?",
     link: "cibil.com", linkText: null, authority: "CIBIL (TransUnion)",
   },
   {
@@ -218,6 +241,7 @@ export const QUESTIONS = [
     q: "KCC ka paisa samay par na bharne par kya?",
     qEn: "KCC dues not paid on time",
     answer: "KCC ka paisa time par na bhare to byaj-chhoot (interest subvention) ka fayda chala jata hai aur account NPA ho sakta hai. Fasal ke baad time pe chukana behtar. Bataun renew kaise hota hai?",
+    answerEn: "If a KCC loan isn't repaid on time, you lose the interest subvention benefit and the account can become an NPA. It's best to repay right after harvest. Want me to explain how to renew it?",
     link: "nabard.org", linkText: null, authority: "NABARD",
   },
   {
@@ -225,6 +249,7 @@ export const QUESTIONS = [
     q: "Personal loan lekar purana karza chukana sahi?",
     qEn: "Personal loan to clear old debt",
     answer: "Ye faisla soch-samajh ka hai — main 'lo/mat lo' nahi keh sakta. Kabhi ek loan se purana chukana theek lagta hai, par naya byaj/EMI dekhna zaroori. Bataun pehle kya-kya check karein?",
+    answerEn: "This is a decision that needs careful thought — I can't say 'take it' or 'don't.' Sometimes clearing an old loan with a new one makes sense, but you must check the new interest/EMI. Want me to explain what to check first?",
     link: null, linkText: null, authority: null,
   },
   {
@@ -232,6 +257,7 @@ export const QUESTIONS = [
     q: "Bank me 1 lakh ki FD par saal ka kitna byaj?",
     qEn: "Annual interest on 1 lakh FD",
     answer: "FD ka byaj bank aur time-period pe alag hota hai aur badalta rehta hai — main galat number nahi bataunga. Aapke bank ka exact rate + ₹1 lakh pe kitna, wo bank site/branch pe. Bataun FD kaise kaam karti hai?",
+    answerEn: "FD interest varies by bank and tenure, and keeps changing — I won't give you a wrong number. Your bank's exact rate, and what ₹1 lakh would earn, is on the bank's site/branch. Want me to explain how an FD works?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -239,6 +265,7 @@ export const QUESTIONS = [
     q: "Sona me paisa lagana sahi ya bank me rakhna?",
     qEn: "Gold vs bank savings",
     answer: "Dono ka apna kaam hai — bank ka paisa emergency me turant, sona lambe waqt/tehwaar ke liye. Sab ek jagah mat rakhiye. Main 'best' nahi keh sakta, par farak samjha deta hoon. Bataun digital gold kya hai?",
+    answerEn: "Both have their own purpose — bank money is instant for emergencies, gold is for the long term/festivals. Don't keep everything in one place. I can't say which is 'best,' but I can explain the difference. Want me to explain digital gold?",
     link: null, linkText: null, authority: null,
   },
   {
@@ -246,6 +273,7 @@ export const QUESTIONS = [
     q: "UPI se paise kat gaye par jisko bheja usko nahi mile, ab kya karein?",
     qEn: "Money deducted via UPI but receiver didn't get it",
     answer: "Ghabraiye mat — aisa hota hai, paisa aksar wapas aa jata hai. App me us transaction pe 'Raise dispute' dabaiye; bank ko tay samay me refund karna hota hai. Bataun dispute kahan milta hai?",
+    answerEn: "Don't worry — this happens, and the money usually comes back. Tap 'Raise dispute' on that transaction in the app; the bank has to refund it within the set time. Want me to explain where to find the dispute option?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -253,6 +281,7 @@ export const QUESTIONS = [
     q: "PhonePe/GPay par galat number par paise chale gaye, wapas kaise?",
     qEn: "Sent money to wrong number, how to refund",
     answer: "Ghabraiye mat. Turant app me us payment pe dispute raise kijiye aur bank ko bataiye; galat paane wale se bank/NPCI wapasi ki koshish karta hai. Jaldi karein. Bataun steps?",
+    answerEn: "Don't worry. Raise a dispute on that payment in the app right away and inform your bank; the bank/NPCI tries to recover it from the wrong recipient. Act quickly. Want me to explain the steps?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -260,6 +289,7 @@ export const QUESTIONS = [
     q: "Google Pay fraud call nakli hai kaise pata karein?",
     qEn: "Spot a fake support/fraud call",
     answer: "Yaad rakhiye — Google Pay ya bank kabhi phone pe OTP, PIN ya 'app download karo' nahi kehte. Aisa call = thagi, phone rakh dijiye. Shak ho to 1930. Bataun aur kaise pehchanein?",
+    answerEn: "Remember — Google Pay or your bank never ask for an OTP, PIN, or to 'download an app' over the phone. Such a call means fraud — hang up. If in doubt, call 1930. Want me to explain more ways to spot it?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -267,6 +297,7 @@ export const QUESTIONS = [
     q: "OTP batane se khate se poora paisa saaf?",
     qEn: "Can sharing OTP empty account",
     answer: "Haan — OTP/PIN kisi ko dena bahut khatarnaak, isse khaata khaali ho sakta hai. Kabhi kisi ko OTP mat dijiye. De diya ho to turant 1930 par call + bank block. Bataun aage kya karein?",
+    answerEn: "Yes — sharing your OTP/PIN with anyone is very dangerous and can empty your account. Never share an OTP with anyone. If you already have, call 1930 immediately and block your account. Want me to explain what to do next?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -274,6 +305,7 @@ export const QUESTIONS = [
     q: "QR code scan se paise katte ya aate?",
     qEn: "Does scanning QR debit or credit",
     answer: "Yaad rakhiye — paisa LENE ke liye kabhi QR scan ya PIN nahi lagta; PIN sirf paisa BHEJNE me. Koi 'refund ke liye QR scan karo' kahe to wo 100% scam hai. Bataun safe payment kaise pehchanein?",
+    answerEn: "Remember — you never need to scan a QR code or enter a PIN to RECEIVE money; a PIN is only needed to SEND money. If anyone says 'scan this QR to get a refund,' it's 100% a scam. Want me to explain how to spot a safe payment?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -281,6 +313,7 @@ export const QUESTIONS = [
     q: "Cyber fraud par 1930 par kab tak shikayat?",
     qEn: "Time window to report on 1930",
     answer: "Jitni jaldi ho utna behtar — RBI ke niyam se 3 kaam-kaaji din ke andar report kar dein aur galti aapki na ho to aap par zimmedari nahi (zero liability). Turant 1930 ya cybercrime.gov.in. Bataun kaise report karein?",
+    answerEn: "The sooner the better — under RBI rules, report within 3 working days, and if the fault wasn't yours, you bear zero liability. Call 1930 or visit cybercrime.gov.in right away. Want me to explain how to report?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -288,6 +321,7 @@ export const QUESTIONS = [
     q: "Har 3 mahine me SMS charge kyu kaat lete?",
     qEn: "Why SMS charge every 3 months",
     answer: "'SMS charge' matlab bank har tiwahi (quarter) me transaction-SMS bhejne ka chhota shulk leta hai. Amount bank pe depend, band bhi ho sakta hai. Bataun kaise kam karein?",
+    answerEn: "The 'SMS charge' means the bank takes a small fee every quarter for sending transaction SMS alerts. The amount depends on the bank, and it can be switched off. Want me to explain how to reduce it?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -295,6 +329,7 @@ export const QUESTIONS = [
     q: "ATM card ka saalana maintenance charge kyu?",
     qEn: "Why annual ATM card fee",
     answer: "Debit/ATM card ka saalana charge (AMC) bank aur card type pe alag hota hai — exact figure bank ki charge-list pe. Bataun apne card ka charge kaise dekhein?",
+    answerEn: "The annual maintenance charge (AMC) on a debit/ATM card varies by bank and card type — the exact figure is on the bank's charge list. Want me to explain how to check your card's charge?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -302,6 +337,7 @@ export const QUESTIONS = [
     q: "Bank locker ka saal ka kitna kharcha?",
     qEn: "Annual bank locker cost",
     answer: "Bank locker ka saalana kiraya locker ke size aur branch pe depend karta hai. Exact rent aapke bank pe. Bataun locker kaise milta hai?",
+    answerEn: "A bank locker's annual rent depends on the locker size and branch. The exact rent is with your bank. Want me to explain how to get a locker?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -309,6 +345,7 @@ export const QUESTIONS = [
     q: "Passbook kho jaye to nayi ka charge kitna?",
     qEn: "Duplicate passbook charge",
     answer: "Passbook kho jaye to duplicate mil jati hai, uspe bank ek chhoti fees leta hai (amount bank pe depend). Branch me application dijiye. Bataun process kya hai?",
+    answerEn: "If a passbook is lost, you can get a duplicate — the bank charges a small fee for it (amount depends on the bank). Submit an application at the branch. Want me to explain the process?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -316,6 +353,7 @@ export const QUESTIONS = [
     q: "YouTube se kamane ke liye kitne subscriber chahiye?",
     qEn: "Subscribers needed to earn on YouTube",
     answer: "YouTube se kamane ke liye channel monetize karna padta hai — 1,000 subscriber + 4,000 ghante watch-time (12 mahine me) chahiye; ya naye chhote tier me 500 subscriber + 3,000 ghante. Bataun monetize kaise hota hai?",
+    answerEn: "To earn from YouTube, you need to monetize your channel — that needs 1,000 subscribers + 4,000 watch hours (in 12 months); or under the newer smaller tier, 500 subscribers + 3,000 hours. Want me to explain how to monetize?",
     link: "support.google.com/youtube", linkText: null, authority: "Google (YouTube Help)",
   },
   {
@@ -323,6 +361,7 @@ export const QUESTIONS = [
     q: "Health insurance purani bimariyo ka kharcha deta?",
     qEn: "Health cover for pre-existing diseases",
     answer: "Aksar health insurance me purani bimariyo (pre-existing) ka kharcha ek 'waiting period' (kuch saal) ke baad milta hai, turant nahi. Har policy alag — lene se pehle waiting period poochiye. Bataun kya check karein?",
+    answerEn: "Health insurance usually covers pre-existing conditions only after a 'waiting period' (a few years), not immediately. Every policy differs — ask about the waiting period before buying. Want me to explain what else to check?",
     link: "policyholder.gov.in", linkText: null, authority: "IRDAI",
   },
   {
@@ -330,6 +369,7 @@ export const QUESTIONS = [
     q: "Term Insurance aur Money Back me antar?",
     qEn: "Term vs Money Back policy",
     answer: "Seedha farak — Term insurance sirf suraksha (sasti, maut par bada paisa, bachne par kuch nahi); Money-back me beech-beech me paisa par premium mehnga. 'Best' aapki zaroorat pe. Bataun kaunsi kis ke liye?",
+    answerEn: "Simple difference — term insurance is pure protection (cheap, a large payout on death, nothing if you survive); money-back gives periodic payouts but a costlier premium. What's 'best' depends on your need. Want me to explain which suits what?",
     link: "policyholder.gov.in", linkText: null, authority: "IRDAI",
   },
   {
@@ -337,6 +377,7 @@ export const QUESTIONS = [
     q: "Ration card Aadhaar se link mandatory hai kya?",
     qEn: "Is ration-Aadhaar link mandatory",
     answer: "Haan, aam taur pe ration card ko Aadhaar se link karna zaroori hai (warna naam hat sakta hai). State ke PDS portal ya ration dukaan pe ho jata hai. Bataun kaise link karein?",
+    answerEn: "Yes, generally linking your ration card to Aadhaar is required (otherwise your name can be removed). It can be done at the state's PDS portal or ration shop. Want me to explain how to link it?",
     link: "nfsa.gov.in", linkText: null, authority: "NFSA / State PDS",
   },
   {
@@ -344,6 +385,7 @@ export const QUESTIONS = [
     q: "Mobile se silai/parlour/tiffin business loan kaise?",
     qEn: "Loan for home business",
     answer: "Haan — silai/parlour/tiffin jaise kaam ke liye PM Mudra (Shishu) loan bina guarantee milta hai; mahila SHG se bhi. Bank/JFS se apply. Bataun kya kagaz lagte hain?",
+    answerEn: "Yes — for work like tailoring/parlour/tiffin service, a PM Mudra (Shishu) loan is available without a guarantee; also through a women's SHG. Apply via a bank or JFS. Want me to explain what documents are needed?",
     link: "mudra.org.in", linkText: null, authority: "PM Mudra / Ministry of MSME",
   },
   {
@@ -351,6 +393,7 @@ export const QUESTIONS = [
     q: "Shriram/Chola se bike loan sarkaari bank se sasta?",
     qEn: "NBFC vs bank bike loan",
     answer: "Aksar sarkari/bade bank ka byaj NBFC se kam hota hai, par NBFC jaldi de dete hain. Main 'best' nahi keh sakta — dono ka byaj + total cost compare kijiye. Bataun kya dekhein?",
+    answerEn: "Government/big bank interest rates are usually lower than NBFCs, but NBFCs approve faster. I can't say which is 'best' — compare the interest and total cost of both. Want me to explain what to check?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -358,6 +401,7 @@ export const QUESTIONS = [
     q: "Gold loan sunar sasta ya Muthoot/Manappuram?",
     qEn: "Jeweler vs NBFC gold loan",
     answer: "Registered gold-loan company (Muthoot/Manappuram/bank) niyam se chalti hai aur surakshit hoti hai; local sunar se sona/paisa dono ka risk. Byaj compare kijiye. Bataun gold loan me kya dekhein?",
+    answerEn: "A registered gold-loan company (Muthoot/Manappuram/bank) operates under regulation and is safer; with a local jeweller, both your gold and money are at risk. Compare the interest rates. Want me to explain what to check in a gold loan?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -365,6 +409,7 @@ export const QUESTIONS = [
     q: "Amazon Pay Later se CIBIL kharab hota?",
     qEn: "Does Amazon Pay Later hurt CIBIL",
     answer: "Haan — Pay Later bhi chhota loan hota hai, isliye time par na bhare to CIBIL pe asar padta hai. Time pe bhar do to koi dikkat nahi. Bataun CIBIL kaise dekhein?",
+    answerEn: "Yes — Pay Later is also a small loan, so not paying on time affects your CIBIL score. If you pay on time, there's no issue. Want me to explain how to check your CIBIL?",
     link: "cibil.com", linkText: null, authority: "CIBIL (TransUnion)",
   },
   {
@@ -372,6 +417,7 @@ export const QUESTIONS = [
     q: "Sarkaari naukri na ho to bhi credit card milega?",
     qEn: "Credit card without govt job",
     answer: "Haan — sarkari naukri zaroori nahi. Bank income proof (salary/ITR/bank statement) aur achha CIBIL dekhte hain; FD ke against 'secured' credit card bhi milta hai. Bataun secured card kya hai?",
+    answerEn: "Yes — a government job isn't required. Banks check income proof (salary/ITR/bank statement) and a good CIBIL score; you can also get a 'secured' credit card against an FD. Want me to explain what a secured card is?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -379,6 +425,7 @@ export const QUESTIONS = [
     q: "FD beech me todne par bank kitna kaat leta?",
     qEn: "Premature FD penalty",
     answer: "FD beech me todne pe bank thoda kam byaj + chhoti penalty leta hai (amount bank pe depend). Emergency me tod sakte hain, par thoda nuksaan. Exact bank pe. Bataun todne se pehle kya dekhein?",
+    answerEn: "Breaking an FD early means the bank gives slightly lower interest plus a small penalty (amount depends on the bank). You can break it in an emergency, but there's a small loss. Exact terms are with your bank. Want me to explain what to check before breaking it?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -386,6 +433,7 @@ export const QUESTIONS = [
     q: "1000 ki bachat ke liye Post Office ya bank?",
     qEn: "Post Office vs bank for saving",
     answer: "Dono surakshit hain — Post Office schemes (RD/MIS) me byaj aksar guaranteed hota hai; bank me paisa jaldi haath aata hai. Main 'best' nahi keh sakta. Bataun Post Office RD kya hai?",
+    answerEn: "Both are safe — Post Office schemes (RD/MIS) usually have guaranteed interest; a bank gives you quicker access to your money. I can't say which is 'best.' Want me to explain what a Post Office RD is?",
     link: "nsiindia.gov.in", linkText: null, authority: "National Savings Institute",
   },
   {
@@ -393,6 +441,7 @@ export const QUESTIONS = [
     q: "Biwi ke naam PPF kholkar bachat sahi?",
     qEn: "PPF in wife's name",
     answer: "PPF biwi ke naam khol sakte hain, bachat achhi (tax-free, 80C). 'Sahi' aapke goal pe depend — main salah nahi de sakta, par PPF kaise kaam karta hai bata deta hoon. Bataun?",
+    answerEn: "You can open a PPF in your wife's name — it's good savings (tax-free, under 80C). Whether it's 'right' depends on your goal — I can't advise, but I can explain how PPF works. Want me to?",
     link: "incometax.gov.in", linkText: null, authority: "Income Tax Department",
   },
   {
@@ -400,6 +449,7 @@ export const QUESTIONS = [
     q: "Third Party gadi bima se apni gadi cover?",
     qEn: "Does third-party cover own vehicle",
     answer: "Nahi — third-party bima sirf doosre ki gadi/vyakti ke nuksaan ko cover karta hai, aapki apni gadi ko nahi. Apni gadi ke liye 'comprehensive' chahiye. Bataun dono me farak?",
+    answerEn: "No — third-party insurance only covers damage to the other person's vehicle/injury, not your own vehicle. For your own vehicle, you need 'comprehensive' cover. Want me to explain the difference between the two?",
     link: "policyholder.gov.in", linkText: null, authority: "IRDAI",
   },
   {
@@ -407,6 +457,7 @@ export const QUESTIONS = [
     q: "Account me minimum balance nahi rakha to kitna charge?",
     qEn: "Charge for not keeping min balance",
     answer: "Kuch khaton me minimum balance na rakhne pe penalty lagti hai (amount bank pe depend); zero-balance/Jan Dhan me nahi. Exact charge bank site pe. Bataun zero-balance me kaise badlein?",
+    answerEn: "Some accounts charge a penalty for not maintaining the minimum balance (amount depends on the bank); zero-balance/Jan Dhan accounts don't. The exact charge is on the bank's site. Want me to explain how to switch to zero-balance?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -414,6 +465,7 @@ export const QUESTIONS = [
     q: "Mobile recharge par 2-3 extra charge se kaise bachein?",
     qEn: "Avoid recharge platform fee",
     answer: "Wo kuch apps ki convenience fee hoti hai. Bachne ke liye seedhe apne operator (Jio/Airtel) ke app/site se ya Bharat BillPay (BBPS) se recharge karein. Bataun BBPS se kaise?",
+    answerEn: "That's a convenience fee some apps charge. To avoid it, recharge directly from your operator's (Jio/Airtel) app/site, or via Bharat BillPay (BBPS). Want me to explain how to use BBPS?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -421,6 +473,7 @@ export const QUESTIONS = [
     q: "PhonePe se bijli bill par cashback kaise?",
     qEn: "Cashback on bill payment",
     answer: "Cashback har app/offer pe alag, pakka nahi hota — ispe depend mat kijiye. Bill time pe bharna zyada zaroori (late fee bachti hai). Bataun bill safe kaise bharein?",
+    answerEn: "Cashback varies by app/offer and isn't guaranteed — don't rely on it. Paying the bill on time matters more (it avoids the late fee). Want me to explain how to pay bills safely?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -428,6 +481,7 @@ export const QUESTIONS = [
     q: "Bijli bill zyada aaya, kam kaise karaye?",
     qEn: "Electricity bill high, how to correct",
     answer: "Bill zyada lage to pehle meter reading + units check kijiye; galti lage to apni bijli company (discom) me shikayat kar sakti hain. Bataun shikayat kaise karein?",
+    answerEn: "If the bill seems too high, first check the meter reading and units used; if something's wrong, you can complain to your electricity company (discom). Want me to explain how to file a complaint?",
     link: null, linkText: "Check with your electricity provider", authority: "Your electricity provider (discom)",
   },
   {
@@ -435,6 +489,7 @@ export const QUESTIONS = [
     q: "PM Kisan ka paisa kab aayega, kaise check?",
     qEn: "When PM-Kisan comes, how to check",
     answer: "PM-Kisan ka paisa saal me 3 kist me aata hai (₹6,000 = ₹2,000 x3) — exact tareekh sarkar tay karti hai. Apna status 'Beneficiary Status' me Aadhaar/mobile daal kar dikhta hai. Bataun status kaise dekhein?",
+    answerEn: "PM-Kisan money comes in 3 instalments a year (₹6,000 = ₹2,000 x 3) — the exact date is set by the government. You can see your status under 'Beneficiary Status' by entering your Aadhaar/mobile number. Want me to explain how to check it?",
     link: "pmkisan.gov.in", linkText: null, authority: "PM-Kisan / DAC&FW",
   },
   {
@@ -442,6 +497,7 @@ export const QUESTIONS = [
     q: "Ladli Behna Yojana me form kaise bhare?",
     qEn: "How to apply Ladli Behna Yojana",
     answer: "Ladli Behna Madhya Pradesh sarkar ki yojana hai — form aanganwadi/camp ya official portal pe bharti hain (Aadhaar+bank+samagra ID). Ye state ke hisaab se alag. Bataun apni state ki kaise dekhein?",
+    answerEn: "Ladli Behna is a Madhya Pradesh government scheme — the form is filled at an anganwadi/camp or the official portal (with Aadhaar + bank + Samagra ID). This varies by state. Want me to explain how to check your state's version?",
     link: null, linkText: "Check your state's official portal", authority: "State government portal",
   },
   {
@@ -449,6 +505,7 @@ export const QUESTIONS = [
     q: "Ujjwala Yojana me free gas kaise?",
     qEn: "Free gas under Ujjwala",
     answer: "Ujjwala (PMUY) me eligible mahilaon ko free LPG connection milta hai — Aadhaar, ration/BPL proof, bank detail se apply hota hai. Bataun eligibility kaise check karein?",
+    answerEn: "Under Ujjwala (PMUY), eligible women get a free LPG connection — you apply with Aadhaar, ration/BPL proof, and bank details. Want me to explain how to check eligibility?",
     link: "pmuy.gov.in", linkText: null, authority: "Ministry of Petroleum (Ujjwala)",
   },
   {
@@ -456,6 +513,7 @@ export const QUESTIONS = [
     q: "Aadhaar bank se link hai ya nahi kaise pata?",
     qEn: "Check if Aadhaar linked to bank",
     answer: "Aap UIDAI ki site/app pe ya bank me check kar sakti hain ki Aadhaar bank se link hai ya nahi. DBT ke liye link + DBT-enable dono zaroori. Bataun online kaise dekhein?",
+    answerEn: "You can check whether your Aadhaar is linked to your bank on UIDAI's site/app or at the bank. For DBT, both linking and DBT-enabling are needed. Want me to explain how to check it online?",
     link: "myaadhaar.uidai.gov.in", linkText: null, authority: "UIDAI",
   },
   {
@@ -463,6 +521,7 @@ export const QUESTIONS = [
     q: "PAN nahi hai, bank account khul jayega?",
     qEn: "No PAN, open account",
     answer: "Haan — bina PAN bhi 'small account' (BSBDA) khul sakta hai, par usme kuch limits hoti hain aur baad me PAN/Form-60 dena padta hai. Bataun small account kya hota hai?",
+    answerEn: "Yes — a 'small account' (BSBDA) can be opened without a PAN, but it comes with some limits, and you'll need to submit PAN/Form-60 later. Want me to explain what a small account is?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -470,6 +529,7 @@ export const QUESTIONS = [
     q: "Zero% EMI sach me free hai ya chupa charge?",
     qEn: "Is zero-interest EMI really free",
     answer: "Sahi shaq. 'Zero% EMI' me aksar processing fee ya product ka discount hata liya jata hai — bilkul free kam hota hai. Lene se pehle total cost pooch lijiye. Bataun asli cost kaise check karein?",
+    answerEn: "Good instinct to question it. 'Zero% EMI' often removes the processing fee or the product's discount — it's rarely truly free. Ask for the total cost before buying. Want me to explain how to check the real cost?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -477,6 +537,7 @@ export const QUESTIONS = [
     q: "Bina security business loan kaise lein?",
     qEn: "Business loan without collateral",
     answer: "Haan — PM Mudra (₹10 lakh tak) chhote business ke liye bina guarantee deta hai; CGTMSE ke tehat bhi collateral-free loan milta hai. Bank/JFS se apply. Bataun Shishu/Kishor/Tarun me farak?",
+    answerEn: "Yes — PM Mudra (up to ₹10 lakh) offers small businesses a loan without a guarantee; a collateral-free loan is also available under CGTMSE. Apply via a bank or JFS. Want me to explain the difference between Shishu/Kishor/Tarun?",
     link: "mudra.org.in", linkText: null, authority: "PM Mudra / Ministry of MSME",
   },
   {
@@ -484,6 +545,7 @@ export const QUESTIONS = [
     q: "EMI bounce hone pe kitna fine?",
     qEn: "EMI bounce penalty",
     answer: "EMI bounce hone pe bank/NBFC 'bounce charge' + late fee leta hai (amount lender pe depend) aur baar-baar ho to CIBIL girta hai. Exact charge loan-papers me. Bataun bachne ka tareeka?",
+    answerEn: "If an EMI bounces, the bank/NBFC charges a 'bounce fee' plus late fee (amount depends on the lender), and repeated bounces hurt your CIBIL score. The exact charge is in your loan papers. Want me to explain how to avoid this?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -491,6 +553,7 @@ export const QUESTIONS = [
     q: "SHG group se loan kaise milta mahilaon ko?",
     qEn: "How women get SHG loan",
     answer: "Mahila Self-Help-Group (SHG) me judkar group ke through bank se sasta loan milta hai (DAY-NRLM). Aam taur pe pehle group bachat, phir loan. Bataun SHG se kaise judein?",
+    answerEn: "By joining a Women's Self-Help Group (SHG), you can get a cheaper loan through the bank (DAY-NRLM). Usually the group saves together first, then loans follow. Want me to explain how to join an SHG?",
     link: "aajeevika.gov.in", linkText: null, authority: "Ministry of Rural Development (DAY-NRLM)",
   },
   {
@@ -498,6 +561,7 @@ export const QUESTIONS = [
     q: "Har mahine 500 bachane ke liye FD ya RD?",
     qEn: "FD or RD for 500/month",
     answer: "Seedha farak — FD: ek baar paisa; RD: har mahine thoda (₹500 jaisa). Har mahine bachat karni hai to RD aasaan. Koi 'best' nahi. Bataun RD kahan khulti hai?",
+    answerEn: "Simple difference — FD: a one-time deposit; RD: a little every month (like ₹500). If you want to save monthly, RD is easier. Neither is 'best' overall. Want me to explain where to open an RD?",
     link: "nsiindia.gov.in", linkText: null, authority: "National Savings Institute",
   },
   {
@@ -505,6 +569,7 @@ export const QUESTIONS = [
     q: "UPI PIN bhool gaya, reset kaise?",
     qEn: "Forgot UPI PIN, how to reset",
     answer: "Ghabraiye mat — UPI PIN app me hi reset ho jata hai: debit-card ke aakhri 6 digit + expiry daal kar naya PIN set karein. Bataun step-by-step?",
+    answerEn: "Don't worry — you can reset your UPI PIN right in the app: enter the last 6 digits of your debit card + its expiry to set a new PIN. Want me to explain it step by step?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -512,6 +577,7 @@ export const QUESTIONS = [
     q: "UPI limit kitni ek din me?",
     qEn: "Daily UPI limit",
     answer: "UPI ki aam limit ₹1,00,000 per din hoti hai, par aapka bank isse kam bhi rakh sakta hai (naye account me pehle din kam). Exact limit app ke 'Limits' me. Bataun kahan dekhein?",
+    answerEn: "The usual UPI limit is ₹1,00,000 per day, but your bank may set it lower (new accounts often have a lower limit on the first day). The exact limit is under 'Limits' in the app. Want me to explain where to check it?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -519,6 +585,7 @@ export const QUESTIONS = [
     q: "UPI collect request aaya, accept karu?",
     qEn: "Got UPI collect request, accept?",
     answer: "Savdhaan — 'collect request' accept karne se paisa aapke khate se JATA hai, aata nahi. Anjaan request kabhi accept/approve mat kijiye. Bataun asli/nakli request kaise pehchanein?",
+    answerEn: "Be careful — accepting a 'collect request' sends money OUT of your account, not in. Never accept/approve a request from someone you don't know. Want me to explain how to spot a real vs. fake request?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -526,6 +593,7 @@ export const QUESTIONS = [
     q: "Phone kho gaya, UPI kaise band?",
     qEn: "Lost phone, how to block UPI",
     answer: "Turant ye karein — SIM band karwaein (operator), bank ko bata kar UPI/mobile-banking block karwaein, naye phone pe hi dobara set karein. Jaldi karein. Bataun kis-kis ko call karein?",
+    answerEn: "Do this immediately — block your SIM (via the operator), inform your bank to block UPI/mobile banking, and set it up again only on your new phone. Act fast. Want me to explain exactly who to call?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -533,6 +601,7 @@ export const QUESTIONS = [
     q: "ATM card clone lagta hai, block kaise?",
     qEn: "Card cloned, how to block",
     answer: "Turant card block karein — bank helpline, app me 'block card', ya SMS se. Fir 1930 par report. Jitni jaldi block, utna surakshit. Bataun aapke bank ka block number kahan milega?",
+    answerEn: "Block your card immediately — via the bank helpline, 'block card' in the app, or SMS. Then report it at 1930. The faster you block it, the safer you are. Want me to explain where to find your bank's block number?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -540,6 +609,7 @@ export const QUESTIONS = [
     q: "Biwi ke naam account kholne se tax fayda?",
     qEn: "Tax benefit of wife's account",
     answer: "Sirf account kholne se tax fayda nahi hota — fayda 80C wali schemes (PPF/Sukanya) me hota hai. Main tax salah nahi de sakta, par 80C samjha deta hoon. Bataun?",
+    answerEn: "Just opening an account doesn't give a tax benefit — the benefit comes from 80C schemes (PPF/Sukanya). I can't give tax advice, but I can explain 80C. Want me to?",
     link: "incometax.gov.in", linkText: null, authority: "Income Tax Department",
   },
   {
@@ -547,6 +617,7 @@ export const QUESTIONS = [
     q: "Nominee ka naam na dalein to paise fas jate?",
     qEn: "Money stuck without nominee",
     answer: "Nominee na ho to paisa 'fasta' nahi par waarison ko lene me zyada kagaz + der lagti hai. Isliye har khate/FD me nominee zaroor jodiye — 2 minute ka kaam. Bataun kaise jodein?",
+    answerEn: "Without a nominee, the money isn't 'stuck,' but heirs need more paperwork and time to claim it. So add a nominee to every account/FD — it takes just 2 minutes. Want me to explain how?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -554,6 +625,7 @@ export const QUESTIONS = [
     q: "Bank manager loan mana kare to complaint kahan?",
     qEn: "Complain if manager refuses loan",
     answer: "Loan mana ho to pehle likhit me kaaran maangiye; santusht na ho to bank ke Grievance/Nodal officer, phir RBI Ombudsman (free) me shikayat kar sakti hain. Bataun shikayat kaise?",
+    answerEn: "If a loan is refused, first ask for the reason in writing; if unsatisfied, you can complain to the bank's Grievance/Nodal officer, then the RBI Ombudsman (free of cost). Want me to explain how to complain?",
     link: "cms.rbi.org.in", linkText: null, authority: "RBI Ombudsman",
   },
   {
@@ -561,6 +633,7 @@ export const QUESTIONS = [
     q: "Khata chalu rakhne ke liye saal me kitna lena-dena?",
     qEn: "Min transactions to keep account active",
     answer: "Khaata 'active' rehne ke liye 2 saal me kam se kam ek len-den zaroori — warna khaata inoperative (dormant) ho jata hai. Ghabraiye mat, dobara chaalu karne pe RBI ke niyam se koi charge nahi. Bataun chaalu kaise karein?",
+    answerEn: "To keep an account 'active,' at least one transaction is needed every 2 years — otherwise it becomes inoperative (dormant). Don't worry, reactivating it carries no charge under RBI rules. Want me to explain how to reactivate it?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -568,6 +641,7 @@ export const QUESTIONS = [
     q: "Passbook update nahi ho raha, online kaise dekhe?",
     qEn: "Passbook not updating, check online",
     answer: "Passbook update na ho to net-banking/app me 'statement' se poora len-den dekh sakti hain, ya branch/passbook-machine se print. Bataun app me statement kahan milta hai?",
+    answerEn: "If the passbook isn't updating, you can see all transactions via 'statement' in net-banking/the app, or print it at the branch/passbook machine. Want me to explain where to find the statement in the app?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -575,6 +649,7 @@ export const QUESTIONS = [
     q: "NEFT aur IMPS me farak, charge kitna?",
     qEn: "NEFT vs IMPS, charges",
     answer: "Seedha farak — NEFT/IMPS dono se transfer hota hai; IMPS turant (24x7), NEFT bhi ab 24x7 hai. Online in par aksar charge nahi ya bahut kam (bank pe depend). Bataun kaunsa kab use karein?",
+    answerEn: "Simple difference — both NEFT and IMPS transfer money; IMPS is instant (24x7), and NEFT is now 24x7 too. Online, these usually cost nothing or very little (depends on the bank). Want me to explain when to use which?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -582,6 +657,7 @@ export const QUESTIONS = [
     q: "Joint account me pati mare to paisa kaun lega?",
     qEn: "Who gets joint account after death",
     answer: "Joint account me aksar 'either or survivor' hota hai — ek ki mrityu par doosra (survivor) paisa le sakta hai (death certificate ke saath). Bataun kya kagaz lagte hain?",
+    answerEn: "A joint account is usually set up as 'either or survivor' — if one holder passes away, the other (survivor) can claim the money (with a death certificate). Want me to explain what documents are needed?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -589,6 +665,7 @@ export const QUESTIONS = [
     q: "Account dormant ho gaya, chalu kaise?",
     qEn: "Reactivate dormant account",
     answer: "Ghabraiye mat — dormant khaata branch me ek chhoti KYC/application se dobara chaalu ho jata hai, aksar bina charge. Bataun kya le kar jaana hai?",
+    answerEn: "Don't worry — a dormant account can be reactivated at the branch with a small KYC/application, usually free of charge. Want me to explain what to bring?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -596,6 +673,7 @@ export const QUESTIONS = [
     q: "FASTag recharge kaise Paytm se?",
     qEn: "Recharge FASTag via Paytm",
     answer: "Kisi bhi UPI app me 'Pay to UPI ID' me netc.<gaadi number>@<bank handle> daal kar PIN se recharge ho jata hai — alag app login zaroori nahi. Bataun apni gaadi ka sahi UPI ID kaise banega?",
+    answerEn: "In any UPI app, enter netc.<vehicle number>@<bank handle> under 'Pay to UPI ID' and recharge with your PIN — you don't need a separate app login. Want me to explain how to form your vehicle's correct UPI ID?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -603,6 +681,7 @@ export const QUESTIONS = [
     q: "Water bill online kaise bhare gaon me?",
     qEn: "Pay water bill online in village",
     answer: "Har state ki apni jal-board/nagar-palika site hoti hai; ya kisi bhi UPI/bank app ke Bill Payment (BBPS) me 'Water' chunkar bhar sakti hain. Bataun apne board ka naam kaise pata karein?",
+    answerEn: "Every state has its own water-board/municipality site; or you can pay by selecting 'Water' under Bill Payment (BBPS) in any UPI/bank app. Want me to explain how to find your board's name?",
     link: "npci.org.in", linkText: null, authority: "NPCI",
   },
   {
@@ -610,6 +689,7 @@ export const QUESTIONS = [
     q: "Bijli bill due date nikal gaya, fine kitna?",
     qEn: "Missed electricity due, fine",
     answer: "Due date nikal jaye to bijli company late-payment surcharge (chhota %) jodti hai; zyada der pe connection kat sakta hai. Exact fine bill par likha hota hai. Bataun jaldi kaise bharein?",
+    answerEn: "If the due date passes, the electricity company adds a late-payment surcharge (a small %); if delayed too long, the connection can be cut. The exact fine is printed on the bill. Want me to explain how to pay quickly?",
     link: null, linkText: "Check with your electricity provider", authority: "Your electricity provider (discom)",
   },
   {
@@ -617,6 +697,7 @@ export const QUESTIONS = [
     q: "Gaon me CSC kholkar mahine ka kitna kama sakte?",
     qEn: "Monthly earning from a CSC kiosk",
     answer: "CSC (Common Service Center) se sarkari seva (Aadhaar, bill, banking) de kar commission kamati hain — kamai kaam aur ilaake pe depend, fixed nahi. Registration official site se. Bataun CSC kaise khulta hai?",
+    answerEn: "Through a CSC (Common Service Centre), you earn commission by providing government services (Aadhaar, bills, banking) — earnings depend on the work and area, not fixed. Registration is done via the official site. Want me to explain how to open a CSC?",
     link: "csc.gov.in", linkText: null, authority: "Ministry of Electronics and IT (CSC)",
   },
   {
@@ -624,6 +705,7 @@ export const QUESTIONS = [
     q: "Ghar baithe packing kaam wale real ya fraud?",
     qEn: "Are packing jobs genuine or scam",
     answer: "Dhyaan se — 'packing job, pehle deposit do' wale aksar thagi hote hain. Asli kaam kabhi advance paisa nahi maangta. Bataun asli/nakli kaise pehchanein?",
+    answerEn: "Be careful — 'packing job, pay a deposit first' offers are usually scams. Real work never asks for money in advance. Want me to explain how to spot real vs. fake?",
     link: "cybercrime.gov.in", linkText: null, authority: "MHA / I4C",
   },
   {
@@ -631,6 +713,7 @@ export const QUESTIONS = [
     q: "PM Vishwakarma me 15000 toolkit paisa kaise?",
     qEn: "Claim PM Vishwakarma toolkit",
     answer: "PM Vishwakarma me registered kaarigar ko toolkit ke liye ₹15,000 ka e-voucher, training + sasta loan milta hai. Registration CSC/portal se. Bataun eligibility kaise check karein?",
+    answerEn: "Under PM Vishwakarma, a registered artisan gets a ₹15,000 e-voucher for a toolkit, training, and a low-cost loan. Registration is via CSC/the portal. Want me to explain how to check eligibility?",
     link: "pmvishwakarma.gov.in", linkText: null, authority: "Ministry of MSME",
   },
   {
@@ -638,6 +721,7 @@ export const QUESTIONS = [
     q: "Vidhwa pension ke liye kahan apply?",
     qEn: "Where to apply widow pension",
     answer: "Vidhwa (widow) pension state ki yojana hai — samaj-kalyan vibhag ya state portal pe apply hota hai (Aadhaar, bank, pati ka death certificate). Amount state pe depend. Bataun apni state ki kaise dekhein?",
+    answerEn: "Widow pension is a state government scheme — you apply through the social welfare department or state portal (with Aadhaar, bank details, husband's death certificate). The amount depends on the state. Want me to explain how to check your state's version?",
     link: "nsap.nic.in", linkText: null, authority: "Ministry of Rural Development",
   },
   {
@@ -645,6 +729,7 @@ export const QUESTIONS = [
     q: "e-Shram card se kya fayda?",
     qEn: "Benefits of e-Shram card",
     answer: "e-Shram card asangathit mazdooron ke liye hai — isse ₹2 lakh ka accident cover aur aage sarkari yojanaon ka fayda judta hai, free banta hai. Bataun kaise banayein?",
+    answerEn: "The e-Shram card is for unorganised-sector workers — it gives ₹2 lakh accident cover and links you to future government scheme benefits, and it's free to make. Want me to explain how to make one?",
     link: "eshram.gov.in", linkText: null, authority: "Ministry of Labour and Employment",
   },
   {
@@ -652,6 +737,7 @@ export const QUESTIONS = [
     q: "Gaadi ka insurance expire, fine lagega?",
     qEn: "Vehicle insurance expired, fine",
     answer: "Bina bima gadi chalana kanooni jurm hai — pehli baar ₹2,000 tak jurmana aur/ya 3 mahine jail, dobara ₹4,000 (Motor Vehicles Act, Sec 196); accident me poora kharcha aapka. Turant renew karwa lijiye. Bataun online kaise renew karein?",
+    answerEn: "Driving without insurance is a legal offence — up to ₹2,000 fine and/or 3 months jail the first time, ₹4,000 for a repeat offence (Motor Vehicles Act, Sec 196); in an accident, you'd bear the full cost yourself. Renew it right away. Want me to explain how to renew it online?",
     link: "indiacode.nic.in", linkText: null, authority: "Ministry of Road Transport and Highways",
   },
   {
@@ -659,6 +745,7 @@ export const QUESTIONS = [
     q: "Fasal Bima Yojana me claim kaise?",
     qEn: "How to claim PMFBY",
     answer: "Fasal kharab ho to PMFBY me 72 ghante ke andar apni bank/insurance/agri-office ya app pe suchna dijiye, phir survey hota hai. Bataun kis number/app pe batana hai?",
+    answerEn: "If a crop is damaged, inform your bank/insurer/agriculture office or app within 72 hours under PMFBY, then a survey follows. Want me to tell you which number/app to use?",
     link: "pmfby.gov.in", linkText: null, authority: "Ministry of Agriculture (PMFBY)",
   },
   {
@@ -666,6 +753,7 @@ export const QUESTIONS = [
     q: "Health claim reject ho gaya, kya kare?",
     qEn: "Health claim rejected",
     answer: "Ghabraiye mat — claim reject ho to company se likhit kaaran maangiye; galti lage to documents ke saath dobara (appeal) file karein, phir IRDAI/Ombudsman me shikayat. Bataun appeal kaise?",
+    answerEn: "Don't worry — if a claim is rejected, ask the company for the reason in writing; if it seems wrong, file an appeal with documents, then complain to IRDAI/the Ombudsman if needed. Want me to explain how to appeal?",
     link: "policyholder.gov.in", linkText: null, authority: "IRDAI",
   },
   {
@@ -673,6 +761,7 @@ export const QUESTIONS = [
     q: "Aadhaar kho gaya, number bhi linked nahi, kaise nikalein?",
     qEn: "Download Aadhaar without linked phone",
     answer: "Ghabraiye mat — nazdeeki Aadhaar kendra ja kar biometric se Aadhaar dobara nikaal/print karwa sakti hain (linked number zaroori nahi). Bataun paas ka kendra kaise dhundhein?",
+    answerEn: "Don't worry — you can visit your nearest Aadhaar centre and retrieve/print your Aadhaar again using biometrics (a linked number isn't required). Want me to explain how to find the nearest centre?",
     link: "myaadhaar.uidai.gov.in", linkText: null, authority: "UIDAI",
   },
   {
@@ -680,6 +769,7 @@ export const QUESTIONS = [
     q: "Ek Aadhaar par kitne SIM nikalwa sakte?",
     qEn: "SIMs per Aadhaar",
     answer: "Ek Aadhaar par niyam se ek tay sankhya tak SIM le sakte hain. Apne naam par kitne SIM chal rahe, ye TAFCOP portal pe dikhta hai. Bataun kaise check karein?",
+    answerEn: "By rule, you can get only a fixed number of SIMs per Aadhaar. You can see how many SIMs are active in your name on the TAFCOP portal. Want me to explain how to check?",
     link: "tafcop.sancharsaathi.gov.in", linkText: null, authority: "Department of Telecommunications",
   },
   {
@@ -687,6 +777,7 @@ export const QUESTIONS = [
     q: "Bank me naam galat hai Aadhaar se, sudhar kaise?",
     qEn: "Name mismatch with Aadhaar",
     answer: "Bank me naam Aadhaar se alag ho to branch me correction application + sahi proof (Aadhaar/PAN) de kar theek karwa sakti hain. Bataun kya proof lagta hai?",
+    answerEn: "If your bank name differs from Aadhaar, you can get it corrected at the branch with a correction application and valid proof (Aadhaar/PAN). Want me to explain what proof is needed?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -694,6 +785,7 @@ export const QUESTIONS = [
     q: "Bacche ka Aadhaar kitne saal me banta?",
     qEn: "Age to make child's Aadhaar",
     answer: "Bache ka Aadhaar (Bal Aadhaar) janm se ban jata hai — 5 saal tak biometric nahi, 5 aur 15 saal par biometric update karwana hota hai, free. Bataun kaise banega?",
+    answerEn: "A child's Aadhaar (Bal Aadhaar) can be made from birth — no biometrics needed until age 5, then a biometric update is needed at ages 5 and 15, free of cost. Want me to explain how to make one?",
     link: "myaadhaar.uidai.gov.in", linkText: null, authority: "UIDAI",
   },
   {
@@ -701,6 +793,7 @@ export const QUESTIONS = [
     q: "Credit card minimum due bharne se interest rukta?",
     qEn: "Does minimum due stop CC interest",
     answer: "Nahi — sirf minimum due bharne se baaki poori raqam par bhaari byaj chalta rehta hai aur karza badhta hai. Ho sake to poora bill bhariye. Bataun byaj kaise banta hai?",
+    answerEn: "No — paying only the minimum due means heavy interest keeps running on the rest of the amount, and the debt keeps growing. Pay the full bill if you can. Want me to explain how the interest is calculated?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -708,6 +801,7 @@ export const QUESTIONS = [
     q: "Mahilaon ke liye home loan par byaj kam hoti?",
     qEn: "Cheaper home loan rates for women",
     answer: "Kai bank mahila (ya joint with woman) home loan par thoda kam byaj + stamp-duty me chhoot dete hain — par ye har bank/state pe alag. Apne bank ka offer poochiye. Bataun kya fayda milta hai?",
+    answerEn: "Many banks offer women (or joint loans with a woman) slightly lower interest plus a stamp-duty discount on home loans — but this varies by bank/state. Ask your bank about their offer. Want me to explain what benefits are typically available?",
     link: null, linkText: "Check with your bank", authority: "Your bank (varies)",
   },
   {
@@ -715,6 +809,7 @@ export const QUESTIONS = [
     q: "5 minute loan app se lena sahi hai kya?",
     qEn: "Are instant loan apps safe",
     answer: "Savdhaan — bahut 'instant loan' apps nakli/RBI-bahar hote hain, bhaari byaj + data churate hain. Sirf RBI-registered NBFC/bank se lijiye; app ka naam RBI list me check karein. Bataun kaise pehchanein?",
+    answerEn: "Be careful — many 'instant loan' apps are fake/unregistered with RBI, charge heavy interest, and steal your data. Only borrow from an RBI-registered NBFC/bank; check the app's name on the RBI list. Want me to explain how to spot a fake one?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -722,6 +817,7 @@ export const QUESTIONS = [
     q: "Loan prepayment par charge lagta?",
     qEn: "Charge for loan prepayment",
     answer: "Floating-rate (badalne wala byaj) personal/home loan par prepayment/foreclosure charge nahi lagta — RBI ka niyam hai. Fixed-rate ya kuch NBFC me chhota charge ho sakta hai. Bataun prepay se kitna bachega?",
+    answerEn: "On a floating-rate personal/home loan, no prepayment/foreclosure charge applies — it's an RBI rule. On fixed-rate loans or with some NBFCs, a small charge may apply. Want me to explain how much you'd save by prepaying?",
     link: "rbi.org.in", linkText: null, authority: "RBI",
   },
   {
@@ -729,6 +825,7 @@ export const QUESTIONS = [
     q: "Share market me 500 se shuruwat kaise, nuksan?",
     qEn: "Start stock market with 500 safely",
     answer: "Ho sakta hai — SIP/mutual fund me ₹500 se shuru kar sakti hain, par market me risk hota hai (paisa ghat-badh sakta hai). Pehle seekhiye, thoda-thoda lagaiye. Main 'kya lena' nahi bata sakta. Bataun SIP kya hota hai?",
+    answerEn: "It's possible — you can start a SIP/mutual fund with ₹500, but the market carries risk (your money can go up or down). Learn first, and invest gradually. I can't tell you 'what to buy.' Want me to explain what a SIP is?",
     link: "investor.sebi.gov.in", linkText: null, authority: "SEBI",
   },
   {
@@ -736,6 +833,7 @@ export const QUESTIONS = [
     q: "Kaun se sarkaari bank me FD par sabse jyada byaj?",
     qEn: "Highest govt-bank FD rate now",
     answer: "Rate har bank alag aur badalta rehta hai — main kisi ek ko 'best' nahi keh sakta. Aap 2-3 bank + Post Office ke current rate compare kar sakti hain. Bataun kahan compare karein?",
+    answerEn: "Rates differ by bank and keep changing — I can't call any one 'the best.' You can compare current rates across 2-3 banks and the Post Office. Want me to explain where to compare?",
     link: null, linkText: "Compare rates across banks and Post Office", authority: null,
   },
   {
@@ -743,6 +841,7 @@ export const QUESTIONS = [
     q: "RD aur FD me kya farak?",
     qEn: "Difference RD vs FD",
     answer: "Seedha farak — FD: ek baar poora paisa jama; RD: har mahine thoda-thoda. Dono par byaj milta hai. Monthly bachat ho to RD, ek-musht ho to FD. Bataun kahan khulti hai?",
+    answerEn: "Simple difference — FD: deposit the full amount once; RD: a little every month. Both earn interest. Choose RD for monthly savings, FD for a lump sum. Want me to explain where to open one?",
     link: "nsiindia.gov.in", linkText: null, authority: "National Savings Institute",
   },
   {
@@ -750,6 +849,7 @@ export const QUESTIONS = [
     q: "Senior Citizen FD me extra byaj?",
     qEn: "Extra FD interest for seniors",
     answer: "Haan — senior citizens ko aam taur pe FD par thoda zyada byaj (aksar 0.25%-0.50% extra) milta hai; SCSS jaisi alag scheme bhi hoti hai. Exact rate bank pe. Bataun SCSS kya hai?",
+    answerEn: "Yes — senior citizens usually get slightly higher FD interest (often 0.25%-0.50% extra); there's also a separate scheme like SCSS. The exact rate is with your bank. Want me to explain what SCSS is?",
     link: "nsiindia.gov.in", linkText: null, authority: "National Savings Institute",
   },
 ];

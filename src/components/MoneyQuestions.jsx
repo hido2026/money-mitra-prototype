@@ -4,14 +4,15 @@
 // question detail. Every tap resolves deterministically to one row in
 // money-questions.js -- no LLM call anywhere in this component.
 //
-// Content is Hinglish (as authored/reviewed) + an English gloss for the
-// question only -- there's no separate verified English/Devanagari answer
-// yet, so both render together always rather than switching on the app's
-// EN/hi. toggle, which would otherwise show an empty answer in English.
+// Every row has a reviewed Hinglish (q/answer) and English (qEn/answerEn)
+// version. In hi. mode we show Hinglish as primary with the English gloss
+// underneath (helps bilingual reading); in EN mode we show English only --
+// no Hinglish left on screen, per the "make this all English" ask.
 
 import { useState } from 'react';
 import { TagChip, jdsBtn } from './jds';
 import { speakMukund } from '../utils/tts';
+import { useLang } from '../hooks/useLang';
 import {
   CATEGORIES, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, PAGE_SIZE,
   findBucketMeta, questionsForBucket, findByRank, totalPages, pageOf,
@@ -91,16 +92,23 @@ function Pager({ page, onGo }) {
 }
 
 export default function MoneyQuestions() {
+  const [lang] = useLang();
   const [stack, setStack] = useState([{ screen: 'home' }]);
   const [playingRank, setPlayingRank] = useState(null);
   const cur = stack[stack.length - 1];
+  const isEn = lang === 'en';
 
   const push = (s) => setStack((prev) => [...prev, s]);
   const back = () => setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
 
+  // Primary line always shown; secondary only in hi. mode (the English gloss).
+  const qPrimary = (it) => (isEn ? it.qEn : it.q);
+  const qSecondary = (it) => (isEn ? null : it.qEn);
+  const answerText = (it) => (isEn ? it.answerEn : it.answer);
+
   const listen = (rank, text) => {
     setPlayingRank(rank);
-    speakMukund(text, undefined, 'hi');
+    speakMukund(text, undefined, isEn ? 'en' : 'hi');
     setTimeout(() => setPlayingRank(null), 1400);
   };
 
@@ -176,8 +184,8 @@ export default function MoneyQuestions() {
               <Icon size={15} color={style.fg} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="font-deva text-ink block text-[13px] leading-snug font-semibold">{it.q}</span>
-              <span className="text-ink-soft block text-[11px]">{it.qEn}</span>
+              <span className="font-deva text-ink block text-[13px] leading-snug font-semibold">{qPrimary(it)}</span>
+              {qSecondary(it) && <span className="text-ink-soft block text-[11px]">{qSecondary(it)}</span>}
             </span>
             <IcChevronLeft size={14} color="var(--color-ink-disabled)" className="rotate-180" />
           </button>
@@ -204,8 +212,8 @@ export default function MoneyQuestions() {
           >
             <span className="font-deva text-ink-soft w-5 shrink-0 text-right text-[12px] font-bold">{it.rank}</span>
             <span className="min-w-0 flex-1">
-              <span className="font-deva text-ink block text-[13px] leading-snug font-semibold">{it.q}</span>
-              <span className="text-ink-soft block text-[11px]">{it.qEn}</span>
+              <span className="font-deva text-ink block text-[13px] leading-snug font-semibold">{qPrimary(it)}</span>
+              {qSecondary(it) && <span className="text-ink-soft block text-[11px]">{qSecondary(it)}</span>}
             </span>
             <IcChevronLeft size={14} color="var(--color-ink-disabled)" className="rotate-180" />
           </button>
@@ -229,8 +237,8 @@ export default function MoneyQuestions() {
             <span className="font-deva text-[10px] font-extrabold tracking-wide text-white/75 uppercase">
               {isFraud ? 'Safety alert' : 'Grounded answer'}
             </span>
-            <p className="font-deva mt-1.5 text-[17px] leading-snug font-extrabold text-white">{it.q}</p>
-            <p className="mt-1 text-[12px] text-white/85">{it.qEn}</p>
+            <p className="font-deva mt-1.5 text-[17px] leading-snug font-extrabold text-white">{qPrimary(it)}</p>
+            {qSecondary(it) && <p className="mt-1 text-[12px] text-white/85">{qSecondary(it)}</p>}
           </div>
 
           <div className="mb-3 flex flex-wrap gap-1.5">
@@ -244,7 +252,7 @@ export default function MoneyQuestions() {
             </div>
           )}
 
-          <p className="font-deva text-ink mb-3 text-[14px] leading-relaxed">{it.answer}</p>
+          <p className="font-deva text-ink mb-3 text-[14px] leading-relaxed">{answerText(it)}</p>
 
           {showLink ? (
             <a href={`https://${it.link.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="bg-primary-20 text-primary-50 font-deva mb-3 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold">
@@ -254,7 +262,7 @@ export default function MoneyQuestions() {
             <p className="font-deva bg-surface-ghost text-ink-soft mb-3 inline-block rounded-lg px-3 py-2 text-[11px] font-semibold">{it.linkText}</p>
           ) : null}
 
-          <button onClick={() => listen(it.rank, it.answer)} className={jdsBtn('tertiary') + ' !h-9 !px-3.5 !text-xs'}>
+          <button onClick={() => listen(it.rank, answerText(it))} className={jdsBtn('tertiary') + ' !h-9 !px-3.5 !text-xs'}>
             {playingRank === it.rank ? 'Playing' : 'Listen'}
           </button>
 
