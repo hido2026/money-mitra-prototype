@@ -16,7 +16,7 @@ import { useLang, LangToggle } from '../hooks/useLang';
 import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
-import { IcReceipt, IcShield, IcSchool, IcFlame } from '../components/icons/Icons';
+import { IcReceipt, IcFlameColor, IcSchoolColor, IcShieldColor } from '../components/icons/Icons';
 import { getStreak } from '../data/nuskha-bank';
 
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -175,7 +175,7 @@ export default function Home() {
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.askTitle}</span>
             <span className="font-deva bg-reward-soft text-reward-ink mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold">
-              <IcFlame size={11} color="var(--color-reward-ink)" />
+              <IcFlameColor size={12} />
               {t.askPopular}
             </span>
           </span>
@@ -242,7 +242,7 @@ export default function Home() {
           style={{ animationDelay: '210ms' }}
         >
           <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-            <IcSchool size={24} color="var(--color-primary-50)" />
+            <IcSchoolColor size={26} />
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.gyaanTitle}</span>
@@ -250,7 +250,7 @@ export default function Home() {
           </span>
           {gyaanStreak > 0 && (
             <span className="bg-reward-soft text-reward-ink flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-extrabold">
-              <IcFlame size={12} color="var(--color-reward-ink)" />
+              <IcFlameColor size={13} />
               {t.gyaanStreak(gyaanStreak)}
             </span>
           )}
@@ -258,7 +258,7 @@ export default function Home() {
 
         {/* A5. Trust line (above bottom bar) */}
         <div className="animate-fade-in flex items-center justify-center gap-2 py-0.5">
-          <IcShield size={16} color="var(--color-success)" />
+          <IcShieldColor size={17} />
           <span className="font-deva text-success text-center text-xs">{t.trust}</span>
         </div>
       </div>

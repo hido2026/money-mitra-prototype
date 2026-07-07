@@ -343,3 +343,33 @@ export const IcGoldCoin = ({ size = 16, color = '#C8961E' }) => (
     <text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} stroke="none">₹</text>
   </svg>
 );
+
+// ── Multi-color flat icons — still hand-drawn SVG (never emoji), but filled
+// with a small fixed on-brand palette instead of one stroke color. Reserved
+// for high-engagement accents (streak/most-asked badges, Paisa Gyaan) where
+// we want the pop of the reference mock's emoji without the inconsistent
+// cross-platform rendering an actual emoji glyph would bring. No `color`
+// prop — the palette is fixed by design, unlike the monotone icons above.
+
+export const IcFlameColor = ({ size = 16 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+    <path fill="#E8542A" d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 3 5 3 7a7 7 0 1 1-14 0c0-3 2-5 3-8 .5 1.5 1.5 2 2 1-1-2-1-5 0-7z" />
+    <ellipse cx="12.3" cy="15" rx="2.1" ry="2.8" fill="#FFC13D" />
+  </svg>
+);
+
+export const IcSchoolColor = ({ size = 16 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+    <ellipse cx="12" cy="14" rx="6" ry="3" fill="var(--color-primary-50)" />
+    <path fill="var(--color-primary-70)" d="M12 4 2 9l10 4 10-4z" />
+    <circle cx="20" cy="9.6" r="1.3" fill="#C8961E" />
+    <path stroke="#C8961E" strokeWidth="1.3" strokeLinecap="round" fill="none" d="M20 9.6v5.5" />
+  </svg>
+);
+
+export const IcShieldColor = ({ size = 16 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+    <path fill="var(--color-success)" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" d="M8.5 12l2.3 2.3 4.7-4.9" />
+  </svg>
+);
