@@ -353,8 +353,9 @@ export const IcGoldCoin = ({ size = 16, color = '#C8961E' }) => (
 
 export const IcFlameColor = ({ size = 16 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-    <path fill="#E8542A" d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 3 5 3 7a7 7 0 1 1-14 0c0-3 2-5 3-8 .5 1.5 1.5 2 2 1-1-2-1-5 0-7z" />
-    <ellipse cx="12.3" cy="15" rx="2.1" ry="2.8" fill="#FFC13D" />
+    <path fill="#E8491F" d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 3 5 3 7a7 7 0 1 1-14 0c0-3 2-5 3-8 .5 1.5 1.5 2 2 1-1-2-1-5 0-7z" />
+    <path fill="#FF8C1A" d="M13.1 9.6c.5 1.9-1.4 2.7-1.4 4.9a3.1 3.1 0 0 0 6.2 0c0-2.2-1.9-3.6-2.2-5.6-.3 1.2-1 1.5-1.3 1-.4-.5-.5-1-1.3-.3z" />
+    <circle cx="13" cy="17.3" r="1.9" fill="#FFD23F" />
   </svg>
 );
 

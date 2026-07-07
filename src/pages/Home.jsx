@@ -175,7 +175,7 @@ export default function Home() {
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.askTitle}</span>
             <span className="font-deva bg-reward-soft text-reward-ink mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold">
-              <IcFlameColor size={12} />
+              <IcFlameColor size={15} />
               {t.askPopular}
             </span>
           </span>
@@ -250,7 +250,7 @@ export default function Home() {
           </span>
           {gyaanStreak > 0 && (
             <span className="bg-reward-soft text-reward-ink flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-extrabold">
-              <IcFlameColor size={13} />
+              <IcFlameColor size={16} />
               {t.gyaanStreak(gyaanStreak)}
             </span>
           )}
