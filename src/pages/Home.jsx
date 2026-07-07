@@ -158,22 +158,18 @@ export default function Home() {
           </div>
         )}
 
-        {/* Ask entry — compact card matching Document/Ledger/Paisa Gyaan, not an
-            oversized hero. Icon circle is solid primary-50 (highest weight of
-            the four cards, since this is still the primary entry point) and
-            shows a filled chat-bubble + ₹ (design "Option A" from the PM/design
-            prototype) rather than a plain outline. "Most asked" is a gold
-            flame badge — same family as Paisa Gyaan's streak badge below —
-            swapped in for the reference's 🔥 emoji. This is our own engaging
-            take, not a 1:1 match to the PM/design prototype's flat layout;
-            we'll align fully to that convention when we hand this off there.
-            Example prompts + free-text ghost pill live one tap in, on the
-            actual Ask screen (MoneyQuestions), not duplicated here. */}
+        {/* Ask entry — uniform light-violet chip (matches Document/Ledger/
+            Paisa Gyaan below), per the design-prototype reference. Icon is a
+            solid-violet chat-bubble + white ₹ (design "Option A") sitting on
+            the light chip, not a solid-violet chip itself. "Most asked" is a
+            gold flame badge — matches the reference's 🔥, swapped for a
+            compliant SVG. Example prompts + free-text ghost pill live one tap
+            in, on the actual Ask screen (MoneyQuestions), not duplicated here. */}
         <button className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left" onClick={() => nav('/chat')} style={{ animationDelay: '60ms' }}>
-          <span className="bg-primary-50 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+          <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
             <svg viewBox="0 0 24 24" width="26" height="26">
-              <path fill="#fff" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
-              <text x="12" y="13.5" textAnchor="middle" fontSize="10.5" fontWeight="800" fill="var(--color-primary-50)">₹</text>
+              <path fill="var(--color-primary-50)" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+              <text x="12" y="13.5" textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#fff">₹</text>
             </svg>
           </span>
           <span className="min-w-0 flex-1">
@@ -186,12 +182,10 @@ export default function Home() {
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ink-disabled shrink-0"><polyline points="9 6 15 12 9 18" /></svg>
         </button>
 
-        {/* Document door — mid-strength violet tint (primary-50 at 30% opacity,
-            token-based, no raw hex) sits between Ask's solid circle and Ledger/
-            Paisa Gyaan's light tint, giving the list some weight variation. */}
+        {/* Document door — same uniform light-violet chip as Ask above. */}
         <button className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left" onClick={() => nav('/decoder')} style={{ animationDelay: '120ms' }}>
-          <span className="bg-primary-50/30 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-60"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+          <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.docTitle}</span>
@@ -207,18 +201,26 @@ export default function Home() {
           <span className="font-deva text-ink-soft max-w-[280px] text-center text-xs font-semibold">{t.connector}</span>
         </div>
 
-        {/* A4. हिसाब widget — In/Out/Saved + split bar (bound), accent outline */}
+        {/* A4. हिसाब — same uniform light-violet chip family as Ask/Document,
+            kept in its own bordered card (per the design-prototype reference)
+            since it's the data-bound widget, not just a nav door. Tiles +
+            split bar appear once there's data. */}
         <button className="animate-fade-in bg-surface border-primary-20 block w-full rounded-xl border-[1.5px] p-[18px] text-left" onClick={() => nav('/passbook')} style={{ animationDelay: '180ms' }}>
-          <div className="mb-3.5 flex items-center gap-2.5">
-            <span className="bg-primary-20 flex size-9 shrink-0 items-center justify-center rounded-lg">
-              <IcReceipt size={20} color="var(--color-primary-50)" />
+          <div className="flex items-center gap-3.5">
+            <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+              <IcReceipt size={24} color="var(--color-primary-50)" />
             </span>
-            <span className="font-deva text-ink flex-1 text-base font-extrabold">{t.hisaabTitle}</span>
+            <span className="min-w-0 flex-1">
+              <span className="font-deva text-ink block text-base font-bold">{t.hisaabTitle}</span>
+              {!hasData && (
+                <span className="font-deva text-primary-50 mt-1 block text-xs font-semibold">{t.hisaabEmpty}</span>
+              )}
+            </span>
           </div>
 
-          {hasData ? (
+          {hasData && (
             <>
-              <div className="flex gap-2.5">
+              <div className="mt-3.5 flex gap-2.5">
                 <Tile label={t.tileIn} value={inr(aaya)} colorClass="text-success" />
                 <Tile label={t.tileOut} value={inr(gaya)} colorClass="text-warning" />
                 <Tile label={t.tileSaved} value={inr(Math.abs(bacha))} colorClass="text-primary-50" emphasised />
@@ -229,23 +231,21 @@ export default function Home() {
               </div>
               <p className="font-deva text-ink-soft mt-2.5 mb-0 text-xs">{t.hisaabSub(month)}</p>
             </>
-          ) : (
-            <p className="font-deva text-primary-50 m-0 text-sm font-semibold">{t.hisaabEmpty}</p>
           )}
         </button>
 
         {/* Paisa Gyaan entry — secondary to the 3 scoped cards above, per
             CLAUDE.md's Home contract; daily nuskha + streak habit loop. */}
         <button
-          className="animate-fade-in bg-surface flex w-full items-center gap-3 rounded-xl p-3.5 text-left"
+          className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left"
           onClick={() => nav('/paisa-gyaan')}
           style={{ animationDelay: '210ms' }}
         >
-          <span className="bg-primary-20 flex size-11 shrink-0 items-center justify-center rounded-full">
-            <IcSchool size={20} color="var(--color-primary-50)" />
+          <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
+            <IcSchool size={24} color="var(--color-primary-50)" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="font-deva text-ink block text-sm font-bold">{t.gyaanTitle}</span>
+            <span className="font-deva text-ink block text-base font-bold">{t.gyaanTitle}</span>
             <span className="font-deva text-ink-soft mt-0.5 block text-xs">{t.gyaanSub}</span>
           </span>
           {gyaanStreak > 0 && (
