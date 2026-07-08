@@ -71,6 +71,12 @@ export default function PaisaGyaan() {
   const barePersona = useMemo(() => cards.length > 0, [cards]);
   if (!barePersona) return null;
 
+  const isEn = lang === 'en';
+  const hookQuestion = isEn ? card.hook_question_en : card.hook_question;
+  const vizBody = isEn ? card.viz_body_en : card.viz_body;
+  const microAction = isEn ? card.micro_action_en : card.micro_action;
+  const followUpPrompt = isEn ? card.follow_up_prompt_en : card.follow_up_prompt;
+
   return (
     <div className="mx-auto flex min-h-dvh max-w-[420px] flex-col bg-surface-minimal">
       <header className="flex shrink-0 items-center gap-2.5 px-4 py-2.5">
@@ -99,11 +105,11 @@ export default function PaisaGyaan() {
                 {t.tag(idx + 1, cards.length)}
               </span>
               <h1 className="font-deva mt-2 mb-3 text-[19px] leading-snug font-extrabold text-white">
-                {card.hook_question}
+                {hookQuestion}
               </h1>
               <div
                 className="font-deva flex-1 rounded-lg bg-white/15 p-3.5 text-[13px] leading-relaxed text-white [&_b]:text-reward"
-                dangerouslySetInnerHTML={{ __html: card.viz_body }}
+                dangerouslySetInnerHTML={{ __html: vizBody }}
               />
               <div className="mt-3 flex justify-center gap-1.5">
                 {cards.map((_, i) => (
@@ -112,9 +118,9 @@ export default function PaisaGyaan() {
               </div>
             </div>
 
-            {card.micro_action && (
+            {microAction && (
               <p className="font-deva text-ink-soft bg-surface rounded-lg px-3.5 py-2.5 text-[12px] leading-relaxed">
-                <span className="text-ink font-bold">{t.micro} </span>{card.micro_action}
+                <span className="text-ink font-bold">{t.micro} </span>{microAction}
               </p>
             )}
 
@@ -131,15 +137,15 @@ export default function PaisaGyaan() {
               </button>
             </div>
 
-            {card.follow_up_prompt && (
+            {followUpPrompt && (
               <div className="flex flex-col items-center gap-1.5 pt-1 text-center">
                 <span className="font-deva text-ink-soft text-xs">{t.askMore}</span>
                 <button
-                  onClick={() => askFollowUp(card.follow_up_prompt)}
+                  onClick={() => askFollowUp(followUpPrompt)}
                   className="bg-primary-20 text-primary-50 font-deva inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12.5px] font-bold"
                 >
                   <IcMicrophone size={14} color="var(--color-primary-50)" />
-                  {card.follow_up_prompt}
+                  {followUpPrompt}
                 </button>
               </div>
             )}
