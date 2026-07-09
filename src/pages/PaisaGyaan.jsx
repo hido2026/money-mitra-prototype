@@ -27,7 +27,7 @@ const COPY = {
     tomorrowTeaser: '(हिसाब देख कर चुना गया एक पर्सनलाइज़्ड सबक — जल्द आ रहा है।)',
     restart: '↺ फिर से देखें', micro: 'आज करें:',
     nextDay: (n) => `दिन ${n} देखें →`,
-    endOfBatch: 'फ़िलहाल के लिए 10 दिन पूरे — 270 और नुस्खे आ रहे हैं।',
+    endOfBatch: 'आपने सारे 100 दिन देख लिए — फिर से शुरू करें?',
     restartFromDay1: '↺ दिन 1 से फिर देखें',
   },
   en: {
@@ -42,7 +42,7 @@ const COPY = {
     tomorrowTeaser: '(A lesson personalised from your हिसाब — coming soon.)',
     restart: '↺ Watch again', micro: 'Try today:',
     nextDay: (n) => `See Day ${n} →`,
-    endOfBatch: "That's all 10 days for now — 270 more tips are on the way.",
+    endOfBatch: "You've seen all 100 days — want to start again?",
     restartFromDay1: '↺ Restart from Day 1',
   },
 };
