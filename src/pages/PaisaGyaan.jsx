@@ -7,12 +7,12 @@
 // Scope note: "tomorrow's lesson" teaser is illustrative only (PRD §8) — real
 // Hisaab-personalisation is Phase 3 and intentionally not wired here yet.
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang } from '../hooks/useLang';
 import { jdsBtn } from '../components/jds';
 import { IcChevronLeft, IcFlame, IcSchool, IcThumbUp, IcMicrophone } from '../components/icons/Icons';
-import { getTodaysSet, getStreak, completeToday } from '../data/nuskha-bank';
+import { getSetForDay, totalSimDays, completeToday } from '../data/nuskha-bank';
 
 const COPY = {
   hi: {
@@ -26,6 +26,9 @@ const COPY = {
     tomorrowLabel: 'आपके लिए कल',
     tomorrowTeaser: '(हिसाब देख कर चुना गया एक पर्सनलाइज़्ड सबक — जल्द आ रहा है।)',
     restart: '↺ फिर से देखें', micro: 'आज करें:',
+    nextDay: (n) => `दिन ${n} देखें →`,
+    endOfBatch: 'फ़िलहाल के लिए 10 दिन पूरे — 270 और नुस्खे आ रहे हैं।',
+    restartFromDay1: '↺ दिन 1 से फिर देखें',
   },
   en: {
     title: 'Paisa Gyaan', back: 'Back',
@@ -38,6 +41,9 @@ const COPY = {
     tomorrowLabel: 'For you tomorrow',
     tomorrowTeaser: '(A lesson personalised from your हिसाब — coming soon.)',
     restart: '↺ Watch again', micro: 'Try today:',
+    nextDay: (n) => `See Day ${n} →`,
+    endOfBatch: "That's all 10 days for now — 270 more tips are on the way.",
+    restartFromDay1: '↺ Restart from Day 1',
   },
 };
 
@@ -45,12 +51,16 @@ export default function PaisaGyaan() {
   const nav = useNavigate();
   const [lang] = useLang();
   const t = COPY[lang];
-  const [streak, setStreak] = useState(() => getStreak());
-  const [cards] = useState(() => getTodaysSet(streak.seen_nuskha_ids || []));
+  // Simulation-mode day navigation (see nuskha-bank.js) — lets a tester walk
+  // through day 1..10 in one sitting instead of waiting on real calendar
+  // gating, which is a final-PRD concern, not wired up yet.
+  const [simDay, setSimDay] = useState(1);
   const [idx, setIdx] = useState(0);
   const [done, setDone] = useState(false);
   const [toast, setToast] = useState('');
+  const cards = getSetForDay(simDay);
   const card = cards[idx];
+  const lastDay = simDay >= totalSimDays();
 
   const showToast = (msg) => {
     setToast(msg);
@@ -59,17 +69,15 @@ export default function PaisaGyaan() {
 
   const next = () => {
     if (idx < cards.length - 1) { setIdx((i) => i + 1); return; }
-    const updated = completeToday(cards.map((c) => c.id));
-    setStreak(updated);
+    completeToday(cards.map((c) => c.id)); // real streak persists for whenever gating is wired up; ignored for the simDay-based badge below
     setDone(true);
   };
 
-  const restart = () => { setIdx(0); setDone(false); };
+  const watchAgain = () => { setIdx(0); setDone(false); };
+  const goToNextDay = () => { setSimDay((d) => Math.min(d + 1, totalSimDays())); setIdx(0); setDone(false); };
+  const restartFromDay1 = () => { setSimDay(1); setIdx(0); setDone(false); };
 
   const askFollowUp = (prompt) => nav('/chat', { state: { initialMessage: prompt } });
-
-  const barePersona = useMemo(() => cards.length > 0, [cards]);
-  if (!barePersona) return null;
 
   const isEn = lang === 'en';
   const hookQuestion = isEn ? card.hook_question_en : card.hook_question;
@@ -93,7 +101,7 @@ export default function PaisaGyaan() {
         <span className="font-deva text-ink flex-1 text-[17px] font-black tracking-tight">{t.title}</span>
         <span className="bg-reward-soft text-reward-ink flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-extrabold">
           <IcFlame size={13} color="var(--color-reward-ink)" />
-          {t.streakLine(streak.current_streak)}
+          {t.streakLine(simDay)}
         </span>
       </header>
 
@@ -154,17 +162,36 @@ export default function PaisaGyaan() {
           <>
             <div className="bg-primary-50 flex flex-col items-center gap-1.5 rounded-xl p-6 text-center">
               <IcFlame size={40} color="var(--color-reward)" />
-              <p className="font-deva text-[19px] font-extrabold text-white">{t.streakLine(streak.current_streak)}</p>
+              <p className="font-deva text-[19px] font-extrabold text-white">{t.streakLine(simDay)}</p>
               <p className="font-deva text-[13px] leading-relaxed text-white/85">{t.doneBody}</p>
             </div>
-            <div className="bg-reward-soft rounded-lg p-3.5">
-              <p className="font-deva text-reward-ink text-[12.5px] leading-relaxed">
-                <span className="font-extrabold">{t.tomorrowLabel}:</span> {t.tomorrowTeaser}
-              </p>
+
+            {lastDay ? (
+              <div className="bg-reward-soft rounded-lg p-3.5">
+                <p className="font-deva text-reward-ink text-[12.5px] leading-relaxed">{t.endOfBatch}</p>
+              </div>
+            ) : (
+              <div className="bg-reward-soft rounded-lg p-3.5">
+                <p className="font-deva text-reward-ink text-[12.5px] leading-relaxed">
+                  <span className="font-extrabold">{t.tomorrowLabel}:</span> {t.tomorrowTeaser}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col items-center gap-2">
+              {lastDay ? (
+                <button onClick={restartFromDay1} className={jdsBtn('primary') + ' !rounded-lg'}>
+                  {t.restartFromDay1}
+                </button>
+              ) : (
+                <button onClick={goToNextDay} className={jdsBtn('primary') + ' !rounded-lg'}>
+                  {t.nextDay(simDay + 1)}
+                </button>
+              )}
+              <button onClick={watchAgain} className="font-deva text-primary-50 text-[13px] font-bold">
+                {t.restart}
+              </button>
             </div>
-            <button onClick={restart} className="font-deva text-primary-50 self-center text-[13px] font-bold">
-              {t.restart}
-            </button>
           </>
         )}
 
