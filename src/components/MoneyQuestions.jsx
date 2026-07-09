@@ -1,15 +1,17 @@
 // MoneyQuestions — guided "Ask about money" screen (replaces AnswerBank.jsx).
-// Ported from MoneyMitra_MoneyQuestions_Interactive_v3.html: home (Most Asked
-// banner + category grid) -> bucket (topic list) -> all-100 paginated list ->
-// question detail. Every tap resolves deterministically to one row in
-// money-questions.js -- no LLM call anywhere in this component.
+// Home (Most Asked banner + category grid) -> bucket (topic list) -> all-300
+// paginated list -> question detail. Every tap resolves deterministically to
+// one row in money-questions.js (sourced from the Money Mitra Knowledge
+// Graph) -- no LLM call anywhere in this component except the optional
+// "next question" hand-off into Chat's free-text engine.
 //
-// Every row has a reviewed Hinglish (q/answer) and English (qEn/answerEn)
-// version. In hi. mode we show Hinglish as primary with the English gloss
-// underneath (helps bilingual reading); in EN mode we show English only --
-// no Hinglish left on screen, per the "make this all English" ask.
+// Every row follows the KG's 4-beat answer shape (understand/answer/doNow/
+// nextQuestion) with a reviewed Hinglish + English version of each. In hi.
+// mode we show Hinglish as primary with the English gloss underneath; in EN
+// mode we show English only -- no Hinglish left on screen.
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TagChip, jdsBtn } from './jds';
 import { speakMukund } from '../utils/tts';
 import { useLang } from '../hooks/useLang';
@@ -19,7 +21,7 @@ import {
 } from '../data/money-questions';
 import {
   IcUpi, IcBuilding, IcGift, IcStamp, IcFileDollar, IcCoins, IcShield, IcReceipt,
-  IcBriefcase, IcUmbrella, IcChevronLeft, IcFlame,
+  IcBriefcase, IcUmbrella, IcChevronLeft, IcFlame, IcMicrophone,
 } from './icons/Icons';
 
 const BUCKET_ICON = {
@@ -92,6 +94,7 @@ function Pager({ page, onGo }) {
 }
 
 export default function MoneyQuestions() {
+  const nav = useNavigate();
   const [lang] = useLang();
   const [stack, setStack] = useState([{ screen: 'home' }]);
   const [playingRank, setPlayingRank] = useState(null);
@@ -104,13 +107,18 @@ export default function MoneyQuestions() {
   // Primary line always shown; secondary only in hi. mode (the English gloss).
   const qPrimary = (it) => (isEn ? it.qEn : it.q);
   const qSecondary = (it) => (isEn ? null : it.qEn);
+  const understandText = (it) => (isEn ? it.understandEn : it.understand);
   const answerText = (it) => (isEn ? it.answerEn : it.answer);
+  const doNowText = (it) => (isEn ? it.doNowEn : it.doNow);
+  const nextQuestionText = (it) => (isEn ? it.nextQuestionEn : it.nextQuestion);
 
   const listen = (rank, text) => {
     setPlayingRank(rank);
     speakMukund(text, undefined, isEn ? 'en' : 'hi');
     setTimeout(() => setPlayingRank(null), 1400);
   };
+
+  const askNext = (prompt) => nav('/chat', { state: { initialMessage: prompt } });
 
   // ── Home — Most Asked banner + category grid ──────────────────────────────
   if (cur.screen === 'home') {
@@ -125,7 +133,7 @@ export default function MoneyQuestions() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-primary-50 block text-[15px] font-extrabold">Most asked questions</span>
-            <span className="font-deva text-ink-soft mt-0.5 block text-xs">See all 100, handpicked and checked</span>
+            <span className="font-deva text-ink-soft mt-0.5 block text-xs">See all 300, handpicked and checked</span>
           </span>
           <IcChevronLeft size={16} color="var(--color-primary-50)" className="rotate-180" />
         </button>
@@ -194,15 +202,15 @@ export default function MoneyQuestions() {
     );
   }
 
-  // ── All 100, paginated ──────────────────────────────────────────────────
+  // ── All 300, paginated ──────────────────────────────────────────────────
   if (cur.screen === 'alltop') {
     const page = cur.page || 1;
     const items = pageOf(page);
     return (
       <div className="animate-fade-in flex flex-col gap-2">
-        <BackRow onBack={back} label="All top questions" count={100} />
+        <BackRow onBack={back} label="All top questions" count={300} />
         <p className="font-deva text-ink-soft mb-1 text-[11.5px] leading-snug">
-          Ranked by real demand (Gemini + Meta research), checked against official sources.
+          Ranked by real demand, Gemini-verified against official sources.
         </p>
         {items.map((it) => (
           <button
@@ -224,7 +232,10 @@ export default function MoneyQuestions() {
     );
   }
 
-  // ── Question detail ────────────────────────────────────────────────────
+  // ── Question detail — KG's 4-beat answer: understand -> answer -> doNow ->
+  // nextQuestion. doNow renders as a highlighted action row (not plain text)
+  // per the KG integration guide; for fraud rows it's folded into the
+  // hard-stop banner instead of repeated below. ─────────────────────────────
   if (cur.screen === 'question') {
     const it = findByRank(cur.rank);
     const isFraud = it.type === 'E';
@@ -248,19 +259,25 @@ export default function MoneyQuestions() {
 
           {isFraud && (
             <div className="bg-error-soft text-error mb-3 rounded-lg p-3 text-[13px] leading-relaxed font-semibold">
-              Don't share your OTP or PIN. Call <b>1930</b> or report at cybercrime.gov.in right away.
+              {doNowText(it)}
             </div>
           )}
 
+          <p className="font-deva text-ink-soft mb-2 text-[12.5px] leading-relaxed italic">{understandText(it)}</p>
           <p className="font-deva text-ink mb-3 text-[14px] leading-relaxed">{answerText(it)}</p>
 
-          {showLink ? (
+          {!isFraud && (
+            <div className="bg-primary-20 mb-3 rounded-lg p-3">
+              <span className="font-deva text-primary-50 block text-[10px] font-extrabold tracking-wide uppercase">Do this now</span>
+              <p className="font-deva text-ink mt-1 text-[13px] leading-relaxed font-semibold">{doNowText(it)}</p>
+            </div>
+          )}
+
+          {showLink && (
             <a href={`https://${it.link.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="bg-primary-20 text-primary-50 font-deva mb-3 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold">
-              ↗ {it.link}
+              ↗ {it.link.replace(/^https?:\/\//, '')}
             </a>
-          ) : it.linkText ? (
-            <p className="font-deva bg-surface-ghost text-ink-soft mb-3 inline-block rounded-lg px-3 py-2 text-[11px] font-semibold">{it.linkText}</p>
-          ) : null}
+          )}
 
           <button onClick={() => listen(it.rank, answerText(it))} className={jdsBtn('tertiary') + ' !h-9 !px-3.5 !text-xs'}>
             {playingRank === it.rank ? 'Playing' : 'Listen'}
@@ -275,6 +292,19 @@ export default function MoneyQuestions() {
             Checked against official sources · this is not financial advice.
           </p>
         </div>
+
+        {nextQuestionText(it) && (
+          <div className="flex flex-col items-center gap-1.5 pt-1 text-center">
+            <span className="font-deva text-ink-soft text-xs">Want to know more?</span>
+            <button
+              onClick={() => askNext(nextQuestionText(it))}
+              className="bg-primary-20 text-primary-50 font-deva inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12.5px] font-bold"
+            >
+              <IcMicrophone size={14} color="var(--color-primary-50)" />
+              {nextQuestionText(it)}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
