@@ -133,7 +133,7 @@ export default function MoneyQuestions() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-primary-50 block text-[15px] font-extrabold">Most asked questions</span>
-            <span className="font-deva text-ink-soft mt-0.5 block text-xs">See all 300, handpicked and checked</span>
+            <span className="font-deva text-ink-soft mt-0.5 block text-xs">Handpicked and checked</span>
           </span>
           <IcChevronLeft size={16} color="var(--color-primary-50)" className="rotate-180" />
         </button>
@@ -143,7 +143,6 @@ export default function MoneyQuestions() {
           {CATEGORIES.map((c) => {
             const Icon = BUCKET_ICON[c.icon];
             const style = CATEGORY_STYLE[c.id];
-            const count = questionsForBucket(c.id).length;
             return (
               <button
                 key={c.id}
@@ -154,7 +153,6 @@ export default function MoneyQuestions() {
                   <Icon size={18} color={style.fg} />
                 </span>
                 <span className="font-deva text-ink text-[12.5px] leading-tight font-bold">{c.label}</span>
-                <span className="font-deva text-ink-soft text-[10.5px]">{count} questions</span>
               </button>
             );
           })}
@@ -175,7 +173,6 @@ export default function MoneyQuestions() {
         <BackRow
           onBack={back}
           label={meta.label}
-          count={items.length}
           icon={
             <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
               <Icon size={16} color={style.fg} />
@@ -208,7 +205,7 @@ export default function MoneyQuestions() {
     const items = pageOf(page);
     return (
       <div className="animate-fade-in flex flex-col gap-2">
-        <BackRow onBack={back} label="All top questions" count={300} />
+        <BackRow onBack={back} label="All top questions" />
         <p className="font-deva text-ink-soft mb-1 text-[11.5px] leading-snug">
           Ranked by real demand, Gemini-verified against official sources.
         </p>
