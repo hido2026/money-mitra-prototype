@@ -18,6 +18,11 @@
 // - KYC010's question text was copy-pasted from KYC007 (mismatched topic);
 //   corrected to match its actual Bal Aadhaar content.
 
+import {
+  IcQrCode, IcBuilding, IcLandmark, IcIdCard, IcPercentNote, IcCoins, IcShield, IcBillBolt,
+  IcCashHand, IcUmbrella,
+} from '../components/icons/Icons';
+
 export const CATEGORIES = [
   { id: "upi", label: "UPI & payments", icon: "upi" },
   { id: "bank", label: "Bank basics & charges", icon: "bank" },
@@ -58,6 +63,14 @@ export const CATEGORY_STYLE = {
   bills: { bg: 'bg-warning-soft', fg: 'var(--color-warning)' },
   earn: { bg: 'bg-topic-teal-soft', fg: 'var(--color-topic-teal)' },
   insurance: { bg: 'bg-surface-ghost', fg: 'var(--color-neutral)' },
+};
+
+// Shared with Paisa Gyaan (tip-bank.js's TAG_TO_BUCKET maps its own
+// tag_category slugs onto these same bucket ids) so both surfaces use one
+// icon per category instead of drifting apart.
+export const BUCKET_ICON = {
+  upi: IcQrCode, bank: IcBuilding, schemes: IcLandmark, kyc: IcIdCard, loans: IcPercentNote,
+  savings: IcCoins, fraud: IcShield, bills: IcBillBolt, earn: IcCashHand, insurance: IcUmbrella,
 };
 
 export const PAGE_SIZE = 8;

@@ -1,5 +1,5 @@
-// Nuskha bank — the shared content asset behind both Ask (reactive) and Paisa
-// Gyaan (proactive). Full "Paisa Guru" set: all 300 nuskhe (100 days of
+// Tip bank — the shared content asset behind both Ask (reactive) and Paisa
+// Gyaan (proactive). Full "Paisa Guru" set: all 300 tips (100 days of
 // 3-a-day), sourced from the same Gemini-verified Knowledge Graph as Ask
 // (see _source_kg_id per row) -- repackaged into punchier daily-tip copy
 // rather than full Q&A, no new facts invented. This supersedes the earlier
@@ -11,11 +11,11 @@
 //
 // sources/verification/answer_type carry the same meaning as the Ask KG
 // (see money-questions.js) -- kept here for traceability even though the
-// current UI doesn't surface a "Source:" line for nuskhe yet.
+// current UI doesn't surface a "Source:" line for tips yet.
 //
 // personas are informal example tags (general/priya/senior-citizen/youth/
 // ramesh/...), not a defined persona enum anywhere in the codebase -- same
-// ad hoc convention the original 5-nuskha starter set used.
+// ad hoc convention the original 5-tip starter set used.
 //
 // Fixed on import from the source file (same bug classes as the Ask 300
 // migration): 34 entries had official_url wrongly defaulted to rbi.org.in
@@ -23,7 +23,23 @@
 // "[suspicious link removed]" placeholder (lpg-subsidy-check-01) corrected
 // to its real source, ppac.gov.in.
 
-export const NUSKHA_BANK = [
+// tag_category (this file) -> bucket id (money-questions.js CATEGORIES) --
+// lets PaisaGyaan.jsx show the same category icon Ask already uses, so the
+// two features read as one consistent taxonomy rather than two.
+export const TAG_TO_BUCKET = {
+  'upi-payments': 'upi',
+  'fraud-safety': 'fraud',
+  'bills-utilities': 'bills',
+  insurance: 'insurance',
+  'savings-instruments': 'savings',
+  'earning-income': 'earn',
+  'bank-basics': 'bank',
+  'govt-schemes': 'schemes',
+  'kyc-aadhaar-pan': 'kyc',
+  'loans-cibil': 'loans',
+};
+
+export const TIP_BANK = [
   {
     id: 'upi-no-charge-01',
     tag_category: 'upi-payments',
@@ -5727,15 +5743,15 @@ export const NUSKHA_BANK = [
 ];
 
 const STREAK_KEY = 'paisaGyaanStreak';
-const TIPS_PER_DAY = 3; // final PRD: 3 nuskhe/day, gated by real calendar date
+const TIPS_PER_DAY = 3; // final PRD: 3 tips/day, gated by real calendar date
 
 function loadStreak() {
   try {
     const raw = localStorage.getItem(STREAK_KEY);
-    if (!raw) return { current_streak: 0, last_completed_date: null, seen_nuskha_ids: [] };
+    if (!raw) return { current_streak: 0, last_completed_date: null, seen_tip_ids: [] };
     return JSON.parse(raw);
   } catch {
-    return { current_streak: 0, last_completed_date: null, seen_nuskha_ids: [] };
+    return { current_streak: 0, last_completed_date: null, seen_tip_ids: [] };
   }
 }
 
@@ -5760,24 +5776,24 @@ export function completeToday(shownIds) {
   const next = {
     current_streak: gap <= 1 ? s.current_streak + 1 : 1,
     last_completed_date: today,
-    seen_nuskha_ids: [...new Set([...(s.seen_nuskha_ids || []), ...shownIds])].slice(-30),
+    seen_tip_ids: [...new Set([...(s.seen_tip_ids || []), ...shownIds])].slice(-30),
   };
   saveStreak(next);
   return next;
 }
 
 // ── Simulation-mode day navigation ──────────────────────────────────────
-// The real PRD gates nuskhe at 3/day by calendar date (completeToday above).
+// The real PRD gates tips at 3/day by calendar date (completeToday above).
 // Until that's wired up, these let a tester click through day 1, 2, 3... in
 // one sitting to preview the whole rotation, sequential and deterministic
 // (day N = the Nth batch of 3, matching the deliberate variety the batch was
 // curated with) rather than the old seen-id-based random top-up.
 export function totalSimDays() {
-  return Math.floor(NUSKHA_BANK.length / TIPS_PER_DAY);
+  return Math.floor(TIP_BANK.length / TIPS_PER_DAY);
 }
 
 export function getSetForDay(day) {
   const clamped = Math.max(1, Math.min(day, totalSimDays()));
   const start = (clamped - 1) * TIPS_PER_DAY;
-  return NUSKHA_BANK.slice(start, start + TIPS_PER_DAY);
+  return TIP_BANK.slice(start, start + TIPS_PER_DAY);
 }

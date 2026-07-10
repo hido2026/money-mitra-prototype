@@ -127,8 +127,8 @@ export const IcFileDollar = ({ size = 16, color = '#D85A30' }) => (
 
 export const IcSchool = ({ size = 16, color = '#3B6D11' }) => (
   <svg {...base(size, color)}>
-    <path d="M22 9 12 5 2 9l10 4 10-4v6"/>
-    <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
+    <path d="M9 18h6M10 21h4"/>
+    <path d="M15.5 14c.7-.8 1.5-1.7 1.5-3.5A5 5 0 1 0 7 10.5c0 1.8.8 2.7 1.5 3.5.5.6.9 1 .9 1.8v.2h5.2v-.2c0-.8.4-1.2.9-1.8z"/>
   </svg>
 );
 
@@ -361,10 +361,9 @@ export const IcFlameColor = ({ size = 16 }) => (
 
 export const IcSchoolColor = ({ size = 16 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-    <ellipse cx="12" cy="14" rx="6" ry="3" fill="var(--color-primary-50)" />
-    <path fill="var(--color-primary-70)" d="M12 4 2 9l10 4 10-4z" />
-    <circle cx="20" cy="9.6" r="1.3" fill="#C8961E" />
-    <path stroke="#C8961E" strokeWidth="1.3" strokeLinecap="round" fill="none" d="M20 9.6v5.5" />
+    <path fill="#C8961E" d="M15.5 14c.7-.8 1.5-1.7 1.5-3.5A5 5 0 1 0 7 10.5c0 1.8.8 2.7 1.5 3.5.5.6.9 1 .9 1.8v.2h5.2v-.2c0-.8.4-1.2.9-1.8z" />
+    <rect x="9" y="17.5" width="6" height="1.6" rx="0.8" fill="var(--color-primary-70)" />
+    <rect x="10" y="20" width="4" height="1.4" rx="0.7" fill="var(--color-primary-70)" />
   </svg>
 );
 
@@ -372,5 +371,80 @@ export const IcShieldColor = ({ size = 16 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
     <path fill="var(--color-success)" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     <path stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" d="M8.5 12l2.3 2.3 4.7-4.9" />
+  </svg>
+);
+
+// Tier 2/3 icon revision (UPI = the scan-to-pay QR mark everyone already
+// recognises from kirana counters; the "UPI" text lives in the category
+// label right next to this icon, not crammed into the glyph itself).
+export const IcQrCode = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <rect x="3" y="3" width="7" height="7" rx="1"/>
+    <rect x="14" y="3" width="7" height="7" rx="1"/>
+    <rect x="3" y="14" width="7" height="7" rx="1"/>
+    <line x1="14" y1="14" x2="14" y2="21"/>
+    <line x1="14" y1="17.5" x2="21" y2="17.5"/>
+    <line x1="18" y1="14" x2="21" y2="14"/>
+    <line x1="21" y1="21" x2="21" y2="21"/>
+  </svg>
+);
+
+// Govt schemes — a generic pillared/civic building, deliberately not the
+// Ashoka Chakra or any state emblem (restricted symbol, not ours to reuse).
+// Visually distinct from IcBuilding (Bank basics) via the triangular
+// pediment + freestanding columns, a "classical civic" silhouette vs.
+// Bank's plain modern rectangle.
+export const IcLandmark = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <polygon points="12 2 20 8 4 8"/>
+    <line x1="3" y1="21" x2="21" y2="21"/>
+    <line x1="6" y1="18" x2="6" y2="11"/>
+    <line x1="10" y1="18" x2="10" y2="11"/>
+    <line x1="14" y1="18" x2="14" y2="11"/>
+    <line x1="18" y1="18" x2="18" y2="11"/>
+  </svg>
+);
+
+// KYC/Aadhaar/PAN — an ID card (face + fingerprint-style lines), the object
+// people actually associate with identity proof, replacing the rubber-stamp
+// metaphor (post-office, not identity).
+export const IcIdCard = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <rect x="2" y="4" width="20" height="16" rx="2"/>
+    <circle cx="8" cy="10" r="2"/>
+    <path d="M5 16c0-1.7 1.3-3 3-3s3 1.3 3 3"/>
+    <line x1="14" y1="8" x2="20" y2="8"/>
+    <line x1="14" y1="12" x2="20" y2="12"/>
+    <line x1="14" y1="16" x2="18" y2="16"/>
+  </svg>
+);
+
+// Loans/CIBIL — a currency note with an interest-rate badge, so the glyph
+// says "loan" specifically rather than just "money" (a plain wallet reads
+// as savings/spending just as easily as borrowing).
+export const IcPercentNote = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <rect x="2" y="6" width="20" height="12" rx="2"/>
+    <circle cx="12" cy="12" r="3.2"/>
+    <text x="12" y="14.6" textAnchor="middle" fontSize="6.5" fontWeight="800" fill={color} stroke="none">%</text>
+  </svg>
+);
+
+// Earning income — a hand receiving a coin, deliberately not a briefcase
+// (excludes gig workers, vendors, farmers — most of this app's audience
+// don't have "corporate jobs").
+export const IcCashHand = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <path d="M4 15c0-1.1 1.3-2 3-2h2.5l2.5-1.7 2.5 1.7H17c1.7 0 3 .9 3 2v3c0 1.1-1.3 2-3 2H7c-1.7 0-3-.9-3-2z"/>
+    <circle cx="12" cy="6.5" r="2.5"/>
+  </svg>
+);
+
+// Bills & utilities — a bill with a utility bolt, so it reads distinctly
+// from हिसाब's plain receipt (same glyph on both was a real bug).
+export const IcBillBolt = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <path d="M6 2h9l4 4v16H6z"/>
+    <path d="M13 9l-3 5h3l-1 4 4-6h-3z"/>
   </svg>
 );

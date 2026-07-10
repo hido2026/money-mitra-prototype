@@ -17,7 +17,7 @@ import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
 import { IcReceipt, IcFlameColor, IcSchoolColor, IcShieldColor } from '../components/icons/Icons';
-import { getStreak } from '../data/nuskha-bank';
+import { getStreak } from '../data/tip-bank';
 
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
 const groqClient = _apiKey ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser: true }) : null;
@@ -31,7 +31,7 @@ const COPY = {
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
     docExamples: 'बिजली का बिल · बैंक का SMS · LIC की पर्ची · या कुछ और — दिखाइए',
     connector: 'जो कागज़ दिखाते हैं, वो यहाँ अपने आप जुड़ जाता है',
-    gyaanTitle: 'पैसा ज्ञान', gyaanSub: 'रोज़ का एक नुस्खा, 30 सेकंड में',
+    gyaanTitle: 'पैसा ज्ञान', gyaanSub: 'रोज़ की एक टिप, 30 सेकंड में',
     gyaanStreak: (n) => `${n}-दिन`,
     hisaabTitle: 'आपका हिसाब', tileIn: 'आया', tileOut: 'गया', tileSaved: 'बचा',
     hisaabSub: (m) => `आपकी फ़ोटो से अपने आप बना · ${m}`,
@@ -48,7 +48,7 @@ const COPY = {
     docTitle: 'Understand a document',
     docExamples: 'Electricity bill · bank SMS · LIC slip · or anything else — show it',
     connector: 'Every paper you show adds here automatically',
-    gyaanTitle: 'Paisa Gyaan', gyaanSub: 'One 30-second nuskha, every day',
+    gyaanTitle: 'Paisa Gyaan', gyaanSub: 'One 30-second tip, every day',
     gyaanStreak: (n) => `${n}-day`,
     hisaabTitle: 'Your Ledger', tileIn: 'In', tileOut: 'Out', tileSaved: 'Saved',
     hisaabSub: (m) => `Built automatically from your photos · ${m}`,
@@ -235,7 +235,7 @@ export default function Home() {
         </button>
 
         {/* Paisa Gyaan entry — secondary to the 3 scoped cards above, per
-            CLAUDE.md's Home contract; daily nuskha + streak habit loop. */}
+            CLAUDE.md's Home contract; daily tip + streak habit loop. */}
         <button
           className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left"
           onClick={() => nav('/paisa-gyaan')}

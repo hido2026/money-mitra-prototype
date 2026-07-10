@@ -1,4 +1,4 @@
-// Paisa Gyaan — daily money nuskha (paisa-gyaan/PRD.md, TECHNICAL_PLAN.md §5
+// Paisa Gyaan — daily money tip (paisa-gyaan/PRD.md, TECHNICAL_PLAN.md §5
 // steps 1-2). Same content asset the guided Ask drilldown uses, served
 // proactively instead of reactively: a short card set + streak, no LLM call,
 // client-side rotation via localStorage. The follow-up chip bridges into
@@ -11,18 +11,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang } from '../hooks/useLang';
 import { jdsBtn } from '../components/jds';
-import { IcChevronLeft, IcFlame, IcSchool, IcThumbUp, IcMicrophone } from '../components/icons/Icons';
-import { getSetForDay, totalSimDays, completeToday } from '../data/nuskha-bank';
+import { IcChevronLeft, IcFlame, IcSchool, IcMicrophone } from '../components/icons/Icons';
+import { BUCKET_ICON } from '../data/money-questions';
+import { getSetForDay, totalSimDays, completeToday, TAG_TO_BUCKET } from '../data/tip-bank';
 
 const COPY = {
   hi: {
     title: 'पैसा ज्ञान', back: 'वापस',
-    tag: (i, n) => `आज का नुस्खा · ${i}/${n}`,
-    gotIt: 'समझ गया', next: 'अगला →', finish: 'पूरा करो',
+    tag: (i, n) => `आज की टिप · ${i}/${n}`,
+    alreadyKnew: 'पहले से पता था', learnedNew: 'नया सीखा',
+    alreadyKnewShort: 'पता था', learnedNewShort: 'नया',
+    next: 'अगला →', finish: 'पूरा करो',
     savedToast: 'सेव हुआ — यह आपके स्ट्रीक में गिना जाएगा',
     askMore: 'और जानना है?',
     streakLine: (n) => `${n}-दिन स्ट्रीक!`,
-    doneBody: 'आज का ज्ञान पूरा। कल एक और नुस्खा — सोना, बीमा, या आपके खर्च पर।',
+    doneBody: 'आज का ज्ञान पूरा। कल एक और टिप — सोना, बीमा, या आपके खर्च पर।',
     tomorrowLabel: 'आपके लिए कल',
     tomorrowTeaser: '(हिसाब देख कर चुना गया एक पर्सनलाइज़्ड सबक — जल्द आ रहा है।)',
     restart: '↺ फिर से देखें', micro: 'आज करें:',
@@ -32,8 +35,10 @@ const COPY = {
   },
   en: {
     title: 'Paisa Gyaan', back: 'Back',
-    tag: (i, n) => `Today's nuskha · ${i}/${n}`,
-    gotIt: 'Got it', next: 'Next →', finish: 'Complete',
+    tag: (i, n) => `Today's tip · ${i}/${n}`,
+    alreadyKnew: 'Already knew this', learnedNew: 'Learned something new',
+    alreadyKnewShort: 'Knew it', learnedNewShort: 'New',
+    next: 'Next →', finish: 'Complete',
     savedToast: 'Saved — this counts toward your streak',
     askMore: 'Want to know more?',
     streakLine: (n) => `${n}-day streak!`,
@@ -51,7 +56,7 @@ export default function PaisaGyaan() {
   const nav = useNavigate();
   const [lang] = useLang();
   const t = COPY[lang];
-  // Simulation-mode day navigation (see nuskha-bank.js) — lets a tester walk
+  // Simulation-mode day navigation (see tip-bank.js) — lets a tester walk
   // through day 1..10 in one sitting instead of waiting on real calendar
   // gating, which is a final-PRD concern, not wired up yet.
   const [simDay, setSimDay] = useState(1);
@@ -61,6 +66,7 @@ export default function PaisaGyaan() {
   const cards = getSetForDay(simDay);
   const card = cards[idx];
   const lastDay = simDay >= totalSimDays();
+  const CategoryIcon = BUCKET_ICON[TAG_TO_BUCKET[card.tag_category]];
 
   const showToast = (msg) => {
     setToast(msg);
@@ -109,8 +115,11 @@ export default function PaisaGyaan() {
         {!done ? (
           <>
             <div className="bg-primary-50 flex min-h-[260px] flex-col rounded-xl p-[18px]">
-              <span className="font-deva text-[10px] font-extrabold tracking-wide text-white/75 uppercase">
-                {t.tag(idx + 1, cards.length)}
+              <span className="flex items-center gap-1.5">
+                <CategoryIcon size={12} color="rgba(255,255,255,0.85)" />
+                <span className="font-deva text-[10px] font-extrabold tracking-wide text-white/75 uppercase">
+                  {t.tag(idx + 1, cards.length)}
+                </span>
               </span>
               <h1 className="font-deva mt-2 mb-3 text-[19px] leading-snug font-extrabold text-white">
                 {hookQuestion}
@@ -133,13 +142,22 @@ export default function PaisaGyaan() {
             )}
 
             <div className="flex gap-2.5">
-              <button
-                onClick={() => showToast(t.savedToast)}
-                className="border-success text-success font-deva flex flex-1 items-center justify-center gap-1.5 rounded-lg border-[1.5px] bg-surface py-3 text-[13px] font-extrabold"
-              >
-                <IcThumbUp size={15} color="var(--color-success)" />
-                {t.gotIt}
-              </button>
+              <div className="border-primary-20 flex shrink-0 items-stretch overflow-hidden rounded-lg border-[1.5px]">
+                <button
+                  onClick={() => showToast(t.savedToast)}
+                  aria-label={t.alreadyKnew}
+                  className="font-deva text-primary-50 border-primary-20 flex h-11 items-center justify-center border-r-[1.5px] px-3 text-[12px] font-bold"
+                >
+                  {t.alreadyKnewShort}
+                </button>
+                <button
+                  onClick={() => showToast(t.savedToast)}
+                  aria-label={t.learnedNew}
+                  className="font-deva text-primary-50 flex h-11 items-center justify-center px-3 text-[12px] font-bold"
+                >
+                  {t.learnedNewShort}
+                </button>
+              </div>
               <button onClick={next} className={jdsBtn('primary') + ' flex-1 !rounded-lg'}>
                 {idx < cards.length - 1 ? t.next : t.finish}
               </button>

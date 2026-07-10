@@ -16,18 +16,10 @@ import { TagChip, jdsBtn } from './jds';
 import { speakMukund } from '../utils/tts';
 import { useLang } from '../hooks/useLang';
 import {
-  CATEGORIES, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, PAGE_SIZE,
+  CATEGORIES, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, BUCKET_ICON, PAGE_SIZE,
   findBucketMeta, questionsForBucket, findByRank, totalPages, pageOf,
 } from '../data/money-questions';
-import {
-  IcUpi, IcBuilding, IcGift, IcStamp, IcFileDollar, IcCoins, IcShield, IcReceipt,
-  IcBriefcase, IcUmbrella, IcChevronLeft, IcFlame, IcMicrophone,
-} from './icons/Icons';
-
-const BUCKET_ICON = {
-  upi: IcUpi, bank: IcBuilding, schemes: IcGift, kyc: IcStamp, loans: IcFileDollar,
-  savings: IcCoins, fraud: IcShield, bills: IcReceipt, earn: IcBriefcase, insurance: IcUmbrella,
-};
+import { IcChevronLeft, IcFlame, IcMicrophone, IcShield } from './icons/Icons';
 
 function SafetyLine() {
   return (
