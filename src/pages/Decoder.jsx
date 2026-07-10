@@ -25,7 +25,7 @@ import {
   IcChevronLeft, IcCamera, IcCheck, IcShield, IcAlertOctagon,
   IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks,
   IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
-  IcChartLine, IcBuilding,
+  IcChartLine, IcBuilding, IcDroplet, IcWifi,
 } from '../components/icons/Icons';
 
 // seenTypes persists across decodes in the session (for variety/first-of-type bonuses)
@@ -67,6 +67,8 @@ function docIcon(key, size, color) {
     case 'fork':      return <IcFork size={size} color={color} />;
     case 'cart':      return <IcCart size={size} color={color} />;
     case 'gas':       return <IcGas size={size} color={color} />;
+    case 'droplet':   return <IcDroplet size={size} color={color} />;
+    case 'wifi':      return <IcWifi size={size} color={color} />;
     case 'upi':       return <IcUpi size={size} color={color} />;
     case 'coin':      return <IcCoin size={size} color={color} />;
     case 'gold-coin': return <IcGoldCoin size={size} color={color} />;
@@ -114,6 +116,7 @@ export default function Decoder() {
   const [route, setRoute] = useState(null);       // 'confirmed' | 'uncertain' | 'none'
   const [askResolved, setAskResolved] = useState(null); // null | 'added' | 'skipped'
   const [recurringNote, setRecurringNote] = useState(false);
+  const [deltaGuard, setDeltaGuard] = useState(false); // H8: recurring amount jumped >3x — re-ask instead of silent auto-add
   const addedRef = useRef(false);
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
@@ -184,6 +187,7 @@ export default function Decoder() {
       points: earned.total, icon: docIconKey(d.docType),
       borrowed: d.borrowed === true,
       dueDate: d.dueDate || null, ts: Date.now(),
+      recurringKey: d.recurringKey || null,
     }});
     Events.uploadCompleted({ attribution: location.state?.attribution || 'organic' });
   };
@@ -193,6 +197,20 @@ export default function Decoder() {
     if (d.direction === 'ambiguous') return; // direction resolver handles this first
     explain(d);
     let r = classifyRoute(d);
+
+    // Delta guard (H8): a recurring doc's amount jumping >3x vs its last instance
+    // must never be silently auto-added — re-ask regardless of the normal route
+    // (this includes ALWAYS_EXPENSE_TYPES like electricity/credit-card bills that
+    // would otherwise go straight to 'confirmed'). A ₹2,000 credit-card bill
+    // suddenly reading ₹40,000 stops here, not in the ledger.
+    if (d.isRecurring && d.recurringKey && d.amount) {
+      const last = [...state.docs].reverse().find(e => e.recurringKey === d.recurringKey);
+      if (last?.amount) {
+        const ratio = d.amount > last.amount ? d.amount / last.amount : last.amount / d.amount;
+        if (ratio > 3) { setDeltaGuard(true); setRoute('uncertain'); return; }
+      }
+    }
+
     // Recurring memory — skip the ASK if we already know the user's choice for this key.
     if (r === 'uncertain' && d.isRecurring && d.recurringKey && _recurringChoices.has(d.recurringKey)) {
       const choice = _recurringChoices.get(d.recurringKey);
@@ -219,7 +237,7 @@ export default function Decoder() {
   const handleFile = async (file) => {
     if (!file) return;
     setData(null); setConfirmed(false); addedRef.current = false;
-    setRoute(null); setAskResolved(null); setRecurringNote(false); setReward(null); setInsightLine('');
+    setRoute(null); setAskResolved(null); setRecurringNote(false); setDeltaGuard(false); setReward(null); setInsightLine('');
     setStage('reading');
     try {
       const d = await extractFromFile(file);
@@ -447,14 +465,20 @@ export default function Decoder() {
           <div className="animate-fade-in ml-[42px]">
             <InfoBox tone="warning">
               <span className="font-deva text-ink mb-3 block font-bold">
-                {lang === 'en' ? 'Did you take this? Should I add it to your hisaab?' : 'क्या यह आपने लिया है? हिसाब में जोड़ूँ?'}
+                {deltaGuard
+                  ? (lang === 'en' ? "This amount is much higher than last time — please check before adding." : 'इस बार रकम काफ़ी ज़्यादा है — जोड़ने से पहले देख लें।')
+                  : (lang === 'en' ? 'Did you take this? Should I add it to your hisaab?' : 'क्या यह आपने लिया है? हिसाब में जोड़ूँ?')}
               </span>
               <span className="flex gap-2.5">
                 <button onClick={askYes} className={`${jdsBtn('primary')} flex-1`}>
-                  {lang === 'en' ? 'Yes, add it' : 'हाँ, जोड़ें'}
+                  {deltaGuard
+                    ? (lang === 'en' ? 'Yes, correct — add it' : 'हाँ, सही है, जोड़ें')
+                    : (lang === 'en' ? 'Yes, add it' : 'हाँ, जोड़ें')}
                 </button>
                 <button onClick={askNo} className={`${jdsBtn('tertiary')} flex-1`}>
-                  {lang === 'en' ? 'Just wanted to understand' : 'सिर्फ़ समझना था'}
+                  {deltaGuard
+                    ? (lang === 'en' ? 'No' : 'नहीं')
+                    : (lang === 'en' ? 'Just wanted to understand' : 'सिर्फ़ समझना था')}
                 </button>
               </span>
               <span className="font-deva text-reward-ink mt-2.5 block text-xs">

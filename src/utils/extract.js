@@ -50,7 +50,7 @@ const EXTRACT_PROMPT =
   "is_recurring = true for monthly/repeating docs (credit card, monthly bill, EMI). recurring_key = stable id like 'creditcard:HDFC' or 'electricity:Adani', else null. " +
   "Return JSON ONLY, no prose: " +
   "{\"readable\":true|false," +
-  "\"doc_type\":\"restaurant_bill|electricity_bill|kirana_receipt|salary_slip|upi_receipt|phone_recharge|" +
+  "\"doc_type\":\"restaurant_bill|electricity_bill|water_bill|gas_bill|internet_bill|kirana_receipt|salary_slip|upi_receipt|phone_recharge|" +
   "credit_card_bill|credit_card_credit|bank_notice|" +
   "health_insurance|term_insurance|vehicle_insurance|" +
   "personal_loan_disbursal|personal_loan_emi|microfinance_emi|" +
@@ -60,7 +60,7 @@ const EXTRACT_PROMPT =
   "\"line_items\":[{\"label\":string,\"amount\":number}]|null," +
   "\"alarming\":true|false,\"borrowed\":true|false," +
   "\"currency\":\"INR\"|null,\"date\":string|null,\"direction\":\"out|in|ambiguous\"," +
-  "\"category\":\"खाना-पीना|बिजली|राशन|तनख्वाह|फ़ोन|बीमा|ऋण|सब्सिडी|निवेश|बचत|आमदनी|अन्य|null\"," +
+  "\"category\":\"खाना-पीना|बिजली|पानी|गैस|इंटरनेट|राशन|तनख्वाह|फ़ोन|बीमा|ऋण|सब्सिडी|निवेश|बचत|आमदनी|अन्य|null\"," +
   "\"has_amount\":true|false,\"transaction_confidence\":\"high|medium|none\"," +
   "\"doc_kind\":\"bill_paid|bill_due|upi_receipt|salary_slip|kirana_receipt|subsidy|insurance_policy|loan_offer|quote|brochure|id_kyc|notice_no_amount|other\"," +
   "\"is_recurring\":true|false,\"recurring_key\":string|null," +
@@ -85,12 +85,17 @@ const ALWAYS_EXPENSE_TYPES = new Set([
 const CAT_RULES = [
   { cat: 'फ़ोन',       kw: ['jio', 'airtel', 'vodafone', 'vi ', 'idea', 'bsnl', 'recharge', 'prepaid', 'postpaid', 'रिचार्ज', 'मोबाइल'] },
   { cat: 'बिजली',      kw: ['electric', 'adani', 'tata power', 'bses', 'mseb', 'torrent power', 'units', 'kwh', 'energy charge', 'बिजली'] },
+  { cat: 'पानी',       kw: ['water', 'jal board', 'jal nigam', 'पानी', 'जल'] },
+  { cat: 'इंटरनेट',    kw: ['broadband', 'wifi', 'fiber', 'jiofiber', 'internet', 'इंटरनेट', 'ब्रॉडबैंड'] },
   { cat: 'खाना-पीना',  kw: ['restaurant', 'cafe', 'hotel', 'dine', 'dhaba', 'food', 'swiggy', 'zomato', 'रेस्तरां', 'कैफे', 'भोजन'] },
   { cat: 'राशन',       kw: ['kirana', 'grocery', 'supermarket', 'mart', 'provision', 'reliance fresh', 'dmart', 'big bazaar', 'राशन', 'किराना'] },
   { cat: 'आमदनी',      kw: ['salary', 'payslip', 'pay slip', 'net pay', 'earnings', 'wages', 'तनख्वाह', 'सैलरी', 'वेतन'] },
   { cat: 'बीमा',       kw: ['insurance', 'premium', 'lic', 'policy', 'insured', 'बीमा', 'प्रीमियम', 'पॉलिसी'] },
   { cat: 'ऋण',         kw: ['loan', ' emi', 'instalment', 'repayment', 'gold loan', 'microfinance', 'लोन', 'किस्त', 'ऋण'] },
   { cat: 'सब्सिडी',    kw: ['subsidy', 'lpg', 'pm kisan', 'सब्सिडी', 'गैस सब्सिडी', 'रसोई गैस'] },
+  // गैस comes AFTER सब्सिडी so a "गैस सब्सिडी" (LPG subsidy) document matches सब्सिडी
+  // first, not गैस — matches PRD Appendix D.3's explicit ordering requirement.
+  { cat: 'गैस',        kw: ['png', 'piped gas', 'gas bill', 'indane', 'hp gas', 'bharat gas', 'गैस'] },
   { cat: 'निवेश',      kw: ['mutual fund', 'redemption', 'sip', 'म्यूचुअल', 'फंड'] },
   { cat: 'बचत',        kw: ['fixed deposit', 'fd maturity', 'recurring deposit', 'एफडी', 'परिपक्वता'] },
 ];

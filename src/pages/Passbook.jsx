@@ -17,7 +17,7 @@ import { StatDisplay, InfoBox, TagChip, IconCircle } from '../components/jds';
 import {
   IcChevronLeft, IcReceipt, IcZap, IcSmartphone, IcFileDollar, IcSparks, IcCamera,
   IcShield, IcChartLine, IcBuilding,
-  IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin,
+  IcWallet, IcLock, IcFork, IcCart, IcGas, IcUpi, IcCoin, IcGoldCoin, IcDroplet, IcWifi,
 } from '../components/icons/Icons';
 
 const timeLabel = (ts) => ts ? new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
@@ -33,6 +33,8 @@ function docIcon(key, size, color) {
     case 'fork':      return <IcFork size={size} color={color} />;
     case 'cart':      return <IcCart size={size} color={color} />;
     case 'gas':       return <IcGas size={size} color={color} />;
+    case 'droplet':   return <IcDroplet size={size} color={color} />;
+    case 'wifi':      return <IcWifi size={size} color={color} />;
     case 'upi':       return <IcUpi size={size} color={color} />;
     case 'coin':      return <IcCoin size={size} color={color} />;
     case 'gold-coin': return <IcGoldCoin size={size} color={color} />;

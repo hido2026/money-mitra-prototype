@@ -448,3 +448,20 @@ export const IcBillBolt = ({ size = 16, color = '#6D17CE' }) => (
     <path d="M13 9l-3 5h3l-1 4 4-6h-3z"/>
   </svg>
 );
+
+// Water bill — a plain water drop, distinct from IcGas (used for LPG/gas bills).
+export const IcDroplet = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <path d="M12 2c4 5 7 8.5 7 12.5A7 7 0 0 1 5 14.5C5 10.5 8 7 12 2z"/>
+  </svg>
+);
+
+// Internet/broadband bill — a wifi signal.
+export const IcWifi = ({ size = 16, color = '#6D17CE' }) => (
+  <svg {...base(size, color)}>
+    <path d="M2 8.5a15 15 0 0 1 20 0"/>
+    <path d="M5 12.5a10 10 0 0 1 14 0"/>
+    <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+    <line x1="12" y1="20" x2="12" y2="20"/>
+  </svg>
+);

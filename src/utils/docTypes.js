@@ -24,6 +24,9 @@ export const DOC_TYPE_MAP = {
   // ── Utilities & payments ─────────────────────────────────────────────────────
   upi_receipt:             { title: 'UPI भुगतान',            category: null,        direction: 'out',       icon: 'upi'       },
   electricity_bill:        { title: 'बिजली बिल',             category: 'बिजली',     direction: 'out',       icon: 'zap'       },
+  water_bill:              { title: 'पानी बिल',               category: 'पानी',      direction: 'out',       icon: 'droplet'   },
+  gas_bill:                { title: 'गैस बिल',                category: 'गैस',       direction: 'out',       icon: 'gas'       },
+  internet_bill:           { title: 'इंटरनेट बिल',            category: 'इंटरनेट',   direction: 'out',       icon: 'wifi'      },
   phone_recharge:          { title: 'फ़ोन रिचार्ज',           category: 'फ़ोन',       direction: 'out',       icon: 'phone'     },
 
   // ── Subsidies (always in — real income, not borrowed) ────────────────────────
