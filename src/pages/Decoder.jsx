@@ -447,7 +447,7 @@ export default function Decoder() {
           <div className="animate-fade-in ml-[42px]">
             <InfoBox tone="warning">
               <span className="font-deva text-ink mb-3 block font-bold">
-                {lang === 'en' ? 'Did you take this? Should I add it to your ledger?' : 'क्या यह आपने लिया है? हिसाब में जोड़ूँ?'}
+                {lang === 'en' ? 'Did you take this? Should I add it to your hisaab?' : 'क्या यह आपने लिया है? हिसाब में जोड़ूँ?'}
               </span>
               <span className="flex gap-2.5">
                 <button onClick={askYes} className={`${jdsBtn('primary')} flex-1`}>
@@ -490,7 +490,7 @@ export default function Decoder() {
           <div className="font-deva text-success ml-[42px] flex items-center gap-1.5 text-xs">
             <IcCheck size={14} color="var(--color-success)" />
             {lang === 'en'
-              ? (recurringNote ? 'Same as last time — added to your ledger' : 'Added to your ledger')
+              ? (recurringNote ? 'Same as last time — added to your hisaab' : 'Added to your hisaab')
               : (recurringNote ? 'पिछली बार की तरह — हिसाब में जोड़ दिया' : 'हिसाब में जुड़ गया')}
           </div>
         )}
@@ -499,7 +499,7 @@ export default function Decoder() {
         {explainedOnly && (
           <div className="font-deva text-ink-soft ml-[42px] text-xs">
             {lang === 'en'
-              ? `Not added to ledger — ${route === 'none' ? 'information only' : 'just explained'}.`
+              ? `Not added to hisaab — ${route === 'none' ? 'information only' : 'just explained'}.`
               : `हिसाब में नहीं जोड़ा — सिर्फ़ ${route === 'none' ? 'जानकारी' : 'समझाया'}।`}
           </div>
         )}

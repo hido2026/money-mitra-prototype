@@ -209,7 +209,7 @@ export default function Passbook() {
               </div>
             ))}
             <p className="font-deva text-ink-soft mt-0.5 text-center text-xs">
-              {lang === 'en' ? 'More photos = clearer ledger.' : 'जितनी ज़्यादा फ़ोटो, उतना साफ़ हिसाब।'}
+              {lang === 'en' ? 'More photos = clearer hisaab.' : 'जितनी ज़्यादा फ़ोटो, उतना साफ़ हिसाब।'}
             </p>
           </div>
         )}
@@ -217,7 +217,7 @@ export default function Passbook() {
         {docs.length === 0 && (
           <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
             <p className="font-deva text-ink-soft m-0 text-sm">
-              {lang === 'en' ? 'No documents yet — show a photo and your ledger builds itself.' : 'अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।'}
+              {lang === 'en' ? 'No documents yet — show a photo and your hisaab builds itself.' : 'अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।'}
             </p>
             <button onClick={() => nav('/decoder', { state: { openCamera: true, attribution: 'points_view' } })} className="font-deva bg-primary-50 flex items-center gap-2 rounded-full px-5.5 py-3 text-[15px] font-bold text-white">
               <IcCamera size={18} color="#fff" /> {lang === 'en' ? 'Show a photo' : 'फ़ोटो दिखाओ'}

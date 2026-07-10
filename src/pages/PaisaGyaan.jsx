@@ -17,7 +17,7 @@ import { getSetForDay, totalSimDays, completeToday, TAG_TO_BUCKET } from '../dat
 
 const COPY = {
   hi: {
-    title: 'पैसा ज्ञान', back: 'वापस',
+    title: 'आज की पैसे की बात', back: 'वापस',
     tag: (i, n) => `आज की टिप · ${i}/${n}`,
     alreadyKnew: 'पहले से पता था', learnedNew: 'नया सीखा',
     alreadyKnewShort: 'पता था', learnedNewShort: 'नया',
@@ -34,7 +34,7 @@ const COPY = {
     restartFromDay1: '↺ दिन 1 से फिर देखें',
   },
   en: {
-    title: 'Paisa Gyaan', back: 'Back',
+    title: 'Aaj Ki Paisa Ki Baat', back: 'Back',
     tag: (i, n) => `Today's tip · ${i}/${n}`,
     alreadyKnew: 'Already knew this', learnedNew: 'Learned something new',
     alreadyKnewShort: 'Knew it', learnedNewShort: 'New',
