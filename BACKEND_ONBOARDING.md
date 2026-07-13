@@ -70,7 +70,7 @@ Read `CLAUDE.md` at the repo root — it's the full product + design contract. K
 - **Educate, never advise** — no "you should", no product picks, no investment advice
 - **Grounded** — every ₹ figure must come from extracted or computed data, never invented
 - **Fraud keywords → fixed 1930 response** — model bypassed entirely
-- **PII / payment never in chat** → JFS handoff stub
+- **PII / payment never in chat** → generic payment-partner handoff stub (no named partner)
 - **Voice-first** — auto-speak every Mukund bubble via Sarvam TTS
 
 ---
