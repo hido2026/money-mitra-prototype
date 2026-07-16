@@ -92,9 +92,89 @@ export const BUCKET_ICON = {
 
 export const PAGE_SIZE = 8;
 
+export const SUBTOPICS = {
+  upi: [
+    { id: "pin-setup", label: "PIN & Setup", labelHi: "PIN और सेटअप" },
+    { id: "payments-qr", label: "Payments & QR", labelHi: "पेमेंट और QR" },
+    { id: "fraud-scams", label: "Fraud & scams", labelHi: "फ्रॉड और स्कैम" },
+    { id: "account-linking", label: "Account linking", labelHi: "अकाउंट लिंकिंग" },
+    { id: "features-limits", label: "Features & limits", labelHi: "फीचर्स और लिमिट" },
+  ],
+  bank: [
+    { id: "account-basics", label: "Account basics", labelHi: "अकाउंट बेसिक्स" },
+    { id: "charges-fees", label: "Charges & fees", labelHi: "चार्जेस और फीस" },
+    { id: "cards-digital-banking", label: "Cards & digital banking", labelHi: "कार्ड और डिजिटल बैंकिंग" },
+    { id: "cheques-transfers", label: "Cheques & transfers", labelHi: "चेक और ट्रांसफर" },
+    { id: "nominee-joint-account", label: "Nominee & joint account", labelHi: "नॉमिनी और जॉइंट अकाउंट" },
+    { id: "statements-complaints", label: "Statements & complaints", labelHi: "स्टेटमेंट और शिकायत" },
+  ],
+  schemes: [
+    { id: "women-girl-child", label: "Women & girl child", labelHi: "महिला व बालिका योजना" },
+    { id: "pension-insurance", label: "Pension & insurance", labelHi: "पेंशन व बीमा योजना" },
+    { id: "farmer-livelihood", label: "Farmer & livelihood", labelHi: "किसान व रोज़गार योजना" },
+    { id: "housing-subsidy", label: "Housing & subsidy", labelHi: "आवास व सब्सिडी योजना" },
+    { id: "welfare-id-access", label: "Welfare & ID schemes", labelHi: "कल्याण व पहचान योजना" },
+  ],
+  kyc: [
+    { id: "pan-card", label: "PAN card", labelHi: "PAN कार्ड" },
+    { id: "pan-aadhaar-linking", label: "PAN-Aadhaar linking", labelHi: "PAN-आधार लिंकिंग" },
+    { id: "aadhaar-services", label: "Aadhaar services", labelHi: "आधार सेवाएं" },
+    { id: "aadhaar-security", label: "Aadhaar security", labelHi: "आधार सुरक्षा" },
+    { id: "kyc-process", label: "Bank KYC process", labelHi: "बैंक KYC प्रक्रिया" },
+  ],
+  loans: [
+    { id: "cibil-score", label: "CIBIL Score", labelHi: "CIBIL स्कोर" },
+    { id: "credit-cards-bnpl", label: "Credit Cards & BNPL", labelHi: "क्रेडिट कार्ड और BNPL" },
+    { id: "loan-types", label: "Loan Types", labelHi: "लोन के प्रकार" },
+    { id: "business-microfinance-loans", label: "Business & Microfinance", labelHi: "बिज़नेस और माइक्रोफाइनेंस" },
+    { id: "emi-repayment", label: "Loan EMI & Repayment", labelHi: "लोन EMI और रीपेमेंट" },
+    { id: "loan-safety-legal", label: "Loan Risks & Terms", labelHi: "लोन रिस्क और शर्तें" },
+  ],
+  savings: [
+    { id: "savings-basics", label: "Savings basics", labelHi: "बचत के बेसिक्स" },
+    { id: "fd-rd", label: "FD & RD", labelHi: "एफडी और आरडी" },
+    { id: "mutual-funds-sip", label: "Mutual funds & SIP", labelHi: "म्यूचुअल फंड और SIP" },
+    { id: "gold-savings", label: "Gold savings", labelHi: "गोल्ड सेविंग्स" },
+    { id: "govt-schemes-retirement", label: "Govt schemes & retirement", labelHi: "सरकारी बचत स्कीम" },
+    { id: "stock-market-demat", label: "Stock market & Demat", labelHi: "शेयर मार्केट और डीमैट" },
+  ],
+  fraud: [
+    { id: "otp-pin-scams", label: "OTP & PIN scams", labelHi: "OTP-पिन ठगी" },
+    { id: "lost-cards-hacked-accounts", label: "Lost cards & hacked accounts", labelHi: "कार्ड और हैकिंग" },
+    { id: "fake-calls-messages", label: "Fake calls & messages", labelHi: "फ़र्ज़ी कॉल-मैसेज" },
+    { id: "investment-app-scams", label: "Investment & app scams", labelHi: "निवेश-ऐप स्कैम" },
+    { id: "reporting-fraud", label: "Reporting fraud", labelHi: "फ्रॉड की शिकायत" },
+    { id: "unauthorized-transactions", label: "Unauthorized transactions", labelHi: "अनाधिकृत ट्रांजैक्शन" },
+  ],
+  bills: [
+    { id: "electricity-bill", label: "Electricity bill", labelHi: "बिजली बिल" },
+    { id: "gas-water-bills", label: "Gas & water bill", labelHi: "गैस और पानी बिल" },
+    { id: "mobile-dth-recharge", label: "Mobile & DTH recharge", labelHi: "मोबाइल और डीटीएच रिचार्ज" },
+    { id: "fastag-other-bills", label: "FASTag & other bills", labelHi: "फास्टैग और अन्य बिल" },
+    { id: "credit-card-bill", label: "Credit card bill", labelHi: "क्रेडिट कार्ड बिल" },
+    { id: "bill-payment-help", label: "Bill payment help", labelHi: "बिल पेमेंट मदद" },
+  ],
+  earn: [
+    { id: "online-earning", label: "Online earning", labelHi: "ऑनलाइन कमाई" },
+    { id: "content-freelance", label: "Content & freelancing", labelHi: "कंटेंट और फ्रीलांसिंग" },
+    { id: "gig-work", label: "Gig work", labelHi: "गिग वर्क" },
+    { id: "small-business", label: "Small business", labelHi: "छोटा बिज़नेस" },
+    { id: "salary-pf-pension", label: "Salary & pension", labelHi: "सैलरी और पेंशन" },
+    { id: "side-income-rewards", label: "Side income & rewards", labelHi: "साइड इनकम और रिवॉर्ड्स" },
+  ],
+  insurance: [
+    { id: "insurance-basics", label: "Insurance basics", labelHi: "इंश्योरेंस बेसिक्स" },
+    { id: "premiums-renewal", label: "Premiums & renewal", labelHi: "प्रीमियम और रिन्यूअल" },
+    { id: "health-insurance", label: "Health insurance", labelHi: "हेल्थ इंश्योरेंस" },
+    { id: "life-insurance-policy", label: "Life insurance & policy", labelHi: "लाइफ इंश्योरेंस और पॉलिसी" },
+    { id: "vehicle-insurance", label: "Vehicle insurance", labelHi: "व्हीकल इंश्योरेंस" },
+    { id: "govt-schemes-other", label: "Govt schemes & other", labelHi: "सरकारी स्कीम और अन्य" },
+  ],
+};
+
 export const QUESTIONS = [
   {
-    rank: 1, kgId: "upi_fail_deducted", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 1, kgId: "upi_fail_deducted", bucket: "upi", subtopic: "payments-qr", type: "C", verified: "VERIFIED",
     q: "पैसा कट गया पर सामने वाले को मिला नहीं, क्या करें?",
     qEn: "Money deducted but not received",
     understand: "पैसा कटना पर सामने वाले को न मिलना डरा सकता है, पर ये एक जानी-पहचानी दिक्कत है।",
@@ -108,7 +188,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 2, kgId: "upi_wrong_transfer", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 2, kgId: "upi_wrong_transfer", bucket: "upi", subtopic: "payments-qr", type: "B", verified: "VARIES",
     q: "गलत नंबर/खाते में पैसे चले गए, वापस कैसे?",
     qEn: "Sent to wrong number/account",
     understand: "गलत ट्रांसफर होना एक बड़ी टेंशन है, पर इसके लिए एक तय प्रक्रिया अपनाई जा सकती है।",
@@ -122,7 +202,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 3, kgId: "upi_setup_no_atm", bucket: "upi", type: "A", verified: "VERIFIED",
+    rank: 3, kgId: "upi_setup_no_atm", bucket: "upi", subtopic: "pin-setup", type: "A", verified: "VERIFIED",
     q: "बिना ATM कार्ड के UPI कैसे चालू करें?",
     qEn: "Setup UPI without ATM card",
     understand: "ATM कार्ड न होने की वजह से UPI शुरू न कर पाना निराश करने वाला हो सकता है।",
@@ -136,7 +216,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 4, kgId: "upi_check_balance", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 4, kgId: "upi_check_balance", bucket: "upi", subtopic: "features-limits", type: "C", verified: "VERIFIED",
     q: "फोन से बैंक बैलेंस कैसे चेक करें?",
     qEn: "Check balance on phone",
     understand: "बैलेंस चेक करना एक आसान, रोज़ का काम है।",
@@ -150,7 +230,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 5, kgId: "upi_pin_forgot", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 5, kgId: "upi_pin_forgot", bucket: "upi", subtopic: "pin-setup", type: "B", verified: "VARIES",
     q: "UPI PIN भूल गए तो नया कैसे बनाएं?",
     qEn: "Forgot UPI PIN",
     understand: "PIN भूल जाना आम बात है, इसे रीसेट करना आसान है।",
@@ -164,7 +244,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 6, kgId: "upi_daily_limit", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 6, kgId: "upi_daily_limit", bucket: "upi", subtopic: "features-limits", type: "B", verified: "VARIES",
     q: "एक दिन में UPI से कितना पैसा भेज सकते हैं?",
     qEn: "Daily UPI limit",
     understand: "रोज़ की लिमिट जानना बड़े ट्रांज़ैक्शन से पहले ज़रूरी होता है।",
@@ -178,7 +258,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 7, kgId: "upi_fraud_qr", bucket: "upi", type: "E", verified: "VERIFIED",
+    rank: 7, kgId: "upi_fraud_qr", bucket: "upi", subtopic: "fraud-scams", type: "E", verified: "VERIFIED",
     q: "किसी का QR स्कैन करने से पैसे कट जाएंगे क्या?",
     qEn: "Will scanning QR deduct money (fear)",
     understand: "QR स्कैन को लेकर सबसे कॉमन गलतफहमी यही है।",
@@ -192,7 +272,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 8, kgId: "upi_fraud_otp", bucket: "upi", type: "E", verified: "VERIFIED",
+    rank: 8, kgId: "upi_fraud_otp", bucket: "upi", subtopic: "fraud-scams", type: "E", verified: "VERIFIED",
     q: "गलती से OTP/PIN बता दिया, पैसे निकल गए अब क्या?",
     qEn: "Shared OTP, money gone",
     understand: "OTP शेयर हो जाना गंभीर है, पर तुरंत कदम उठाना काम करता है।",
@@ -206,7 +286,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 9, kgId: "upi_bank_freeze", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 9, kgId: "upi_bank_freeze", bucket: "upi", subtopic: "fraud-scams", type: "B", verified: "VARIES",
     q: "UPI फ्रॉड से बैंक खाता फ्रीज़, अनफ्रीज़ कैसे?",
     qEn: "Account frozen due to fraud",
     understand: "खाता फ्रीज़ होना परेशान कर सकता है, कारण अलग-अलग हो सकते हैं।",
@@ -220,7 +300,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 10, kgId: "upi_charges", bucket: "upi", type: "A", verified: "VERIFIED",
+    rank: 10, kgId: "upi_charges", bucket: "upi", subtopic: "features-limits", type: "A", verified: "VERIFIED",
     q: "UPI से पैसे भेजने का कोई टैक्स/चार्ज लगता है?",
     qEn: "Charges for UPI",
     understand: "चार्जेस को लेकर शक होना सही है, पर UPI का नियम स्पष्ट है।",
@@ -234,7 +314,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 11, kgId: "upi_pending_status", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 11, kgId: "upi_pending_status", bucket: "upi", subtopic: "payments-qr", type: "C", verified: "VERIFIED",
     q: "पेमेंट 'Pending' है, पैसा वापस आएगा या चला जाएगा?",
     qEn: "Pending payment",
     understand: "'Pending' स्टेटस देखकर घबराना आम बात है।",
@@ -248,7 +328,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 12, kgId: "upi_wrong_pin_block", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 12, kgId: "upi_wrong_pin_block", bucket: "upi", subtopic: "pin-setup", type: "B", verified: "VARIES",
     q: "3 बार गलत PIN, खाता 24 घंटे ब्लॉक?",
     qEn: "Wrong PIN 3x blocked",
     understand: "गलत PIN डालने से ब्लॉक होना एक अस्थायी दिक्कत है।",
@@ -262,7 +342,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 13, kgId: "upi_history_delete", bucket: "upi", type: "D", verified: "VERIFIED",
+    rank: 13, kgId: "upi_history_delete", bucket: "upi", subtopic: "features-limits", type: "D", verified: "VERIFIED",
     q: "ट्रांज़ैक्शन हिस्ट्री कैसे डिलीट करें?",
     qEn: "Delete transaction history",
     understand: "हिस्ट्री डिलीट करने की चाह समझ आती है, पर एक ज़रूरी नियम है।",
@@ -276,7 +356,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 14, kgId: "upi_customer_care", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 14, kgId: "upi_customer_care", bucket: "upi", subtopic: "fraud-scams", type: "C", verified: "VERIFIED",
     q: "असली PhonePe/GPay कस्टमर केयर नंबर क्या है?",
     qEn: "Real customer care number",
     understand: "फ्रॉड नंबर्स से बचने के लिए असली कस्टमर केयर ढूंढना ज़रूरी है।",
@@ -290,7 +370,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 15, kgId: "upi_soundbox", bucket: "upi", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 15, kgId: "upi_soundbox", bucket: "upi", subtopic: "payments-qr", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पेमेंट कर दिया पर दुकानदार का साउंडबॉक्स नहीं बोला?",
     qEn: "Paid but soundbox silent",
     understand: "साउंडबॉक्स न बोलने पर उलझन होना समझ आता है।",
@@ -304,7 +384,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 16, kgId: "upi_number_change", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 16, kgId: "upi_number_change", bucket: "upi", subtopic: "pin-setup", type: "B", verified: "VARIES",
     q: "बैंक में मोबाइल नंबर बदला, नए नंबर से UPI कैसे?",
     qEn: "Changed bank mobile number",
     understand: "नंबर बदलने पर UPI अपडेट करना ज़रूरी होता है।",
@@ -318,7 +398,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 17, kgId: "upi_scam_call", bucket: "upi", type: "E", verified: "VERIFIED",
+    rank: 17, kgId: "upi_scam_call", bucket: "upi", subtopic: "fraud-scams", type: "E", verified: "VERIFIED",
     q: "कॉल आया कि गलती से पैसे डाले, वापस मांग रहा, क्या करूं?",
     qEn: "Refund scam call",
     understand: "अचानक पैसा आने का फोन आना एक जाना-पहचाना स्कैम पैटर्न है।",
@@ -332,7 +412,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 18, kgId: "FRAUD001", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 18, kgId: "FRAUD001", bucket: "fraud", subtopic: "unauthorized-transactions", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "मेरे खाते से पैसे कट गए, क्या करूं?",
     qEn: "Money deducted unexpectedly",
     understand: "अचानक पैसा कटना डरा सकता है, पर पहले कारण पता करना ज़रूरी है।",
@@ -346,7 +426,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 19, kgId: "FRAUD002", bucket: "fraud", type: "B", verified: "VARIES",
+    rank: 19, kgId: "FRAUD002", bucket: "fraud", subtopic: "unauthorized-transactions", type: "B", verified: "VARIES",
     q: "गलत UPI पेमेंट हो गई, पैसे वापस कैसे मिलें?",
     qEn: "Recover wrong UPI transfer",
     understand: "गलती से गए पैसे वापस पाना टेंशन वाली बात है, पर इसके लिए एक प्रक्रिया है।",
@@ -360,7 +440,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 20, kgId: "FRAUD003", bucket: "fraud", type: "E", verified: "VERIFIED",
+    rank: 20, kgId: "FRAUD003", bucket: "fraud", subtopic: "otp-pin-scams", type: "E", verified: "VERIFIED",
     q: "OTP किसी को बता दिया, अब क्या करूं?",
     qEn: "Shared OTP",
     understand: "घबराएं मत, पर तुरंत कदम उठाना ज़रूरी है।",
@@ -374,7 +454,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/commonman/English/Scripts/Notification.aspx?Id=2336",
   },
   {
-    rank: 21, kgId: "FRAUD004", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 21, kgId: "FRAUD004", bucket: "fraud", subtopic: "otp-pin-scams", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "UPI PIN किसी को पता चल गया, क्या करूं?",
     qEn: "UPI PIN compromised",
     understand: "PIN किसी को पता चलना रिस्की है, पर तुरंत PIN बदल सकते हैं।",
@@ -388,7 +468,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 22, kgId: "FRAUD005", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 22, kgId: "FRAUD005", bucket: "fraud", subtopic: "fake-calls-messages", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "स्कैम कॉल आया था, कैसे पता चले असली या फेक?",
     qEn: "Identify scam calls",
     understand: "फ्रॉड कॉल पहचानना मुश्किल लग सकता है, पर कुछ साफ संकेत हैं।",
@@ -402,7 +482,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 23, kgId: "FRAUD006", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 23, kgId: "FRAUD006", bucket: "fraud", subtopic: "fake-calls-messages", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "WhatsApp पर पेमेंट लिंक असली है या फेक?",
     qEn: "Fake payment links",
     understand: "अंजान से आया पेमेंट लिंक शक वाला होता है।",
@@ -416,7 +496,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 24, kgId: "FRAUD007", bucket: "fraud", type: "A", verified: "VERIFIED",
+    rank: 24, kgId: "FRAUD007", bucket: "fraud", subtopic: "investment-app-scams", type: "A", verified: "VERIFIED",
     q: "QR कोड स्कैन करने से पैसे चले जाएंगे क्या?",
     qEn: "QR code scams",
     understand: "ये सबसे कॉमन उलझन है — QR स्कैन करना खुद खतरनाक नहीं है।",
@@ -430,7 +510,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 25, kgId: "FRAUD008", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 25, kgId: "FRAUD008", bucket: "fraud", subtopic: "otp-pin-scams", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "किसी ने रिमोट एक्सेस app इंस्टॉल करवा दिया, क्या करूं?",
     qEn: "Remote access scam",
     understand: "ये गंभीर है, तुरंत एक्शन लेना ज़रूरी है।",
@@ -444,7 +524,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 26, kgId: "FRAUD009", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 26, kgId: "FRAUD009", bucket: "fraud", subtopic: "investment-app-scams", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फेक लोन app कैसे पहचानें?",
     qEn: "Identify fake loan apps",
     understand: "इंस्टेंट लोन apps में बहुत फ्रॉड होते हैं, कुछ साफ पहचान हैं।",
@@ -458,7 +538,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 27, kgId: "FRAUD010", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 27, kgId: "FRAUD010", bucket: "fraud", subtopic: "investment-app-scams", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इन्वेस्टमेंट स्कैम कैसे पहचानें?",
     qEn: "Spot investment scams",
     understand: "ज़्यादा मुनाफे का लालच सबसे बड़ा ट्रैप होता है।",
@@ -472,7 +552,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 28, kgId: "FRAUD011", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 28, kgId: "FRAUD011", bucket: "fraud", subtopic: "fake-calls-messages", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "KYC अपडेट के नाम पर फ्रॉड हो रहा है क्या?",
     qEn: "Fake KYC scams",
     understand: "हां, ये एक बहुत कॉमन फ्रॉड तरीका है।",
@@ -486,7 +566,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 29, kgId: "FRAUD012", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 29, kgId: "FRAUD012", bucket: "fraud", subtopic: "lost-cards-hacked-accounts", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "बैंक खाता हैक हो गया, क्या करूं?",
     qEn: "Hacked bank account",
     understand: "घबराएं मत, तुरंत एक्शन लेने से पैसा बचाया जा सकता है।",
@@ -500,7 +580,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 30, kgId: "FRAUD013", bucket: "fraud", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 30, kgId: "FRAUD013", bucket: "fraud", subtopic: "lost-cards-hacked-accounts", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "ATM कार्ड खो गया, क्या करूं?",
     qEn: "Lost debit card",
     understand: "कार्ड खोना टेंशन वाला है पर ब्लॉक करना आसान है।",
@@ -514,7 +594,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 31, kgId: "FRAUD014", bucket: "fraud", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 31, kgId: "FRAUD014", bucket: "fraud", subtopic: "lost-cards-hacked-accounts", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "क्रेडिट कार्ड खो गया, क्या करूं?",
     qEn: "Lost credit card",
     understand: "तुरंत ब्लॉक कराना ज़रूरी है वरना गलत इस्तेमाल हो सकता है।",
@@ -528,7 +608,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 32, kgId: "FRAUD015", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 32, kgId: "FRAUD015", bucket: "fraud", subtopic: "lost-cards-hacked-accounts", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "मोबाइल खो गया और UPI चालू है, क्या करूं?",
     qEn: "Lost phone with UPI",
     understand: "ये दो काम एक साथ करने पड़ते हैं — SIM और UPI दोनों।",
@@ -542,7 +622,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 33, kgId: "FRAUD016", bucket: "fraud", type: "A", verified: "VERIFIED",
+    rank: 33, kgId: "FRAUD016", bucket: "fraud", subtopic: "reporting-fraud", type: "A", verified: "VERIFIED",
     q: "साइबर फ्रॉड रिपोर्ट कैसे करें?",
     qEn: "Report cyber fraud",
     understand: "जितनी जल्दी रिपोर्ट करेंगे, पैसा मिलने का चांस उतना ज़्यादा।",
@@ -556,7 +636,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 34, kgId: "FRAUD017", bucket: "fraud", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 34, kgId: "FRAUD017", bucket: "fraud", subtopic: "reporting-fraud", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "1930 पर कब कॉल करना चाहिए?",
     qEn: "Cybercrime helpline",
     understand: "देर करना नुकसान का सबसे बड़ा कारण है।",
@@ -570,7 +650,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 35, kgId: "FRAUD018", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 35, kgId: "FRAUD018", bucket: "fraud", subtopic: "reporting-fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "साइबर क्राइम पोर्टल पर शिकायत कैसे करें?",
     qEn: "File cyber complaint online",
     understand: "ऑनलाइन शिकायत दर्ज करना आसान है, बस डिटेल्स रेडी रखें।",
@@ -584,7 +664,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 36, kgId: "FRAUD025", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 36, kgId: "FRAUD025", bucket: "fraud", subtopic: "investment-app-scams", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "Telegram/Instagram इन्वेस्टमेंट ग्रुप असली है?",
     qEn: "Social media investment scams",
     understand: "सोशल मीडिया इन्वेस्टमेंट ग्रुप्स में फ्रॉड बहुत आम है।",
@@ -598,7 +678,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 37, kgId: "FRAUD026", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 37, kgId: "FRAUD026", bucket: "fraud", subtopic: "fake-calls-messages", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "डीपफेक वीडियो या AI वॉइस स्कैम कैसे पहचानें?",
     qEn: "AI/deepfake scams",
     understand: "ये नया और मुश्किल से पहचाना जाने वाला फ्रॉड है।",
@@ -612,7 +692,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 38, kgId: "FRAUD027", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 38, kgId: "FRAUD027", bucket: "fraud", subtopic: "reporting-fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पैसा रिकवर हो सकता है क्या?",
     qEn: "Can stolen money be recovered",
     understand: "ये सबसे ज़्यादा पूछा जाने वाला सवाल है — जवाब डिपेंड करता है स्पीड पर।",
@@ -626,7 +706,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 39, kgId: "FRAUD028", bucket: "fraud", type: "A", verified: "VERIFIED",
+    rank: 39, kgId: "FRAUD028", bucket: "fraud", subtopic: "otp-pin-scams", type: "A", verified: "VERIFIED",
     q: "बैंक कभी OTP या PIN मांगता है क्या?",
     qEn: "Do banks ask for OTP/PIN",
     understand: "ये सबसे ज़रूरी बात समझना है।",
@@ -640,7 +720,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 40, kgId: "BILL001", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 40, kgId: "BILL001", bucket: "bills", subtopic: "electricity-bill", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बिजली का बिल कैसे चेक करें?",
     qEn: "Check electricity bill",
     understand: "बिजली बिल चेक करना अब app से हो सकता है।",
@@ -654,7 +734,7 @@ export const QUESTIONS = [
     authority: "NPCI Bharat BillPay", link: "https://www.bbps.org.in/",
   },
   {
-    rank: 41, kgId: "BILL002", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 41, kgId: "BILL002", bucket: "bills", subtopic: "electricity-bill", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बिजली का बिल ऑनलाइन कैसे भरें?",
     qEn: "Pay electricity bill",
     understand: "बिल ऑनलाइन भरना कुछ मिनट का काम है।",
@@ -668,7 +748,7 @@ export const QUESTIONS = [
     authority: "NPCI Bharat BillPay", link: "https://www.bbps.org.in/",
   },
   {
-    rank: 42, kgId: "BILL003", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 42, kgId: "BILL003", bucket: "bills", subtopic: "electricity-bill", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बिजली का बिल इतना ज़्यादा क्यों आया?",
     qEn: "High electricity bill",
     understand: "अचानक ज़्यादा बिल आना परेशान कर सकता है, पर कारण समझना ज़रूरी है।",
@@ -682,7 +762,7 @@ export const QUESTIONS = [
     authority: "State Electricity Board", link: null,
   },
   {
-    rank: 43, kgId: "BILL004", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 43, kgId: "BILL004", bucket: "bills", subtopic: "electricity-bill", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बिजली का बिल समझ नहीं आ रहा",
     qEn: "Understand electricity bill",
     understand: "बिल का हिसाब समझना मुश्किल लग सकता है, पर आसान है।",
@@ -696,7 +776,7 @@ export const QUESTIONS = [
     authority: "State Electricity Board", link: null,
   },
   {
-    rank: 44, kgId: "BILL006", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 44, kgId: "BILL006", bucket: "bills", subtopic: "gas-water-bills", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "गैस सिलिंडर बुकिंग कैसे करें?",
     qEn: "Book LPG cylinder",
     understand: "गैस बुकिंग अब घर बैठे हो जाती है।",
@@ -710,7 +790,7 @@ export const QUESTIONS = [
     authority: "Oil Marketing Company", link: null,
   },
   {
-    rank: 45, kgId: "BILL007", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 45, kgId: "BILL007", bucket: "bills", subtopic: "gas-water-bills", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "LPG सब्सिडी आई या नहीं कैसे चेक करें?",
     qEn: "Check LPG subsidy",
     understand: "सब्सिडी चेक करना एक वेबसाइट से हो जाता है।",
@@ -724,7 +804,7 @@ export const QUESTIONS = [
     authority: "PPAC", link: "[suspicious link removed]",
   },
   {
-    rank: 46, kgId: "BILL008", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 46, kgId: "BILL008", bucket: "bills", subtopic: "mobile-dth-recharge", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "मोबाइल रिचार्ज कैसे करें?",
     qEn: "Mobile recharge",
     understand: "मोबाइल रिचार्ज करना सबसे आसान काम है।",
@@ -738,7 +818,7 @@ export const QUESTIONS = [
     authority: "NPCI Bharat BillPay", link: "https://www.bbps.org.in/",
   },
   {
-    rank: 47, kgId: "BILL009", bucket: "bills", type: "C", verified: "VARIES",
+    rank: 47, kgId: "BILL009", bucket: "bills", subtopic: "mobile-dth-recharge", type: "C", verified: "VARIES",
     q: "रिचार्ज कौन सा प्लान सही है?",
     qEn: "Best mobile recharge plan",
     understand: "सही प्लान चुनना आपके इस्तेमाल पर डिपेंड करता है।",
@@ -752,7 +832,7 @@ export const QUESTIONS = [
     authority: "Telecom Operator", link: null,
   },
   {
-    rank: 48, kgId: "BILL013", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 48, kgId: "BILL013", bucket: "bills", subtopic: "fastag-other-bills", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "FASTag रिचार्ज कैसे करें?",
     qEn: "Recharge FASTag",
     understand: "FASTag रिचार्ज भी UPI से हो जाता है।",
@@ -766,7 +846,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/what-we-do/netc-fastag/product-overview",
   },
   {
-    rank: 49, kgId: "BILL016", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 49, kgId: "BILL016", bucket: "bills", subtopic: "credit-card-bill", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "क्रेडिट कार्ड बिल कैसे पे करें?",
     qEn: "Pay credit card bill",
     understand: "क्रेडिट कार्ड बिल कई तरीके से पे हो सकता है।",
@@ -780,7 +860,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: null,
   },
   {
-    rank: 50, kgId: "BILL017", bucket: "bills", type: "B", verified: "VARIES",
+    rank: 50, kgId: "BILL017", bucket: "bills", subtopic: "credit-card-bill", type: "B", verified: "VARIES",
     q: "क्रेडिट कार्ड मिनिमम ड्यू क्या होता है?",
     qEn: "Minimum amount due",
     understand: "मिनिमम ड्यू भरने से बिल 'clear' नहीं होता, ये समझना ज़रूरी है।",
@@ -794,7 +874,7 @@ export const QUESTIONS = [
     authority: "Card Issuer", link: null,
   },
   {
-    rank: 51, kgId: "BILL018", bucket: "bills", type: "B", verified: "VARIES",
+    rank: 51, kgId: "BILL018", bucket: "bills", subtopic: "credit-card-bill", type: "B", verified: "VARIES",
     q: "क्रेडिट कार्ड बिल लेट हुआ तो क्या होगा?",
     qEn: "Late payment consequences",
     understand: "बिल लेट होना महंगा पड़ सकता है।",
@@ -808,7 +888,7 @@ export const QUESTIONS = [
     authority: "Card Issuer", link: null,
   },
   {
-    rank: 52, kgId: "BILL025", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 52, kgId: "BILL025", bucket: "bills", subtopic: "bill-payment-help", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "बिल पेमेंट फेल हो गया, क्या करूं?",
     qEn: "Failed bill payment",
     understand: "पेमेंट फेल होना चिंता की बात नहीं है।",
@@ -822,7 +902,7 @@ export const QUESTIONS = [
     authority: "NPCI Bharat BillPay", link: null,
   },
   {
-    rank: 53, kgId: "BILL029", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 53, kgId: "BILL029", bucket: "bills", subtopic: "bill-payment-help", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बिल पर कंज़्यूमर नंबर कहां होता है?",
     qEn: "Find consumer/account number",
     understand: "कंज़्यूमर नंबर ढूंढना बिल में आसान है।",
@@ -836,7 +916,7 @@ export const QUESTIONS = [
     authority: "Utility Provider", link: null,
   },
   {
-    rank: 54, kgId: "BILL030", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 54, kgId: "BILL030", bucket: "bills", subtopic: "bill-payment-help", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इस बिल में कोई गलत चार्ज है क्या?",
     qEn: "Explain a bill",
     understand: "कुछ आसान नियम फॉलो करके चार्जेस वेरिफाई किए जा सकते हैं।",
@@ -850,7 +930,7 @@ export const QUESTIONS = [
     authority: "Utility Provider", link: null,
   },
   {
-    rank: 55, kgId: "INS001", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 55, kgId: "INS001", bucket: "insurance", subtopic: "insurance-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस क्या होता है?",
     qEn: "What is insurance",
     understand: "इंश्योरेंस का बेसिक मतलब समझना ज़रूरी है।",
@@ -864,7 +944,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 56, kgId: "INS002", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 56, kgId: "INS002", bucket: "insurance", subtopic: "insurance-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "मेरे लिए कौन सा इंश्योरेंस ज़रूरी है?",
     qEn: "Which insurance do I need",
     understand: "सबके लिए ज़रूरत अलग होती है, पर एक बेसिक प्रायोरिटी है।",
@@ -878,7 +958,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 57, kgId: "INS003", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 57, kgId: "INS003", bucket: "insurance", subtopic: "health-insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "हेल्थ इंश्योरेंस क्या होता है?",
     qEn: "What is health insurance",
     understand: "हेल्थ इंश्योरेंस का बेसिक काम समझना आसान है।",
@@ -892,7 +972,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 58, kgId: "INS004", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 58, kgId: "INS004", bucket: "insurance", subtopic: "health-insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "हेल्थ इंश्योरेंस कैसे खरीदें?",
     qEn: "Buy health insurance",
     understand: "हेल्थ इंश्योरेंस खरीदना अब app से भी हो सकता है।",
@@ -906,7 +986,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 59, kgId: "INS005", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 59, kgId: "INS005", bucket: "insurance", subtopic: "health-insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "हेल्थ इंश्योरेंस में क्या कवर होता है?",
     qEn: "What health insurance covers",
     understand: "कवरेज समझना क्लेम के वक्त ज़रूरी होता है।",
@@ -920,7 +1000,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 60, kgId: "INS006", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 60, kgId: "INS006", bucket: "insurance", subtopic: "health-insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "कैशलेस हॉस्पिटल का मतलब क्या है?",
     qEn: "What is cashless hospitalization",
     understand: "कैशलेस का मतलब साफ समझना ज़रूरी है।",
@@ -934,7 +1014,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 61, kgId: "INS007", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 61, kgId: "INS007", bucket: "insurance", subtopic: "health-insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "हेल्थ इंश्योरेंस क्लेम कैसे करें?",
     qEn: "File a health claim",
     understand: "क्लेम करना दो तरीके से हो सकता है।",
@@ -948,7 +1028,7 @@ export const QUESTIONS = [
     authority: "Insurer/TPA", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 62, kgId: "INS008", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 62, kgId: "INS008", bucket: "insurance", subtopic: "govt-schemes-other", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "क्लेम रिजेक्ट क्यों हो गया?",
     qEn: "Why was my claim rejected",
     understand: "क्लेम रिजेक्ट होना निराश करने वाला है, पर कारण समझना ज़रूरी है।",
@@ -962,7 +1042,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 63, kgId: "INS009", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 63, kgId: "INS009", bucket: "insurance", subtopic: "life-insurance-policy", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "लाइफ इंश्योरेंस क्या होता है?",
     qEn: "What is life insurance",
     understand: "लाइफ इंश्योरेंस का बेसिक कॉन्सेप्ट समझना ज़रूरी है।",
@@ -976,7 +1056,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 64, kgId: "INS010", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 64, kgId: "INS010", bucket: "insurance", subtopic: "life-insurance-policy", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "टर्म इंश्योरेंस और लाइफ इंश्योरेंस में क्या फर्क है?",
     qEn: "Term vs life insurance",
     understand: "ये दो पॉलिसी अलग मकसद के लिए होती हैं।",
@@ -990,7 +1070,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 65, kgId: "INS011", bucket: "insurance", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 65, kgId: "INS011", bucket: "insurance", subtopic: "insurance-basics", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "मुझे कितने कवर का इंश्योरेंस लेना चाहिए?",
     qEn: "How much cover do I need",
     understand: "कवर कितना लेना चाहिए ये हर परिवार के लिए अलग होता है।",
@@ -1004,7 +1084,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 66, kgId: "INS012", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 66, kgId: "INS012", bucket: "insurance", subtopic: "premiums-renewal", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस प्रीमियम क्या होता है?",
     qEn: "What is a premium",
     understand: "प्रीमियम का मतलब समझना ज़रूरी है।",
@@ -1018,7 +1098,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 67, kgId: "INS013", bucket: "insurance", type: "B", verified: "VARIES",
+    rank: 67, kgId: "INS013", bucket: "insurance", subtopic: "premiums-renewal", type: "B", verified: "VARIES",
     q: "प्रीमियम कितना होगा?",
     qEn: "Premium amount",
     understand: "प्रीमियम का एग्ज़ैक्ट अमाउंट कई चीज़ों पर डिपेंड करता है।",
@@ -1032,7 +1112,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 68, kgId: "INS014", bucket: "insurance", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 68, kgId: "INS014", bucket: "insurance", subtopic: "premiums-renewal", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस रिन्यू कैसे करें?",
     qEn: "Renew insurance",
     understand: "रिन्यू करने का प्रोसेस आसान है।",
@@ -1046,7 +1126,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 69, kgId: "INS015", bucket: "insurance", type: "C", verified: "VERIFIED",
+    rank: 69, kgId: "INS015", bucket: "insurance", subtopic: "premiums-renewal", type: "C", verified: "VERIFIED",
     q: "प्रीमियम टाइम पर नहीं भरा तो क्या होगा?",
     qEn: "Missed premium",
     understand: "टाइम पर प्रीमियम न भरना रिस्की होता है, पर थोड़ी छूट मिलती है।",
@@ -1060,7 +1140,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 70, kgId: "INS016", bucket: "insurance", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 70, kgId: "INS016", bucket: "insurance", subtopic: "vehicle-insurance", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "मोटर इंश्योरेंस कैसे खरीदें?",
     qEn: "Buy vehicle insurance",
     understand: "मोटर इंश्योरेंस कानूनन ज़रूरी है।",
@@ -1074,7 +1154,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 71, kgId: "INS017", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 71, kgId: "INS017", bucket: "insurance", subtopic: "vehicle-insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "कार एक्सीडेंट के बाद क्लेम कैसे करें?",
     qEn: "Motor claim",
     understand: "एक्सीडेंट के बाद तुरंत कदम उठाना ज़रूरी है।",
@@ -1088,7 +1168,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 72, kgId: "INS018", bucket: "insurance", type: "A", verified: "VERIFIED",
+    rank: 72, kgId: "INS018", bucket: "insurance", subtopic: "vehicle-insurance", type: "A", verified: "VERIFIED",
     q: "थर्ड-पार्टी इंश्योरेंस क्या होता है?",
     qEn: "Third-party motor insurance",
     understand: "थर्ड-पार्टी इंश्योरेंस सबके लिए कानूनन ज़रूरी है।",
@@ -1102,7 +1182,7 @@ export const QUESTIONS = [
     authority: "MoRTH", link: "https://morth.nic.in/",
   },
   {
-    rank: 73, kgId: "INS028", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 73, kgId: "INS028", bucket: "insurance", subtopic: "insurance-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस डॉक्यूमेंट कैसे समझें?",
     qEn: "Understand an insurance policy",
     understand: "पॉलिसी डॉक्यूमेंट समझना क्लेम के वक्त काम आता है।",
@@ -1116,7 +1196,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 74, kgId: "SAVE001", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 74, kgId: "SAVE001", bucket: "savings", subtopic: "savings-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पैसे बचाना कैसे शुरू करूं?",
     qEn: "How to start saving",
     understand: "बचत शुरू करना सबसे मुश्किल पहला कदम होता है।",
@@ -1130,7 +1210,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 75, kgId: "SAVE002", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 75, kgId: "SAVE002", bucket: "savings", subtopic: "savings-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "हर महीने कितना पैसा सेव करना चाहिए?",
     qEn: "How much to save monthly",
     understand: "कितना बचाना चाहिए ये आपकी इनकम पर डिपेंड करता है।",
@@ -1144,7 +1224,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 76, kgId: "SAVE003", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 76, kgId: "SAVE003", bucket: "savings", subtopic: "savings-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इमरजेंसी फंड क्या होता है?",
     qEn: "What is an emergency fund",
     understand: "इमरजेंसी फंड मुश्किल समय में काम आता है।",
@@ -1158,7 +1238,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 77, kgId: "SAVE004", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 77, kgId: "SAVE004", bucket: "savings", subtopic: "fd-rd", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "FD और RD में क्या फर्क है?",
     qEn: "FD vs RD",
     understand: "FD और RD दोनों सुरक्षित बचत के तरीके हैं, पर इनमें एक बड़ा फर्क है।",
@@ -1172,7 +1252,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 78, kgId: "SAVE005", bucket: "savings", type: "C", verified: "VERIFIED",
+    rank: 78, kgId: "SAVE005", bucket: "savings", subtopic: "fd-rd", type: "C", verified: "VERIFIED",
     q: "FD में पैसा लगाना सही है?",
     qEn: "Should I invest in FD",
     understand: "FD सुरक्षित बचत के लिए एक बेहतर विकल्प है।",
@@ -1186,7 +1266,7 @@ export const QUESTIONS = [
     authority: "DICGC", link: "https://www.dicgc.org.in/",
   },
   {
-    rank: 79, kgId: "SAVE007", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 79, kgId: "SAVE007", bucket: "savings", subtopic: "mutual-funds-sip", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "म्यूचुअल फंड क्या होता है?",
     qEn: "What is a mutual fund",
     understand: "म्यूचुअल फंड बचत को बढ़ाने का एक तरीका है।",
@@ -1200,7 +1280,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 80, kgId: "SAVE008", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 80, kgId: "SAVE008", bucket: "savings", subtopic: "mutual-funds-sip", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "SIP क्या होती है?",
     qEn: "What is SIP",
     understand: "SIP हर महीने नियमित इन्वेस्ट करने का एक तरीका है।",
@@ -1214,7 +1294,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 81, kgId: "SAVE009", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 81, kgId: "SAVE009", bucket: "savings", subtopic: "mutual-funds-sip", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "SIP कैसे शुरू करें?",
     qEn: "How to start a SIP",
     understand: "SIP शुरू करना अब मोबाइल से बहुत आसान है।",
@@ -1228,7 +1308,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 82, kgId: "SAVE010", bucket: "savings", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 82, kgId: "SAVE010", bucket: "savings", subtopic: "mutual-funds-sip", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "SIP में कितना पैसा लगाना चाहिए?",
     qEn: "How much to invest in SIP",
     understand: "SIP का अमाउंट आपके बजट के हिसाब से तय होता है।",
@@ -1242,7 +1322,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 83, kgId: "SAVE011", bucket: "savings", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 83, kgId: "SAVE011", bucket: "savings", subtopic: "fd-rd", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "SIP और FD में क्या बेहतर है?",
     qEn: "SIP vs FD",
     understand: "FD और SIP दोनों के अपने फायदे और नुकसान हैं।",
@@ -1256,7 +1336,7 @@ export const QUESTIONS = [
     authority: "RBI/SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 84, kgId: "SAVE012", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 84, kgId: "SAVE012", bucket: "savings", subtopic: "mutual-funds-sip", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "म्यूचुअल फंड में पैसा डूब सकता है?",
     qEn: "Can I lose money in MF",
     understand: "म्यूचुअल फंड में मार्केट का रिस्क होता है, ये जानना ज़रूरी है।",
@@ -1270,7 +1350,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 85, kgId: "SAVE014", bucket: "savings", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 85, kgId: "SAVE014", bucket: "savings", subtopic: "gold-savings", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "गोल्ड में इन्वेस्ट करें या FD?",
     qEn: "Gold vs FD",
     understand: "गोल्ड और FD दोनों अलग तरह की सुरक्षा देते हैं।",
@@ -1284,7 +1364,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 86, kgId: "SAVE017", bucket: "savings", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 86, kgId: "SAVE017", bucket: "savings", subtopic: "govt-schemes-retirement", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PPF क्या होता है?",
     qEn: "What is PPF",
     understand: "PPF एक बहुत सुरक्षित और सरकारी बचत योजना है।",
@@ -1298,7 +1378,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.indiapost.gov.in/",
   },
   {
-    rank: 87, kgId: "SAVE019", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 87, kgId: "SAVE019", bucket: "savings", subtopic: "govt-schemes-retirement", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "EPF और PPF में क्या फर्क है?",
     qEn: "EPF vs PPF",
     understand: "EPF और PPF दोनों रिटायरमेंट के लिए हैं पर इनका इस्तेमाल अलग है।",
@@ -1312,7 +1392,7 @@ export const QUESTIONS = [
     authority: "EPFO/Ministry of Finance", link: "https://www.epfindia.gov.in/",
   },
   {
-    rank: 88, kgId: "SAVE021", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 88, kgId: "SAVE021", bucket: "savings", subtopic: "stock-market-demat", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "स्टॉक मार्केट में इन्वेस्ट कैसे करें?",
     qEn: "How to invest in stocks",
     understand: "स्टॉक मार्केट में इन्वेस्ट करने से पहले खाता खोलना ज़रूरी है।",
@@ -1326,7 +1406,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 89, kgId: "SAVE022", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 89, kgId: "SAVE022", bucket: "savings", subtopic: "stock-market-demat", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "डीमैट खाता क्या होता है?",
     qEn: "What is a Demat account",
     understand: "डीमैट खाता शेयर रखने का एक डिजिटल लॉकर है।",
@@ -1340,7 +1420,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 90, kgId: "SAVE023", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 90, kgId: "SAVE023", bucket: "savings", subtopic: "stock-market-demat", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "डीमैट खाता कैसे खोलें?",
     qEn: "Open Demat account",
     understand: "डीमैट खाता खोलना अब ऑनलाइन और पेपरलेस हो गया है।",
@@ -1354,7 +1434,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 91, kgId: "SAVE024", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 91, kgId: "SAVE024", bucket: "savings", subtopic: "stock-market-demat", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "शेयर मार्केट रिस्की है क्या?",
     qEn: "Is the stock market risky",
     understand: "शेयर मार्केट में रिस्क होता है, ये समझना ज़रूरी है।",
@@ -1368,7 +1448,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 92, kgId: "SAVE025", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 92, kgId: "SAVE025", bucket: "savings", subtopic: "savings-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "कंपाउंड इंटरेस्ट क्या होता है?",
     qEn: "What is compound interest",
     understand: "कंपाउंड इंटरेस्ट को 'ब्याज पर ब्याज' कहते हैं।",
@@ -1382,7 +1462,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 93, kgId: "SAVE026", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 93, kgId: "SAVE026", bucket: "savings", subtopic: "savings-basics", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "500 से इन्वेस्टमेंट कैसे शुरू करूं?",
     qEn: "Start investing with 500",
     understand: "Rs 500 से भी इन्वेस्टमेंट आसानी से शुरू हो सकती है।",
@@ -1396,7 +1476,7 @@ export const QUESTIONS = [
     authority: "SEBI/RBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 94, kgId: "SAVE029", bucket: "savings", type: "B", verified: "VARIES",
+    rank: 94, kgId: "SAVE029", bucket: "savings", subtopic: "savings-basics", type: "B", verified: "VARIES",
     q: "इन्वेस्टमेंट पर टैक्स लगता है क्या?",
     qEn: "Tax on investments",
     understand: "टैक्स रूल्स इस बात पर डिपेंड करते हैं कि आपने कहां इन्वेस्ट किया है।",
@@ -1410,7 +1490,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://www.incometax.gov.in/",
   },
   {
-    rank: 95, kgId: "SAVE030", bucket: "savings", type: "C", verified: "VERIFIED",
+    rank: 95, kgId: "SAVE030", bucket: "savings", subtopic: "savings-basics", type: "C", verified: "VERIFIED",
     q: "सबसे सुरक्षित इन्वेस्टमेंट क्या है?",
     qEn: "Safest investment option",
     understand: "सबसे सुरक्षित इन्वेस्टमेंट ढूंढना एक मुख्य प्रायोरिटी होती है।",
@@ -1424,7 +1504,7 @@ export const QUESTIONS = [
     authority: "DICGC", link: "https://www.dicgc.org.in/",
   },
   {
-    rank: 96, kgId: "EARN001", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 96, kgId: "EARN001", bucket: "earn", subtopic: "online-earning", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "घर बैठे पैसे कैसे कमाएं?",
     qEn: "Earn money from home",
     understand: "घर बैठे कमाने के कुछ असली और सुरक्षित तरीके हैं।",
@@ -1438,7 +1518,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 97, kgId: "EARN002", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 97, kgId: "EARN002", bucket: "earn", subtopic: "online-earning", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "मोबाइल से पैसे कैसे कमाएं?",
     qEn: "Earn using a phone",
     understand: "मोबाइल से कमाना अब स्मार्टफोन और इंटरनेट के साथ पॉसिबल है।",
@@ -1452,7 +1532,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 98, kgId: "EARN003", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 98, kgId: "EARN003", bucket: "earn", subtopic: "online-earning", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "ऑनलाइन पैसे कमाने के असली तरीके क्या हैं?",
     qEn: "Legit ways to earn online",
     understand: "ऑनलाइन असली कमाई पहचानना फ्रॉड से बचने के लिए बहुत ज़रूरी है।",
@@ -1466,7 +1546,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 99, kgId: "EARN004", bucket: "earn", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 99, kgId: "EARN004", bucket: "earn", subtopic: "online-earning", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "फेक अर्निंग apps कैसे पहचानें?",
     qEn: "Identify fake earning apps",
     understand: "फेक अर्निंग apps पहचानना पैसा गंवाने से बचने के लिए ज़रूरी है।",
@@ -1480,7 +1560,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 100, kgId: "EARN006", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 100, kgId: "EARN006", bucket: "earn", subtopic: "online-earning", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "डेटा एंट्री जॉब्स असली हैं या फ्रॉड?",
     qEn: "Are data entry jobs genuine",
     understand: "डेटा एंट्री जॉब्स में बहुत ज़्यादा फ्रॉड होता है, सावधान रहें।",
@@ -1494,7 +1574,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 101, kgId: "EARN007", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 101, kgId: "EARN007", bucket: "earn", subtopic: "gig-work", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Part-time जॉब कैसे मिलेगी?",
     qEn: "Find part-time work",
     understand: "पार्ट-टाइम जॉब ढूंढना अब वेरिफाइड पोर्टल्स से सेफ है।",
@@ -1508,7 +1588,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 102, kgId: "EARN008", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 102, kgId: "EARN008", bucket: "earn", subtopic: "gig-work", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "डिलीवरी पार्टनर कैसे बनें?",
     qEn: "Become a delivery partner",
     understand: "डिलीवरी पार्टनर बनना एक आसान और सीधा प्रोसेस है।",
@@ -1522,7 +1602,7 @@ export const QUESTIONS = [
     authority: "Platform Operator", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 103, kgId: "EARN010", bucket: "earn", type: "A", verified: "VERIFIED",
+    rank: 103, kgId: "EARN010", bucket: "earn", subtopic: "content-freelance", type: "A", verified: "VERIFIED",
     q: "YouTube से पैसे कैसे कमाएं?",
     qEn: "Earn from YouTube",
     understand: "YouTube से ads के ज़रिए कमाने के कुछ नियम हैं।",
@@ -1536,7 +1616,7 @@ export const QUESTIONS = [
     authority: "Google", link: "https://support.google.com/youtube/answer/72851",
   },
   {
-    rank: 104, kgId: "EARN011", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 104, kgId: "EARN011", bucket: "earn", subtopic: "content-freelance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Instagram से पैसे कैसे कमाएं?",
     qEn: "Earn from Instagram",
     understand: "Instagram से कमाने के लिए फॉलोअर्स से ज़्यादा व्यूज़ ज़रूरी हैं।",
@@ -1550,7 +1630,7 @@ export const QUESTIONS = [
     authority: "Platform Operator", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 105, kgId: "EARN014", bucket: "earn", type: "B", verified: "VARIES",
+    rank: 105, kgId: "EARN014", bucket: "earn", subtopic: "salary-pf-pension", type: "B", verified: "VARIES",
     q: "Salary account क्या होता है?",
     qEn: "What is a salary account",
     understand: "सैलरी अकाउंट आपकी नौकरी से जुड़ा होता है।",
@@ -1564,7 +1644,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 106, kgId: "EARN015", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 106, kgId: "EARN015", bucket: "earn", subtopic: "salary-pf-pension", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Salary slip कैसे समझें?",
     qEn: "Understand a salary slip",
     understand: "सैलरी स्लिप समझना कमाई और डिडक्शंस को ट्रैक करने के लिए ज़रूरी है।",
@@ -1578,7 +1658,7 @@ export const QUESTIONS = [
     authority: "Employer", link: null,
   },
   {
-    rank: 107, kgId: "EARN016", bucket: "earn", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 107, kgId: "EARN016", bucket: "earn", subtopic: "salary-pf-pension", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PF कितना कटा और कैसे चेक करें?",
     qEn: "Check EPF contributions",
     understand: "PF कितना कटा ये आप खुद चेक कर सकते हैं ऑनलाइन।",
@@ -1592,7 +1672,7 @@ export const QUESTIONS = [
     authority: "EPFO", link: "https://www.epfindia.gov.in/",
   },
   {
-    rank: 108, kgId: "EARN017", bucket: "earn", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 108, kgId: "EARN017", bucket: "earn", subtopic: "salary-pf-pension", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "EPF का पैसा कैसे निकालें?",
     qEn: "Withdraw EPF",
     understand: "EPF विथड्रॉ करने का प्रोसेस पूरी तरह ऑनलाइन हो चुका है।",
@@ -1606,7 +1686,7 @@ export const QUESTIONS = [
     authority: "EPFO", link: "https://www.epfindia.gov.in/",
   },
   {
-    rank: 109, kgId: "EARN018", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 109, kgId: "EARN018", bucket: "earn", subtopic: "salary-pf-pension", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पेंशन का स्टेटस कैसे चेक करें?",
     qEn: "Check pension status",
     understand: "पेंशन स्टेटस चेक करना इस बात पर डिपेंड करता है कि आपकी स्कीम कौनसी है।",
@@ -1620,7 +1700,7 @@ export const QUESTIONS = [
     authority: "EPFO", link: "https://www.epfindia.gov.in/",
   },
   {
-    rank: 110, kgId: "EARN021", bucket: "earn", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 110, kgId: "EARN021", bucket: "earn", subtopic: "small-business", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "MSME या छोटा बिज़नेस शुरू कैसे करें?",
     qEn: "Start a small business",
     understand: "छोटा बिज़नेस या MSME शुरू करने के लिए रजिस्ट्रेशन ज़रूरी है।",
@@ -1634,7 +1714,7 @@ export const QUESTIONS = [
     authority: "Ministry of MSME", link: "https://udyamregistration.gov.in/",
   },
   {
-    rank: 111, kgId: "EARN022", bucket: "earn", type: "A", verified: "VERIFIED",
+    rank: 111, kgId: "EARN022", bucket: "earn", subtopic: "small-business", type: "A", verified: "VERIFIED",
     q: "छोटा बिज़नेस के लिए पैसा कहां से मिलेगा?",
     qEn: "Funding for small business",
     understand: "छोटे बिज़नेस के लिए सरकार बिना कोलैटरल लोन देती है।",
@@ -1648,7 +1728,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.mudra.org.in/",
   },
   {
-    rank: 112, kgId: "EARN025", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 112, kgId: "EARN025", bucket: "earn", subtopic: "small-business", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "ऑनलाइन सामान बेचना कैसे शुरू करें?",
     qEn: "Sell products online",
     understand: "ऑनलाइन सामान बेचना बहुत बड़े मार्केट तक पहुंचने का तरीका है।",
@@ -1662,7 +1742,7 @@ export const QUESTIONS = [
     authority: "GST Council", link: "https://www.gst.gov.in/",
   },
   {
-    rank: 113, kgId: "EARN029", bucket: "earn", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 113, kgId: "EARN029", bucket: "earn", subtopic: "side-income-rewards", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "Side income के लिए क्या करें?",
     qEn: "Build a side income",
     understand: "साइड इनकम शुरू करने का बेस्ट तरीका आपकी मौजूदा स्किल से ही निकलता है।",
@@ -1676,7 +1756,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 114, kgId: "EARN030", bucket: "earn", type: "A", verified: "VERIFIED",
+    rank: 114, kgId: "EARN030", bucket: "earn", subtopic: "side-income-rewards", type: "A", verified: "VERIFIED",
     q: "टैक्स दिए बिना कितनी इनकम हो सकती है?",
     qEn: "Basic income tax threshold",
     understand: "टैक्स-फ्री इनकम लिमिट हर बजट में चेंज हो सकती है।",
@@ -1690,7 +1770,7 @@ export const QUESTIONS = [
     authority: "Income Tax", link: "https://www.incometax.gov.in/",
   },
   {
-    rank: 115, kgId: "BANK001", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 115, kgId: "BANK001", bucket: "bank", subtopic: "account-basics", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "ज़ीरो बैलेंस खाते में भी पैसा कट सकता है क्या?",
     qEn: "Can money be deducted from a zero balance account?",
     understand: "ज़ीरो-बैलेंस अकाउंट को लेकर ये कन्फ्यूज़न बहुत लोगों को होती है।",
@@ -1704,7 +1784,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 116, kgId: "BANK002", bucket: "bank", type: "A", verified: "VERIFIED",
+    rank: 116, kgId: "BANK002", bucket: "bank", subtopic: "cards-digital-banking", type: "A", verified: "VERIFIED",
     q: "ATM से पैसे नहीं निकले पर कट गए, क्या करें?",
     qEn: "ATM didn't dispense but debited",
     understand: "घबराइए मत, आपका पैसा सुरक्षित है।",
@@ -1718,7 +1798,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 117, kgId: "BANK003", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 117, kgId: "BANK003", bucket: "bank", subtopic: "cheques-transfers", type: "B", verified: "VARIES",
     q: "चेक बाउंस पर पेनल्टी कितना और जेल?",
     qEn: "Cheque bounce penalty and jail",
     understand: "चेक बाउंस एक गंभीर मामला है जिसे सीखना ज़रूरी है।",
@@ -1732,7 +1812,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 118, kgId: "BANK008", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 118, kgId: "BANK008", bucket: "bank", subtopic: "charges-fees", type: "B", verified: "VARIES",
     q: "अकाउंट में मिनिमम बैलेंस नहीं रखा तो कितना चार्ज?",
     qEn: "Charge for not keeping min balance",
     understand: "मिनिमम बैलेंस न रख पाना एक आम दिक्कत है।",
@@ -1746,7 +1826,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 119, kgId: "BANK017", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 119, kgId: "BANK017", bucket: "bank", subtopic: "account-basics", type: "B", verified: "VARIES",
     q: "सेविंग्स अकाउंट में इंटरेस्ट कितना मिलता है?",
     qEn: "How much interest on savings account",
     understand: "सेविंग्स अकाउंट पर ब्याज़ की दर हर बैंक की अपनी होती है।",
@@ -1760,7 +1840,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 120, kgId: "BANK018", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 120, kgId: "BANK018", bucket: "bank", subtopic: "cheques-transfers", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "IFSC कोड क्या होता है और कहां मिलता है?",
     qEn: "What is IFSC code, where to find",
     understand: "IFSC कोड बैंक ट्रांसफर के लिए एक यूनीक पहचान कोड है।",
@@ -1774,7 +1854,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 121, kgId: "BANK023", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 121, kgId: "BANK023", bucket: "bank", subtopic: "cards-digital-banking", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "डेबिट कार्ड PIN कैसे जनरेट या रीसेट करें?",
     qEn: "How to generate/reset debit card PIN",
     understand: "PIN जनरेट या रीसेट करना ATM या App से तुरंत हो जाता है।",
@@ -1788,7 +1868,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 122, kgId: "BANK030", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 122, kgId: "BANK030", bucket: "bank", subtopic: "account-basics", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "ज़ीरो बैलेंस अकाउंट क्या होता है?",
     qEn: "What is a zero balance account",
     understand: "ज़ीरो बैलेंस अकाउंट उन लोगों के लिए है जो खाते में मिनिमम बैलेंस नहीं रख सकते।",
@@ -1802,7 +1882,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 123, kgId: "GOVT001", bucket: "schemes", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 123, kgId: "GOVT001", bucket: "schemes", subtopic: "women-girl-child", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "लड़की के नाम पर सरकारी योजना में सबसे ज़्यादा फायदा किसमें?",
     qEn: "Best govt scheme return for a girl child",
     understand: "बेटी के नाम पर सरकारी योजनाओं में इंटरेस्ट रेट्स अलग होते हैं।",
@@ -1816,7 +1896,7 @@ export const QUESTIONS = [
     authority: "National Savings Institute", link: "https://nsiindia.gov.in",
   },
   {
-    rank: 124, kgId: "GOVT002", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 124, kgId: "GOVT002", bucket: "schemes", subtopic: "women-girl-child", type: "A", verified: "VERIFIED",
     q: "सुकन्या समृद्धि खाता खोलने के कौन से कागज़?",
     qEn: "Documents to open Sukanya",
     understand: "सुकन्या खाता खोलने से पहले वैलिड डॉक्यूमेंट्स तैयार रखना ज़रूरी है।",
@@ -1830,7 +1910,7 @@ export const QUESTIONS = [
     authority: "National Savings Institute", link: "https://nsiindia.gov.in",
   },
   {
-    rank: 125, kgId: "GOVT003", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 125, kgId: "GOVT003", bucket: "schemes", subtopic: "pension-insurance", type: "A", verified: "VERIFIED",
     q: "APY में कितना जमा करने पर 5000 पेंशन?",
     qEn: "APY deposit for 5000 pension",
     understand: "अटल पेंशन योजना (APY) में कंट्रीब्यूशन आपकी उम्र के हिसाब से तय होता है।",
@@ -1844,7 +1924,7 @@ export const QUESTIONS = [
     authority: "PFRDA", link: "https://jansuraksha.gov.in",
   },
   {
-    rank: 126, kgId: "GOVT004", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 126, kgId: "GOVT004", bucket: "schemes", subtopic: "welfare-id-access", type: "A", verified: "VERIFIED",
     q: "आयुष्मान कार्ड से प्राइवेट हॉस्पिटल में मुफ्त इलाज कैसे?",
     qEn: "Free treatment via Ayushman",
     understand: "आयुष्मान कार्ड से लिस्टेड प्राइवेट हॉस्पिटल्स में मुफ्त इलाज मिलता है।",
@@ -1858,7 +1938,7 @@ export const QUESTIONS = [
     authority: "National Health Authority", link: "https://pmjay.gov.in",
   },
   {
-    rank: 127, kgId: "GOVT005", bucket: "schemes", type: "B", verified: "VARIES",
+    rank: 127, kgId: "GOVT005", bucket: "schemes", subtopic: "housing-subsidy", type: "B", verified: "VARIES",
     q: "PM आवास योजना के 2.5 लाख खाते में कब आते?",
     qEn: "When does PM Awas subsidy arrive",
     understand: "PM आवास योजना की सब्सिडी का पैसा इंस्टॉलमेंट में आता है।",
@@ -1872,7 +1952,7 @@ export const QUESTIONS = [
     authority: "Ministry of Rural Development", link: "https://pmayg.nic.in",
   },
   {
-    rank: 128, kgId: "GOVT006", bucket: "schemes", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 128, kgId: "GOVT006", bucket: "schemes", subtopic: "women-girl-child", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फ्री सिलाई मशीन योजना का पैसा कैसे?",
     qEn: "Govt free sewing machine scheme",
     understand: "फ्री सिलाई मशीन के नाम पर होने वाले फ्रॉड फेक मैसेजेस से बचें।",
@@ -1886,7 +1966,7 @@ export const QUESTIONS = [
     authority: "Ministry of MSME", link: "https://pmvishwakarma.gov.in",
   },
   {
-    rank: 129, kgId: "GOVT007", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 129, kgId: "GOVT007", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED",
     q: "PM मुद्रा से 50000 शिशु लोन कैसे?",
     qEn: "50k Shishu loan under Mudra",
     understand: "PM मुद्रा शिशु लोन छोटे कारोबारियों के लिए बिना गारंटी का लोन है।",
@@ -1900,7 +1980,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.mudra.org.in",
   },
   {
-    rank: 130, kgId: "GOVT008", bucket: "schemes", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 130, kgId: "GOVT008", bucket: "schemes", subtopic: "housing-subsidy", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "गैस सब्सिडी खाते में क्यों नहीं आ रही, चेक कैसे?",
     qEn: "Why no gas subsidy, how to check",
     understand: "गैस सब्सिडी खाते में न आना अक्सर बैंक लिंकिंग अधूरी होने के कारण होता है।",
@@ -1914,7 +1994,7 @@ export const QUESTIONS = [
     authority: "Ministry of Petroleum and Natural Gas", link: "https://www.mylpg.in",
   },
   {
-    rank: 131, kgId: "GOVT009", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 131, kgId: "GOVT009", bucket: "schemes", subtopic: "welfare-id-access", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "जन धन में 10000 ओवरड्राफ्ट कैसे मिलता?",
     qEn: "Claim 10k Jan Dhan overdraft",
     understand: "जन धन खाते पर ओवरड्राफ्ट की सुविधा एक शॉर्ट-टर्म लोन है।",
@@ -1928,7 +2008,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.pmjdy.gov.in",
   },
   {
-    rank: 132, kgId: "GOVT010", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 132, kgId: "GOVT010", bucket: "schemes", subtopic: "pension-insurance", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PMSBY का क्लेम मौत के बाद कैसे?",
     qEn: "Claim PMSBY after death",
     understand: "परिवार के सदस्य की एक्सीडेंटल मौत के बाद PMSBY क्लेम प्रोसेस समझना ज़रूरी है।",
@@ -1942,7 +2022,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://jansuraksha.gov.in",
   },
   {
-    rank: 133, kgId: "GOVT011", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 133, kgId: "GOVT011", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED",
     q: "PM किसान का पैसा कब आएगा, कैसे चेक करें?",
     qEn: "When PM-Kisan comes, how to check",
     understand: "PM-किसान सम्मान निधि की किस्त हर 4 महीने में एक बार आती है।",
@@ -1956,7 +2036,7 @@ export const QUESTIONS = [
     authority: "Ministry of Agriculture and Farmers Welfare", link: "https://pmkisan.gov.in",
   },
   {
-    rank: 134, kgId: "GOVT012", bucket: "schemes", type: "B", verified: "VERIFIED-NO-FIGURE",
+    rank: 134, kgId: "GOVT012", bucket: "schemes", subtopic: "women-girl-child", type: "B", verified: "VERIFIED-NO-FIGURE",
     q: "लाडली बहना योजना में फॉर्म कैसे भरें?",
     qEn: "How to apply Ladli Behna Yojana",
     understand: "लाडली बहना और उससे मिलती-जुलती महिला कल्याण योजनाएं स्टेट-गवर्नमेंट कंट्रोल करती हैं।",
@@ -1970,7 +2050,7 @@ export const QUESTIONS = [
     authority: "State Government", link: null,
   },
   {
-    rank: 135, kgId: "GOVT013", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 135, kgId: "GOVT013", bucket: "schemes", subtopic: "housing-subsidy", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "उज्ज्वला योजना में फ्री गैस कैसे?",
     qEn: "Free gas under Ujjwala",
     understand: "PM उज्ज्वला योजना से मुफ्त गैस कनेक्शन मिलता है।",
@@ -1984,7 +2064,7 @@ export const QUESTIONS = [
     authority: "Ministry of Petroleum and Natural Gas", link: "https://www.pmuy.gov.in",
   },
   {
-    rank: 136, kgId: "GOVT017", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 136, kgId: "GOVT017", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PM-किसान योजना के लिए एलिजिबिलिटी क्या है?",
     qEn: "PM-Kisan eligibility criteria",
     understand: "PM-किसान सम्मान निधि सिर्फ एलिजिबल किसान परिवारों के लिए है।",
@@ -1998,7 +2078,7 @@ export const QUESTIONS = [
     authority: "Ministry of Agriculture and Farmers Welfare", link: "https://pmkisan.gov.in/",
   },
   {
-    rank: 137, kgId: "GOVT019", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 137, kgId: "GOVT019", bucket: "schemes", subtopic: "women-girl-child", type: "A", verified: "VERIFIED",
     q: "सुकन्या समृद्धि खाता कब तक चलता है?",
     qEn: "Sukanya Samriddhi account tenure",
     understand: "सुकन्या समृद्धि खाता एक निश्चित लॉन्ग-टर्म मैच्योरिटी पीरियड के साथ आता है।",
@@ -2012,7 +2092,7 @@ export const QUESTIONS = [
     authority: "National Savings Institute", link: "https://www.nsiindia.gov.in/",
   },
   {
-    rank: 138, kgId: "GOVT020", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 138, kgId: "GOVT020", bucket: "schemes", subtopic: "welfare-id-access", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "प्रधानमंत्री जन धन योजना खाता कैसे खोलें?",
     qEn: "How to open Jan Dhan account",
     understand: "जन धन (PMJDY) खाता खोलना बिल्कुल मुफ्त और सिंपल है।",
@@ -2026,7 +2106,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.pmjdy.gov.in/",
   },
   {
-    rank: 139, kgId: "GOVT021", bucket: "schemes", type: "B", verified: "VARIES",
+    rank: 139, kgId: "GOVT021", bucket: "schemes", subtopic: "housing-subsidy", type: "B", verified: "VARIES",
     q: "PM आवास योजना के लिए एलिजिबिलिटी क्या है?",
     qEn: "PM Awas Yojana eligibility",
     understand: "PM आवास योजना अर्बन और रूरल एरियाज़ के हिसाब से बनती गई है।",
@@ -2040,7 +2120,7 @@ export const QUESTIONS = [
     authority: "Ministry of Housing and Urban Affairs", link: "https://pmaymis.gov.in/",
   },
   {
-    rank: 140, kgId: "GOVT022", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 140, kgId: "GOVT022", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "किसान क्रेडिट कार्ड (KCC) कैसे बनाएं?",
     qEn: "How to get a Kisan Credit Card",
     understand: "KCC किसानों के लिए खेती की लागत कम करने का सस्ता लोन कार्ड है।",
@@ -2054,7 +2134,7 @@ export const QUESTIONS = [
     authority: "NABARD", link: "https://www.nabard.org/",
   },
   {
-    rank: 141, kgId: "KYC001", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 141, kgId: "KYC001", bucket: "kyc", subtopic: "aadhaar-services", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "आधार में मोबाइल नंबर बिना बैंक गए कैसे बदलें?",
     qEn: "Update Aadhaar mobile without bank",
     understand: "आधार में मोबाइल नंबर ऑनलाइन खुद से चेंज नहीं होता।",
@@ -2068,7 +2148,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 142, kgId: "KYC002", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 142, kgId: "KYC002", bucket: "kyc", subtopic: "kyc-process", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "KYC न करवाने पर अकाउंट बंद हो जाएगा क्या?",
     qEn: "Account blocked if no KYC",
     understand: "KYC अपडेट न होने पर अकाउंट टेम्पररिली फ्रीज़ हो सकता है।",
@@ -2082,7 +2162,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 143, kgId: "KYC003", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 143, kgId: "KYC003", bucket: "kyc", subtopic: "pan-aadhaar-linking", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PAN को आधार से लिंक न करने पर नुकसान?",
     qEn: "Consequences of not linking PAN-Aadhaar",
     understand: "PAN-आधार लिंक न होने पर आपका PAN कार्ड इनऑपरेटिव हो जाता है।",
@@ -2096,7 +2176,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://incometax.gov.in",
   },
   {
-    rank: 144, kgId: "KYC005", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 144, kgId: "KYC005", bucket: "kyc", subtopic: "pan-aadhaar-linking", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "आधार बैंक से लिंक है या नहीं कैसे पता?",
     qEn: "Check if Aadhaar linked to bank",
     understand: "आधार और बैंक खाते का सीडिंग स्टेटस ट्रैक करना ऑनलाइन पॉसिबल है।",
@@ -2110,7 +2190,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 145, kgId: "KYC006", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 145, kgId: "KYC006", bucket: "kyc", subtopic: "pan-card", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PAN नहीं है, बैंक अकाउंट खुल जाएगा?",
     qEn: "No PAN, open account",
     understand: "बिना PAN कार्ड के भी बैंक अकाउंट खुल सकता है पर ट्रांजैक्शन्स पर रिस्ट्रिक्शंस होती हैं।",
@@ -2124,7 +2204,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 146, kgId: "KYC011", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 146, kgId: "KYC011", bucket: "kyc", subtopic: "pan-card", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PAN कार्ड कैसे बनाएं ऑनलाइन?",
     qEn: "How to apply for PAN online",
     understand: "PAN कार्ड अप्लाई करने के लिए मिनिमम एज लिमिट नहीं है।",
@@ -2138,7 +2218,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://incometax.gov.in",
   },
   {
-    rank: 147, kgId: "KYC012", bucket: "kyc", type: "A", verified: "VERIFIED",
+    rank: 147, kgId: "KYC012", bucket: "kyc", subtopic: "pan-card", type: "A", verified: "VERIFIED",
     q: "e-PAN क्या होता है?",
     qEn: "What is e-PAN",
     understand: "e-PAN एक वैलिड डिजिटल PAN कार्ड कॉपी होती है।",
@@ -2152,7 +2232,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://incometax.gov.in",
   },
   {
-    rank: 148, kgId: "KYC013", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 148, kgId: "KYC013", bucket: "kyc", subtopic: "aadhaar-services", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "आधार कार्ड ऑनलाइन कैसे डाउनलोड करें?",
     qEn: "How to download Aadhaar online",
     understand: "आधार डाउनलोड करना ऑफिशियल पोर्टल से सिक्योर और सिंपल है।",
@@ -2166,7 +2246,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 149, kgId: "KYC025", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 149, kgId: "KYC025", bucket: "kyc", subtopic: "pan-aadhaar-linking", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "आधार बैंक सीडिंग क्या होता है (DBT के लिए)?",
     qEn: "What is Aadhaar bank seeding for DBT",
     understand: "आधार बैंक सीडिंग का मतलब खाते को DBT सब्सिडी से जोड़ना है।",
@@ -2180,7 +2260,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 150, kgId: "KYC027", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 150, kgId: "KYC027", bucket: "kyc", subtopic: "kyc-process", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "KYC डॉक्यूमेंट्स रिजेक्ट हो गए, क्या करें?",
     qEn: "KYC documents rejected, what to do",
     understand: "KYC डॉक्यूमेंट्स रिजेक्ट होने पर बैंक से उनका डायरेक्ट रीज़न पूछा जा सकता है।",
@@ -2194,7 +2274,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 151, kgId: "KYC029", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 151, kgId: "KYC029", bucket: "kyc", subtopic: "kyc-process", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "बैंक KYC के लिए डॉक्यूमेंट लिस्ट क्या होती है?",
     qEn: "Bank KYC document checklist",
     understand: "बैंक KYC के लिए वैलिड डॉक्यूमेंट्स की एक फिक्स स्टैंडर्ड लिस्ट होती है।",
@@ -2208,7 +2288,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 152, kgId: "LOAN001", bucket: "loans", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 152, kgId: "LOAN001", bucket: "loans", subtopic: "cibil-score", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "CIBIL खराब है, अर्जेंट लोन कैसे मिलेगा?",
     qEn: "Bad CIBIL, urgent loan",
     understand: "खबर मिलने पर खराब CIBIL स्कोर के साथ अर्जेंट मनी अरेंज करना परेशानी भरा हो सकता है।",
@@ -2222,7 +2302,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.transunion.cibil.com",
   },
   {
-    rank: 153, kgId: "LOAN002", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 153, kgId: "LOAN002", bucket: "loans", subtopic: "business-microfinance-loans", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "KCC का पैसा समय पर न भरने पर क्या?",
     qEn: "KCC dues not paid on time",
     understand: "KCC कार्ड का लोन टाइम पर न चुकाने का असर किसानों के क्रेडिट सिस्टम पर सीधा पड़ता है।",
@@ -2236,7 +2316,7 @@ export const QUESTIONS = [
     authority: "NABARD", link: "https://www.nabard.org",
   },
   {
-    rank: 154, kgId: "LOAN003", bucket: "loans", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 154, kgId: "LOAN003", bucket: "loans", subtopic: "loan-safety-legal", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "पर्सनल लोन लेकर पुराना कर्ज़ा चुकाना सही?",
     qEn: "Personal loan to clear old debt",
     understand: "पुराने कर्ज़े को बदले नए लोन से क्लियर करना एक मुख्य फाइनेंशियल डिसीज़न है।",
@@ -2250,7 +2330,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 155, kgId: "LOAN009", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 155, kgId: "LOAN009", bucket: "loans", subtopic: "credit-cards-bnpl", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "ज़ीरो% EMI सच में फ्री है या छुपा चार्ज?",
     qEn: "Is zero-interest EMI really free",
     understand: "ज़ीरो पर्सेंट फाइनेंस मार्केटिंग स्कीम्स के हिडन चार्जेस समझना ज़रूरी है।",
@@ -2264,7 +2344,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 156, kgId: "LOAN010", bucket: "loans", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 156, kgId: "LOAN010", bucket: "loans", subtopic: "business-microfinance-loans", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "बिना सिक्योरिटी बिज़नेस लोन कैसे लें?",
     qEn: "Business loan without collateral",
     understand: "बिना एसेट कोलैटरल सिक्योरिटी दिए बिज़नेस सेटअप लोन सरकारी स्कीम से मिल सकता है।",
@@ -2278,7 +2358,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.mudra.org.in",
   },
   {
-    rank: 157, kgId: "LOAN011", bucket: "loans", type: "B", verified: "VARIES",
+    rank: 157, kgId: "LOAN011", bucket: "loans", subtopic: "emi-repayment", type: "B", verified: "VARIES",
     q: "EMI बाउंस होने पे कितना फाइन?",
     qEn: "EMI bounce penalty",
     understand: "EMI अकाउंट ऑटो-डेबिट बाउंस होने पर सिस्टम ऑटो पेनल्टीज़ लगाता है।",
@@ -2292,7 +2372,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 158, kgId: "LOAN012", bucket: "loans", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 158, kgId: "LOAN012", bucket: "loans", subtopic: "business-microfinance-loans", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "SHG ग्रुप से लोन कैसे मिलता महिलाओं को?",
     qEn: "How women get SHG loan",
     understand: "Self-Help Groups (SHG) के नेटवर्क से महिलाओं को रूरल बैंक्स से इंस्टीट्यूशनल सपोर्ट मिलता है।",
@@ -2306,7 +2386,7 @@ export const QUESTIONS = [
     authority: "Ministry of Rural Development", link: "https://aajeevika.gov.in",
   },
   {
-    rank: 159, kgId: "LOAN017", bucket: "loans", type: "A", verified: "VERIFIED",
+    rank: 159, kgId: "LOAN017", bucket: "loans", subtopic: "cibil-score", type: "A", verified: "VERIFIED",
     q: "CIBIL स्कोर कैसे चेक करें फ्री में?",
     qEn: "How to check CIBIL score for free",
     understand: "CIBIL रिपोर्ट का क्रेडिट समरी चेक करना हर साल मुफ्त होता है।",
@@ -2320,7 +2400,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.transunion.cibil.com",
   },
   {
-    rank: 160, kgId: "LOAN018", bucket: "loans", type: "A", verified: "VERIFIED",
+    rank: 160, kgId: "LOAN018", bucket: "loans", subtopic: "cibil-score", type: "A", verified: "VERIFIED",
     q: "CIBIL स्कोर कितना अच्छा माना जाता है?",
     qEn: "What is considered a good CIBIL score",
     understand: "क्रेडिट मैट्रिक्स सिस्टम में CIBIL रेंज फ्रेमवर्क 300 से 900 तक चलता है।",
@@ -2334,7 +2414,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.transunion.cibil.com",
   },
   {
-    rank: 161, kgId: "LOAN019", bucket: "loans", type: "B", verified: "VARIES",
+    rank: 161, kgId: "LOAN019", bucket: "loans", subtopic: "loan-types", type: "B", verified: "VARIES",
     q: "होम लोन के लिए एलिजिबिलिटी क्या होती है?",
     qEn: "Home loan eligibility criteria",
     understand: "होम लोन एप्लिकेशन वेरिफिकेशन क्राइटेरिया अलग-अलग रूल्स पर चलते हैं।",
@@ -2348,7 +2428,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 162, kgId: "LOAN020", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 162, kgId: "LOAN020", bucket: "loans", subtopic: "loan-types", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पर्सनल लोन और गोल्ड लोन में क्या फर्क है?",
     qEn: "Difference between personal loan and gold loan",
     understand: "पर्सनल लोन और सिक्योर गोल्ड एसेट लोन के ब्याज़ और कोलैटरल सिस्टम में बड़ा फर्क है।",
@@ -2362,7 +2442,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 163, kgId: "LOAN027", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 163, kgId: "LOAN027", bucket: "loans", subtopic: "cibil-score", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "क्रेडिट स्कोर सुधारने के तरीके क्या हैं?",
     qEn: "Ways to improve credit score",
     understand: "CIBIL स्कोर ठीक करने के लिए टाइम-बेस्ड डिसिप्लिन और रिपोर्टिंग रूल्स ज़रूरी हैं।",
@@ -2376,7 +2456,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.transunion.cibil.com",
   },
   {
-    rank: 164, kgId: "LOAN028", bucket: "loans", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 164, kgId: "LOAN028", bucket: "loans", subtopic: "loan-safety-legal", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "मल्टीपल लोन Apps से एक साथ कर्ज़ा लेना रिस्की है?",
     qEn: "Is borrowing from multiple loan apps risky",
     understand: "मल्टीपल लोन Apps से एक साथ कर्ज़ा उठाना आपको डेट ट्रैप में फंसा सकता है।",
@@ -2390,7 +2470,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 165, kgId: "LOAN029", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 165, kgId: "LOAN029", bucket: "loans", subtopic: "loan-safety-legal", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "लोन क्लोज़ होने के बाद NOC लेना क्यों ज़रूरी है?",
     qEn: "Importance of loan NOC certificate",
     understand: "परिवार में लोन क्लोज़ करने के बाद NOC सर्टिफिकेट लेना सेफ्टी के लिए मैंडेटरी है।",
@@ -2404,7 +2484,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 166, kgId: "upi_receive_money", bucket: "upi", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 166, kgId: "upi_receive_money", bucket: "upi", subtopic: "payments-qr", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पैसे मंगवाने के लिए QR भेजूं या नंबर?",
     qEn: "Send QR or number to receive",
     understand: "पैसा मंगवाने के तरीके को लेकर कन्फ्यूज़न आम है।",
@@ -2418,7 +2498,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 167, kgId: "upi_no_internet", bucket: "upi", type: "A", verified: "VERIFIED",
+    rank: 167, kgId: "upi_no_internet", bucket: "upi", subtopic: "pin-setup", type: "A", verified: "VERIFIED",
     q: "बिना इंटरनेट/स्मार्टफोन के UPI कैसे करें?",
     qEn: "UPI without internet/smartphone",
     understand: "इंटरनेट न होने पर भी UPI चलने का तरीका है।",
@@ -2432,7 +2512,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 168, kgId: "upi_add_account", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 168, kgId: "upi_add_account", bucket: "upi", subtopic: "account-linking", type: "C", verified: "VERIFIED",
     q: "एक ही App में 2 बैंक अकाउंट कैसे जोड़ें?",
     qEn: "Add 2 accounts in one app",
     understand: "दूसरा बैंक अकाउंट जोड़ना एक सिंपल सेटिंग्स-लेवल काम है।",
@@ -2446,7 +2526,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 169, kgId: "upi_minor_account", bucket: "upi", type: "B", verified: "VARIES",
+    rank: 169, kgId: "upi_minor_account", bucket: "upi", subtopic: "pin-setup", type: "B", verified: "VARIES",
     q: "18 से कम (माइनर) के लिए UPI कैसे बनाएं?",
     qEn: "UPI for minors",
     understand: "बच्चों के अकाउंट के नियम अलग होते हैं, ये जानना ज़रूरी है।",
@@ -2460,7 +2540,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 170, kgId: "upi_lite", bucket: "upi", type: "A", verified: "VERIFIED",
+    rank: 170, kgId: "upi_lite", bucket: "upi", subtopic: "features-limits", type: "A", verified: "VERIFIED",
     q: "UPI Lite क्या है और बिना PIN पेमेंट कैसे?",
     qEn: "UPI Lite",
     understand: "UPI Lite एक नया फीचर है जो कम लोगों को पता है।",
@@ -2474,7 +2554,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 171, kgId: "upi_cashback", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 171, kgId: "upi_cashback", bucket: "upi", subtopic: "features-limits", type: "C", verified: "VERIFIED",
     q: "UPI Apps से कैशबैक/रिवॉर्ड कैसे कमाएं?",
     qEn: "Cashback/rewards",
     understand: "कैशबैक को लेकर उम्मीद रखना सही है, पर ये गारंटीड नहीं होता।",
@@ -2488,7 +2568,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 172, kgId: "upi_credit_card", bucket: "upi", type: "A", verified: "VERIFIED",
+    rank: 172, kgId: "upi_credit_card", bucket: "upi", subtopic: "account-linking", type: "A", verified: "VERIFIED",
     q: "क्रेडिट कार्ड को UPI से कैसे जोड़ें और पेमेंट कैसे?",
     qEn: "Credit card on UPI",
     understand: "क्रेडिट कार्ड को UPI से जोड़ने के नियम सबको पता नहीं होते।",
@@ -2502,7 +2582,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 173, kgId: "upi_delete_bank", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 173, kgId: "upi_delete_bank", bucket: "upi", subtopic: "account-linking", type: "C", verified: "VERIFIED",
     q: "App से अपना बैंक अकाउंट हमेशा के लिए कैसे हटाएं?",
     qEn: "Remove bank from app",
     understand: "पुराना अकाउंट हटाना एक सिंपल सेटिंग्स-लेवल काम है।",
@@ -2516,7 +2596,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 174, kgId: "upi_pin_change", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 174, kgId: "upi_pin_change", bucket: "upi", subtopic: "pin-setup", type: "C", verified: "VERIFIED",
     q: "अपना UPI PIN अपनी मर्ज़ी से कैसे बदलें?",
     qEn: "Change UPI PIN voluntarily",
     understand: "PIN चेंज करना एक सिंपल, रोज़ काम आने वाला काम है।",
@@ -2530,7 +2610,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 175, kgId: "FRAUD019", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 175, kgId: "FRAUD019", bucket: "fraud", subtopic: "fake-calls-messages", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फेक SMS कैसे पहचानें?",
     qEn: "Spot fake SMS",
     understand: "फेक SMS में कुछ कॉमन गलतियां होती हैं।",
@@ -2544,7 +2624,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 176, kgId: "FRAUD020", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 176, kgId: "FRAUD020", bucket: "fraud", subtopic: "fake-calls-messages", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फेक बैंक वेबसाइट कैसे पहचानें?",
     qEn: "Identify fake banking websites",
     understand: "नकली वेबसाइट असली जैसी दिख सकती है, पर कुछ चीज़ें चेक कर सकते हैं।",
@@ -2558,7 +2638,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 177, kgId: "FRAUD021", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 177, kgId: "FRAUD021", bucket: "fraud", subtopic: "otp-pin-scams", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "स्क्रीन शेयरिंग से फ्रॉड हो सकता है?",
     qEn: "Screen-sharing scams",
     understand: "हां, ये एक बढ़ता हुआ फ्रॉड तरीका है।",
@@ -2572,7 +2652,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 178, kgId: "FRAUD022", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 178, kgId: "FRAUD022", bucket: "fraud", subtopic: "unauthorized-transactions", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "आधार मिसयूज़ हो रहा है क्या कैसे चेक करें?",
     qEn: "Check [Aadhaar Redacted] misuse",
     understand: "आधार का गलत इस्तेमाल चेक करना UIDAI की वेबसाइट से मुमकिन है।",
@@ -2586,7 +2666,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in/",
   },
   {
-    rank: 179, kgId: "FRAUD023", bucket: "fraud", type: "B", verified: "VARIES",
+    rank: 179, kgId: "FRAUD023", bucket: "fraud", subtopic: "lost-cards-hacked-accounts", type: "B", verified: "VARIES",
     q: "बैंक अकाउंट फ्रीज़ फ्रॉड की वजह से हुआ है?",
     qEn: "Fraud-related account freeze",
     understand: "फ्रीज़ होना अलग-अलग कारण से हो सकता है।",
@@ -2600,7 +2680,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 180, kgId: "FRAUD024", bucket: "fraud", type: "C", verified: "VERIFIED",
+    rank: 180, kgId: "FRAUD024", bucket: "fraud", subtopic: "unauthorized-transactions", type: "C", verified: "VERIFIED",
     q: "ऑनलाइन शॉपिंग फ्रॉड हो गया, क्या करूं?",
     qEn: "E-commerce fraud",
     understand: "ऑर्डर न मिलना या गलत प्रोडक्ट मिलना फ्रस्ट्रेटिंग है, पर प्रोसेस है।",
@@ -2614,7 +2694,7 @@ export const QUESTIONS = [
     authority: "Dept. of Consumer Affairs", link: "https://consumerhelpline.gov.in/",
   },
   {
-    rank: 181, kgId: "FRAUD029", bucket: "fraud", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 181, kgId: "FRAUD029", bucket: "fraud", subtopic: "unauthorized-transactions", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "किसी ने मेरे नाम पर लोन ले लिया, क्या करूं?",
     qEn: "Identity theft loan",
     understand: "ये पहचान चोरी (identity theft) का गंभीर मामला है।",
@@ -2628,7 +2708,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.cibil.com/",
   },
   {
-    rank: 182, kgId: "FRAUD030", bucket: "fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 182, kgId: "FRAUD030", bucket: "fraud", subtopic: "reporting-fraud", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फाइनेंशियल फ्रॉड से बचने के सबसे इम्पोर्टेंट रूल्स क्या हैं?",
     qEn: "Basic fraud prevention",
     understand: "कुछ सिंपल रूल्स फॉलो करके ज़्यादातर फ्रॉड से बचा जा सकता है।",
@@ -2642,7 +2722,7 @@ export const QUESTIONS = [
     authority: "Cyber Crime", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 183, kgId: "BILL005", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 183, kgId: "BILL005", bucket: "bills", subtopic: "gas-water-bills", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पानी का बिल कैसे चेक और पे करें?",
     qEn: "Water bill",
     understand: "पानी का बिल चेक करना बिजली जितना ही आसान है।",
@@ -2656,7 +2736,7 @@ export const QUESTIONS = [
     authority: "Municipal Corporation", link: null,
   },
   {
-    rank: 184, kgId: "BILL010", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 184, kgId: "BILL010", bucket: "bills", subtopic: "mobile-dth-recharge", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "पोस्टपेड मोबाइल बिल कैसे पे करें?",
     qEn: "Pay postpaid bill",
     understand: "पोस्टपेड बिल पे करना प्रीपेड रिचार्ज जैसा ही आसान है।",
@@ -2670,7 +2750,7 @@ export const QUESTIONS = [
     authority: "Telecom Operator", link: null,
   },
   {
-    rank: 185, kgId: "BILL011", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 185, kgId: "BILL011", bucket: "bills", subtopic: "mobile-dth-recharge", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "ब्रॉडबैंड बिल कैसे भरें?",
     qEn: "Pay broadband bill",
     understand: "ब्रॉडबैंड बिल भरना भी मोबाइल बिल जैसा ही है।",
@@ -2684,7 +2764,7 @@ export const QUESTIONS = [
     authority: "Broadband Provider", link: null,
   },
   {
-    rank: 186, kgId: "BILL012", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 186, kgId: "BILL012", bucket: "bills", subtopic: "mobile-dth-recharge", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "DTH रिचार्ज कैसे करें?",
     qEn: "DTH recharge",
     understand: "DTH रिचार्ज एक मिनट का काम है।",
@@ -2698,7 +2778,7 @@ export const QUESTIONS = [
     authority: "DTH Provider", link: null,
   },
   {
-    rank: 187, kgId: "BILL014", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 187, kgId: "BILL014", bucket: "bills", subtopic: "fastag-other-bills", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "FASTag बैलेंस कैसे चेक करें?",
     qEn: "Check FASTag balance",
     understand: "बैलेंस चेक करना FASTag App से आसान है।",
@@ -2712,7 +2792,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/what-we-do/netc-fastag/product-overview",
   },
   {
-    rank: 188, kgId: "BILL015", bucket: "bills", type: "B", verified: "VARIES",
+    rank: 188, kgId: "BILL015", bucket: "bills", subtopic: "fastag-other-bills", type: "B", verified: "VARIES",
     q: "FASTag से पैसे दो बार कट गए",
     qEn: "Double FASTag deduction",
     understand: "दो बार पैसा कटना गलती से हो सकता है, पर ये ठीक हो जाता है।",
@@ -2726,7 +2806,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: null,
   },
   {
-    rank: 189, kgId: "BILL019", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 189, kgId: "BILL019", bucket: "bills", subtopic: "fastag-other-bills", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "स्कूल फीस ऑनलाइन कैसे पे करें?",
     qEn: "Pay school fees",
     understand: "स्कूल फीस ऑनलाइन देना अब कॉमन हो गया है।",
@@ -2740,7 +2820,7 @@ export const QUESTIONS = [
     authority: "School", link: null,
   },
   {
-    rank: 190, kgId: "BILL020", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 190, kgId: "BILL020", bucket: "bills", subtopic: "fastag-other-bills", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "प्रॉपर्टी टैक्स कैसे पे करें?",
     qEn: "Pay property tax",
     understand: "प्रॉपर्टी टैक्स पे करना म्युनिसिपल वेबसाइट से हो जाता है।",
@@ -2754,7 +2834,7 @@ export const QUESTIONS = [
     authority: "Municipal Corporation", link: null,
   },
   {
-    rank: 191, kgId: "BILL021", bucket: "bills", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 191, kgId: "BILL021", bucket: "bills", subtopic: "gas-water-bills", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "पाइप्ड गैस बिल कैसे पे करें?",
     qEn: "PNG bill payment",
     understand: "पाइप्ड गैस बिल भी UPI/App से पे हो जाता है।",
@@ -2768,7 +2848,7 @@ export const QUESTIONS = [
     authority: "Piped Gas Provider", link: null,
   },
   {
-    rank: 192, kgId: "BILL022", bucket: "bills", type: "C", verified: "VARIES",
+    rank: 192, kgId: "BILL022", bucket: "bills", subtopic: "electricity-bill", type: "C", verified: "VARIES",
     q: "इलेक्ट्रिसिटी कनेक्शन का नाम कैसे बदलें?",
     qEn: "Change electricity account name",
     understand: "नाम बदलना एक एप्लिकेशन प्रोसेस है।",
@@ -2782,7 +2862,7 @@ export const QUESTIONS = [
     authority: "State Electricity Board", link: null,
   },
   {
-    rank: 193, kgId: "BILL023", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 193, kgId: "BILL023", bucket: "bills", subtopic: "electricity-bill", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "मीटर रीडिंग गलत है तो क्या करें?",
     qEn: "Wrong meter reading",
     understand: "गलत रीडिंग की कंप्लेंट करना सिंपल है।",
@@ -2796,7 +2876,7 @@ export const QUESTIONS = [
     authority: "State Electricity Board", link: null,
   },
   {
-    rank: 194, kgId: "BILL024", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 194, kgId: "BILL024", bucket: "bills", subtopic: "bill-payment-help", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "AutoPay से बिल ऑटोमैटिकली कैसे भरें?",
     qEn: "Set up AutoPay",
     understand: "AutoPay सेट करने से भूलने की टेंशन खत्म हो जाती है।",
@@ -2810,7 +2890,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/what-we-do/upi/faqs",
   },
   {
-    rank: 195, kgId: "BILL026", bucket: "bills", type: "B", verified: "VARIES",
+    rank: 195, kgId: "BILL026", bucket: "bills", subtopic: "bill-payment-help", type: "B", verified: "VARIES",
     q: "मेरे बिल का ड्यू डेट कब है?",
     qEn: "Check due date",
     understand: "ड्यू डेट हर कनेक्शन के लिए अलग होती है।",
@@ -2824,7 +2904,7 @@ export const QUESTIONS = [
     authority: "Utility Provider", link: null,
   },
   {
-    rank: 196, kgId: "BILL027", bucket: "bills", type: "B", verified: "VARIES",
+    rank: 196, kgId: "BILL027", bucket: "bills", subtopic: "bill-payment-help", type: "B", verified: "VARIES",
     q: "लेट पेमेंट चार्ज कितना लगेगा?",
     qEn: "Late fee",
     understand: "लेट पेमेंट चार्ज प्रोवाइडर के हिसाब से अलग होता है।",
@@ -2838,7 +2918,7 @@ export const QUESTIONS = [
     authority: "Utility Provider", link: null,
   },
   {
-    rank: 197, kgId: "BILL028", bucket: "bills", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 197, kgId: "BILL028", bucket: "bills", subtopic: "bill-payment-help", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बिल की रिसीट कैसे डाउनलोड करें?",
     qEn: "Download receipt",
     understand: "रिसीट डाउनलोड करना App से हो जाता है।",
@@ -2852,7 +2932,7 @@ export const QUESTIONS = [
     authority: "Payment App", link: null,
   },
   {
-    rank: 198, kgId: "INS019", bucket: "insurance", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 198, kgId: "INS019", bucket: "insurance", subtopic: "vehicle-insurance", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "बाइक इंश्योरेंस रिन्यू कैसे करें?",
     qEn: "Renew bike insurance",
     understand: "बाइक इंश्योरेंस रिन्यू करने का प्रोसेस सिंपल है।",
@@ -2866,7 +2946,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 199, kgId: "INS020", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 199, kgId: "INS020", bucket: "insurance", subtopic: "govt-schemes-other", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "ट्रैवल इंश्योरेंस ज़रूरी है क्या?",
     qEn: "Do I need travel insurance",
     understand: "ट्रैवल इंश्योरेंस ज़रूरी है या नहीं ये ट्रिप पर डिपेंड करता है।",
@@ -2880,7 +2960,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 200, kgId: "INS021", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 200, kgId: "INS021", bucket: "insurance", subtopic: "govt-schemes-other", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "पर्सनल एक्सीडेंट इंश्योरेंस क्या होता है?",
     qEn: "Personal accident cover",
     understand: "पर्सनल एक्सीडेंट इंश्योरेंस का काम समझना ज़रूरी है।",
@@ -2894,7 +2974,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 201, kgId: "INS022", bucket: "insurance", type: "A", verified: "VERIFIED",
+    rank: 201, kgId: "INS022", bucket: "insurance", subtopic: "govt-schemes-other", type: "A", verified: "VERIFIED",
     q: "PM सुरक्षा बीमा और नॉर्मल इंश्योरेंस में फर्क?",
     qEn: "PMSBY vs regular insurance",
     understand: "PM सुरक्षा बीमा एक सस्ता सरकारी एक्सीडेंट कवर है।",
@@ -2908,7 +2988,7 @@ export const QUESTIONS = [
     authority: "DFS", link: "https://www.jansuraksha.gov.in/",
   },
   {
-    rank: 202, kgId: "INS023", bucket: "insurance", type: "A", verified: "VERIFIED",
+    rank: 202, kgId: "INS023", bucket: "insurance", subtopic: "govt-schemes-other", type: "A", verified: "VERIFIED",
     q: "आयुष्मान भारत और हेल्थ इंश्योरेंस में फर्क?",
     qEn: "Ayushman vs private insurance",
     understand: "आयुष्मान भारत और प्राइवेट इंश्योरेंस का फर्क समझना ज़रूरी है।",
@@ -2922,7 +3002,7 @@ export const QUESTIONS = [
     authority: "NHA", link: "https://pmjay.gov.in/",
   },
   {
-    rank: 203, kgId: "INS024", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 203, kgId: "INS024", bucket: "insurance", subtopic: "life-insurance-policy", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस पॉलिसी का स्टेटस कैसे चेक करें?",
     qEn: "Check policy status",
     understand: "पॉलिसी स्टेटस चेक करना app से हो जाता है।",
@@ -2936,7 +3016,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 204, kgId: "INS025", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 204, kgId: "INS025", bucket: "insurance", subtopic: "life-insurance-policy", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "नॉमिनी कैसे ऐड या बदलें?",
     qEn: "Add/change nominee",
     understand: "नॉमिनी अपडेट करना ज़रूरी और सिंपल है।",
@@ -2950,7 +3030,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 205, kgId: "INS026", bucket: "insurance", type: "C", verified: "VERIFIED",
+    rank: 205, kgId: "INS026", bucket: "insurance", subtopic: "life-insurance-policy", type: "C", verified: "VERIFIED",
     q: "इंश्योरेंस कैंसिल कैसे करें?",
     qEn: "Cancel a policy",
     understand: "कैंसिल करना फ्री-लुक पीरियड में सबसे आसान है।",
@@ -2964,7 +3044,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 206, kgId: "INS027", bucket: "insurance", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 206, kgId: "INS027", bucket: "insurance", subtopic: "life-insurance-policy", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस मैच्योरिटी का पैसा कैसे मिलेगा?",
     qEn: "Receive maturity proceeds",
     understand: "मैच्योरिटी का पैसा लेना एक सिंपल प्रोसेस है।",
@@ -2978,7 +3058,7 @@ export const QUESTIONS = [
     authority: "Insurer", link: null,
   },
   {
-    rank: 207, kgId: "INS029", bucket: "insurance", type: "E", verified: "VERIFIED-NO-FIGURE",
+    rank: 207, kgId: "INS029", bucket: "insurance", subtopic: "govt-schemes-other", type: "E", verified: "VERIFIED-NO-FIGURE",
     q: "इंश्योरेंस फ्रॉड से कैसे बचें?",
     qEn: "Avoid insurance scams",
     understand: "इंश्योरेंस फ्रॉड से बचना बहुत ज़रूरी है।",
@@ -2992,7 +3072,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 208, kgId: "INS030", bucket: "insurance", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 208, kgId: "INS030", bucket: "insurance", subtopic: "insurance-basics", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "क्या मेरे पास इंश्योरेंस कम है या नहीं?",
     qEn: "Am I underinsured",
     understand: "ये सवाल आपकी परिवार की स्थिति पर डिपेंड करता है।",
@@ -3006,7 +3086,7 @@ export const QUESTIONS = [
     authority: "IRDAI", link: "https://www.irdai.gov.in/",
   },
   {
-    rank: 209, kgId: "SAVE006", bucket: "savings", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 209, kgId: "SAVE006", bucket: "savings", subtopic: "fd-rd", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "RD कैसे खोलें?",
     qEn: "Open an RD",
     understand: "RD खोलना मोबाइल app या ब्रांच से तुरंत हो जाता है।",
@@ -3020,7 +3100,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 210, kgId: "SAVE013", bucket: "savings", type: "C", verified: "VARIES",
+    rank: 210, kgId: "SAVE013", bucket: "savings", subtopic: "mutual-funds-sip", type: "C", verified: "VARIES",
     q: "म्यूचुअल फंड से पैसा कब निकाल सकते हैं?",
     qEn: "Redeem mutual funds",
     understand: "म्यूचुअल फंड से पैसा निकालने के नियम जानना ज़रूरी है।",
@@ -3034,7 +3114,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 211, kgId: "SAVE015", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 211, kgId: "SAVE015", bucket: "savings", subtopic: "gold-savings", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Digital Gold क्या होता है?",
     qEn: "What is Digital Gold",
     understand: "Digital Gold सोना खरीदने का एक नया और सेफ तरीका है।",
@@ -3048,7 +3128,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://www.rbi.org.in/",
   },
   {
-    rank: 212, kgId: "SAVE016", bucket: "savings", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 212, kgId: "SAVE016", bucket: "savings", subtopic: "gold-savings", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "सोना खरीदना सही है या SIP?",
     qEn: "Gold vs SIP",
     understand: "गोल्ड और SIP दोनों अलग मकसद के लिए यूज़ होते हैं।",
@@ -3062,7 +3142,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in/",
   },
   {
-    rank: 213, kgId: "SAVE018", bucket: "savings", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 213, kgId: "SAVE018", bucket: "savings", subtopic: "govt-schemes-retirement", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PPF अकाउंट कैसे खोलें?",
     qEn: "Open a PPF account",
     understand: "PPF अकाउंट खोलना पोस्ट ऑफिस या बैंक से हो जाता है।",
@@ -3076,7 +3156,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.indiapost.gov.in/",
   },
   {
-    rank: 214, kgId: "SAVE020", bucket: "savings", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 214, kgId: "SAVE020", bucket: "savings", subtopic: "govt-schemes-retirement", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "NPS क्या होता है?",
     qEn: "What is NPS",
     understand: "NPS रिटायरमेंट बचत के लिए एक मार्केट-लिंक्ड सरकारी स्कीम है।",
@@ -3090,7 +3170,7 @@ export const QUESTIONS = [
     authority: "PFRDA", link: "https://www.npstrust.org.in/",
   },
   {
-    rank: 215, kgId: "SAVE027", bucket: "savings", type: "C", verified: "VERIFIED",
+    rank: 215, kgId: "SAVE027", bucket: "savings", subtopic: "govt-schemes-retirement", type: "C", verified: "VERIFIED",
     q: "बच्चों के फ्यूचर के लिए कहां इन्वेस्ट करें?",
     qEn: "Invest for children's future",
     understand: "बच्चों के फ्यूचर के लिए कुछ सुरक्षित सरकारी स्कीम्स हैं।",
@@ -3104,7 +3184,7 @@ export const QUESTIONS = [
     authority: "National Savings Institute", link: "https://www.nsiindia.gov.in/",
   },
   {
-    rank: 216, kgId: "SAVE028", bucket: "savings", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 216, kgId: "SAVE028", bucket: "savings", subtopic: "govt-schemes-retirement", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "रिटायरमेंट के लिए सेविंग कैसे करें?",
     qEn: "Save for retirement",
     understand: "रिटायरमेंट के लिए बचत जितनी जल्दी शुरू करें उतना बेहतर है।",
@@ -3118,7 +3198,7 @@ export const QUESTIONS = [
     authority: "PFRDA/EPFO", link: "https://www.npstrust.org.in/",
   },
   {
-    rank: 217, kgId: "EARN005", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 217, kgId: "EARN005", bucket: "earn", subtopic: "content-freelance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फ्रीलांसिंग कैसे शुरू करें?",
     qEn: "Start freelancing",
     understand: "फ्रीलांसिंग शुरू करने के लिए पहले एक अच्छी डिजिटल स्किल चाहिए।",
@@ -3132,7 +3212,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 218, kgId: "EARN009", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 218, kgId: "EARN009", bucket: "earn", subtopic: "gig-work", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "कैब या ऑटो ड्राइवर पार्टनर कैसे बनें?",
     qEn: "Become a ride-hailing driver",
     understand: "कैब या ऑटो ड्राइवर पार्टनर बनने के लिए कमर्शियल डॉक्यूमेंट्स चाहिए।",
@@ -3146,7 +3226,7 @@ export const QUESTIONS = [
     authority: "Platform Operator", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 219, kgId: "EARN012", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 219, kgId: "EARN012", bucket: "earn", subtopic: "content-freelance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "एफिलिएट मार्केटिंग क्या होता है?",
     qEn: "What is affiliate marketing",
     understand: "एफिलिएट मार्केटिंग प्रोडक्ट रिकमेंड करके कमाने का तरीका है।",
@@ -3160,7 +3240,7 @@ export const QUESTIONS = [
     authority: "MHA", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 220, kgId: "EARN013", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 220, kgId: "EARN013", bucket: "earn", subtopic: "content-freelance", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "रेफरल से पैसे कैसे कमाएं?",
     qEn: "Earn through referrals",
     understand: "रेफरल से कमाना apps शेयर करने का एक ईज़ी तरीका है।",
@@ -3174,7 +3254,7 @@ export const QUESTIONS = [
     authority: "Platform Operator", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 221, kgId: "EARN019", bucket: "earn", type: "B", verified: "VARIES",
+    rank: 221, kgId: "EARN019", bucket: "earn", subtopic: "salary-pf-pension", type: "B", verified: "VARIES",
     q: "पेंशन अकाउंट में पैसा कब आएगा?",
     qEn: "Pension payment date",
     understand: "पेंशन क्रेडिट होने की डेट हर बैंक और स्टेट के मुताबिक अलग होती है।",
@@ -3188,7 +3268,7 @@ export const QUESTIONS = [
     authority: "EPFO/Bank", link: "https://www.epfindia.gov.in/",
   },
   {
-    rank: 222, kgId: "EARN020", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 222, kgId: "EARN020", bucket: "earn", subtopic: "small-business", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "फार्मर अपनी इनकम कैसे बढ़ा सकता है?",
     qEn: "Increase farm income",
     understand: "किसान भाई अपनी इनकम बढ़ाने के लिए सरकारी मदद और नई तकनीक चुन सकते हैं।",
@@ -3202,7 +3282,7 @@ export const QUESTIONS = [
     authority: "Ministry of Agriculture", link: "https://pmkisan.gov.in/",
   },
   {
-    rank: 223, kgId: "EARN023", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 223, kgId: "EARN023", bucket: "earn", subtopic: "side-income-rewards", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "कैशबैक और रिवॉर्ड्स कैसे कमाएं?",
     qEn: "Earn cashback",
     understand: "कैशबैक और रिवॉर्ड्स हर पेमेंट पर कमाए जा सकते हैं।",
@@ -3216,7 +3296,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 224, kgId: "EARN024", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 224, kgId: "EARN024", bucket: "earn", subtopic: "side-income-rewards", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "क्रेडिट कार्ड रिवॉर्ड पॉइंट्स कैसे यूज़ करें?",
     qEn: "Redeem reward points",
     understand: "क्रेडिट कार्ड के रिवॉर्ड पॉइंट्स यूज़ करना सिंपल है।",
@@ -3230,7 +3310,7 @@ export const QUESTIONS = [
     authority: "Card Issuer", link: null,
   },
   {
-    rank: 225, kgId: "EARN026", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 225, kgId: "EARN026", bucket: "earn", subtopic: "small-business", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "रीसेलिंग से पैसे कैसे कमाएं?",
     qEn: "Earn by reselling",
     understand: "रीसेलिंग बिना खुद का पैसा लगाए कमाने का तरीका है।",
@@ -3244,7 +3324,7 @@ export const QUESTIONS = [
     authority: "Platform Operator", link: "https://cybercrime.gov.in/",
   },
   {
-    rank: 226, kgId: "EARN027", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 226, kgId: "EARN027", bucket: "earn", subtopic: "small-business", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Skill सीखकर income कैसे बढ़ाएं?",
     qEn: "Upskill to earn more",
     understand: "नया skill सीखना income बढ़ाने का सच्चा रास्ता है।",
@@ -3258,7 +3338,7 @@ export const QUESTIONS = [
     authority: "Ministry of Skill Development", link: "https://www.pmkvyofficial.org/",
   },
   {
-    rank: 227, kgId: "EARN028", bucket: "earn", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 227, kgId: "EARN028", bucket: "earn", subtopic: "salary-pf-pension", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Income proof कैसे बनाएं?",
     qEn: "Get proof of income",
     understand: "Income proof बनाना bank loan या credit card के लिए ज़रूरी होता है।",
@@ -3272,7 +3352,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://www.incometax.gov.in/",
   },
   {
-    rank: 228, kgId: "BANK004", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 228, kgId: "BANK004", bucket: "bank", subtopic: "charges-fees", type: "B", verified: "VARIES",
     q: "हर 3 महीने में SMS charge क्यों काट लेते?",
     qEn: "Why SMS charge every 3 months",
     understand: "SMS charge देखकर चौंकना समझ आता है — इसका एक simple कारण है।",
@@ -3286,7 +3366,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 229, kgId: "BANK005", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 229, kgId: "BANK005", bucket: "bank", subtopic: "charges-fees", type: "B", verified: "VARIES",
     q: "ATM card का सालाना maintenance charge क्यों?",
     qEn: "Why annual ATM card fee",
     understand: "Card का सालाना charge देखकर सवाल उठना सही है।",
@@ -3300,7 +3380,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 230, kgId: "BANK006", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 230, kgId: "BANK006", bucket: "bank", subtopic: "charges-fees", type: "B", verified: "VARIES",
     q: "Bank locker का साल का कितना खर्चा?",
     qEn: "Annual bank locker cost",
     understand: "Locker का खर्चा और सुरक्षा जानना ज़रूरी है।",
@@ -3314,7 +3394,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 231, kgId: "BANK007", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 231, kgId: "BANK007", bucket: "bank", subtopic: "charges-fees", type: "B", verified: "VARIES",
     q: "Passbook खो जाए तो नई का charge कितना?",
     qEn: "Duplicate passbook charge",
     understand: "Passbook खोना परेशान कर सकता है, पर process सीधा है।",
@@ -3328,7 +3408,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 232, kgId: "BANK009", bucket: "bank", type: "D", verified: "VERIFIED-NO-FIGURE",
+    rank: 232, kgId: "BANK009", bucket: "bank", subtopic: "nominee-joint-account", type: "D", verified: "VERIFIED-NO-FIGURE",
     q: "बीवी के नाम account खोलने से tax फायदा?",
     qEn: "Tax benefit of wife's account",
     understand: "बीवी के नाम खाते से tax बचाने का नियम जानना ज़रूरी है।",
@@ -3342,7 +3422,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://www.incometax.gov.in/",
   },
   {
-    rank: 233, kgId: "BANK010", bucket: "bank", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 233, kgId: "BANK010", bucket: "bank", subtopic: "nominee-joint-account", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Nominee का नाम न डालें तो पैसे फंस जाते?",
     qEn: "Money stuck without nominee",
     understand: "Nominee का नाम डालना बहुत ज़रूरी होता है safety के लिए।",
@@ -3356,7 +3436,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 234, kgId: "BANK011", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 234, kgId: "BANK011", bucket: "bank", subtopic: "statements-complaints", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Bank manager loan मना करे तो complaint कहां?",
     qEn: "Complain if manager refuses loan",
     understand: "Bank manager अगर सही कारण के बिना मना करे, तो आप बिल्कुल शिकायत कर सकते हैं।",
@@ -3370,7 +3450,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://cms.rbi.org.in",
   },
   {
-    rank: 235, kgId: "BANK012", bucket: "bank", type: "B", verified: "VERIFIED",
+    rank: 235, kgId: "BANK012", bucket: "bank", subtopic: "account-basics", type: "B", verified: "VERIFIED",
     q: "खाता चालू रखने के लिए साल में कितना लेना-देना?",
     qEn: "Min transactions to keep account active",
     understand: "खाता dormant हो जाने के नियम clear हैं।",
@@ -3384,7 +3464,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 236, kgId: "BANK013", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 236, kgId: "BANK013", bucket: "bank", subtopic: "statements-complaints", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Passbook update नहीं हो रहा, online कैसे देखें?",
     qEn: "Passbook not updating, check online",
     understand: "Passbook machine खराब हो तो online statement देखना best है।",
@@ -3398,7 +3478,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 237, kgId: "BANK014", bucket: "bank", type: "A", verified: "VARIES",
+    rank: 237, kgId: "BANK014", bucket: "bank", subtopic: "cheques-transfers", type: "A", verified: "VARIES",
     q: "NEFT और IMPS में फर्क, charge कितना?",
     qEn: "NEFT vs IMPS, charges",
     understand: "NEFT और IMPS दोनों digital transfer के तरीके हैं, पर इनमें timing का फर्क है।",
@@ -3412,7 +3492,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 238, kgId: "BANK015", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 238, kgId: "BANK015", bucket: "bank", subtopic: "nominee-joint-account", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Joint account में पति मरे तो पैसा कौन लेगा?",
     qEn: "Who gets joint account after death",
     understand: "Joint account में 'Either or Survivor' mode होने पर process simple है।",
@@ -3426,7 +3506,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 239, kgId: "BANK016", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 239, kgId: "BANK016", bucket: "bank", subtopic: "account-basics", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Account dormant हो गया, चालू कैसे?",
     qEn: "Reactivate dormant account",
     understand: "Dormant खाते को दोबारा active करना बहुत आसानी से हो जाता है।",
@@ -3440,7 +3520,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 240, kgId: "BANK019", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 240, kgId: "BANK019", bucket: "bank", subtopic: "cards-digital-banking", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Net banking कैसे activate करें?",
     qEn: "How to activate net banking",
     understand: "Net banking activate करना अब mobile से या ATM से direct हो जाता है।",
@@ -3454,7 +3534,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 241, kgId: "BANK020", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 241, kgId: "BANK020", bucket: "bank", subtopic: "cards-digital-banking", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Mobile banking app कैसे download और register करें?",
     qEn: "How to download and register mobile banking app",
     understand: "Mobile banking app से आप अपने phone से पूरी banking संभाल सकते हैं।",
@@ -3468,7 +3548,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 242, kgId: "BANK021", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 242, kgId: "BANK021", bucket: "bank", subtopic: "statements-complaints", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Bank statement कैसे निकालें?",
     qEn: "How to get bank statement",
     understand: "Statement निकालना app या net-banking से आसान है।",
@@ -3482,7 +3562,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 243, kgId: "BANK022", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 243, kgId: "BANK022", bucket: "bank", subtopic: "cheques-transfers", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Cheque book कैसे apply करें?",
     qEn: "How to apply for cheque book",
     understand: "Cheque book मंगवाना mobile app से घर बैठे हो जाता है।",
@@ -3496,7 +3576,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 244, kgId: "BANK024", bucket: "bank", type: "A", verified: "VERIFIED",
+    rank: 244, kgId: "BANK024", bucket: "bank", subtopic: "cheques-transfers", type: "A", verified: "VERIFIED",
     q: "RTGS क्या होता है और minimum amount क्या है?",
     qEn: "What is RTGS and minimum amount",
     understand: "RTGS बड़े amount के तुरंत transfer के लिए होता है।",
@@ -3510,7 +3590,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 245, kgId: "BANK025", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 245, kgId: "BANK025", bucket: "bank", subtopic: "statements-complaints", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Bank branch बदलना (account transfer) कैसे करें?",
     qEn: "How to transfer account to another branch",
     understand: "Branch transfer एक simple physical या online application से हो जाता है।",
@@ -3524,7 +3604,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 246, kgId: "BANK026", bucket: "bank", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 246, kgId: "BANK026", bucket: "bank", subtopic: "cheques-transfers", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Standing instruction क्या होती है?",
     qEn: "What is a standing instruction",
     understand: "Standing instruction हर महीने manual payment भूलने से बचाती है।",
@@ -3538,7 +3618,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 247, kgId: "BANK027", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 247, kgId: "BANK027", bucket: "bank", subtopic: "statements-complaints", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Bank complaint का redressal process क्या है?",
     qEn: "Bank grievance redressal process",
     understand: "Bank complaint का redressal process step-by-step और structured है।",
@@ -3552,7 +3632,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://cms.rbi.org.in/",
   },
   {
-    rank: 248, kgId: "BANK028", bucket: "bank", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 248, kgId: "BANK028", bucket: "bank", subtopic: "nominee-joint-account", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Joint account कैसे खोलें?",
     qEn: "How to open joint account",
     understand: "Joint account खोलना दो लोगों के valid documents से हो जाता है।",
@@ -3566,7 +3646,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 249, kgId: "BANK029", bucket: "bank", type: "B", verified: "VARIES",
+    rank: 249, kgId: "BANK029", bucket: "bank", subtopic: "account-basics", type: "B", verified: "VARIES",
     q: "Senior citizen के लिए bank में special facilities क्या हैं?",
     qEn: "Special bank facilities for senior citizens",
     understand: "Senior citizens (60 साल से ऊपर) को bank कुछ extra facilities देता है।",
@@ -3580,7 +3660,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 250, kgId: "GOVT014", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 250, kgId: "GOVT014", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED",
     q: "PM Vishwakarma में 15000 toolkit पैसा कैसे?",
     qEn: "Claim PM Vishwakarma toolkit",
     understand: "PM Vishwakarma scheme से toolkit का पैसा मिलना कारीगरों के लिए बड़ी मदद है।",
@@ -3594,7 +3674,7 @@ export const QUESTIONS = [
     authority: "Ministry of MSME", link: "https://pmvishwakarma.gov.in",
   },
   {
-    rank: 251, kgId: "GOVT015", bucket: "schemes", type: "B", verified: "VARIES",
+    rank: 251, kgId: "GOVT015", bucket: "schemes", subtopic: "pension-insurance", type: "B", verified: "VARIES",
     q: "विधवा पेंशन के लिए कहां अप्लाई करें?",
     qEn: "Where to apply widow pension",
     understand: "विधवा (widow) पेंशन पूरी तरह राज्य सरकारों के नियंत्रण में होती है।",
@@ -3608,7 +3688,7 @@ export const QUESTIONS = [
     authority: "State Government", link: "https://nsap.nic.in",
   },
   {
-    rank: 252, kgId: "GOVT016", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 252, kgId: "GOVT016", bucket: "schemes", subtopic: "welfare-id-access", type: "A", verified: "VERIFIED",
     q: "ई-श्रम कार्ड से क्या फायदा?",
     qEn: "Benefits of e-Shram card",
     understand: "ई-श्रम कार्ड असंगठित क्षेत्र के मजदूरों के वेलफेयर के लिए है।",
@@ -3622,7 +3702,7 @@ export const QUESTIONS = [
     authority: "Ministry of Labour and Employment", link: "https://eshram.gov.in",
   },
   {
-    rank: 253, kgId: "GOVT018", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 253, kgId: "GOVT018", bucket: "schemes", subtopic: "pension-insurance", type: "A", verified: "VERIFIED",
     q: "अटल पेंशन योजना (APY) जॉइन करने की एज लिमिट क्या है?",
     qEn: "APY age eligibility",
     understand: "अटल पेंशन योजना (APY) जॉइन करने की एक निश्चित एज लिमिट है।",
@@ -3636,7 +3716,7 @@ export const QUESTIONS = [
     authority: "PFRDA", link: "https://www.jansuraksha.gov.in/",
   },
   {
-    rank: 254, kgId: "GOVT023", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 254, kgId: "GOVT023", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "स्टैंड-अप इंडिया स्कीम क्या है?",
     qEn: "What is Stand-Up India scheme",
     understand: "स्टैंड-अप इंडिया नए एंटरप्रेन्योर्स को एंटरप्राइज सेटअप में मदद देती है।",
@@ -3650,7 +3730,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.standupmitra.in/",
   },
   {
-    rank: 255, kgId: "GOVT024", bucket: "schemes", type: "C", verified: "VERIFIED",
+    rank: 255, kgId: "GOVT024", bucket: "schemes", subtopic: "pension-insurance", type: "C", verified: "VERIFIED",
     q: "बच्चों के लिए कोई सरकारी पेंशन/सेविंग्स स्कीम है क्या?",
     qEn: "Govt scheme for children's savings",
     understand: "NPS वात्सल्य माइनर बच्चों के लॉन्ग-टर्म फ्यूचर के लिए एक पेंशन बचत स्कीम है।",
@@ -3664,7 +3744,7 @@ export const QUESTIONS = [
     authority: "PFRDA", link: "https://www.npstrust.org.in/",
   },
   {
-    rank: 256, kgId: "GOVT025", bucket: "schemes", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 256, kgId: "GOVT025", bucket: "schemes", subtopic: "welfare-id-access", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "वन नेशन वन राशन कार्ड क्या है?",
     qEn: "What is One Nation One Ration Card",
     understand: "वन नेशन वन राशन कार्ड (ONORC) देश भर में राशन लेने की सुविधा है।",
@@ -3678,7 +3758,7 @@ export const QUESTIONS = [
     authority: "Department of Food and Public Distribution", link: "https://nfsa.gov.in/",
   },
   {
-    rank: 257, kgId: "GOVT026", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 257, kgId: "GOVT026", bucket: "schemes", subtopic: "farmer-livelihood", type: "A", verified: "VERIFIED",
     q: "PM स्वनिधि योजना स्ट्रीट वेंडर्स के लिए क्या है?",
     qEn: "PM Svanidhi for street vendors",
     understand: "PM स्वनिधि योजना सड़क पर रेहड़ी-पटरी लगाने वालों के लिए छोटा लोन है।",
@@ -3692,7 +3772,7 @@ export const QUESTIONS = [
     authority: "Ministry of Housing and Urban Affairs", link: "https://pmsvanidhi.mohua.gov.in/",
   },
   {
-    rank: 258, kgId: "GOVT027", bucket: "schemes", type: "A", verified: "VERIFIED",
+    rank: 258, kgId: "GOVT027", bucket: "schemes", subtopic: "pension-insurance", type: "A", verified: "VERIFIED",
     q: "PMJJBY जॉइन करने की एज लिमिट क्या है?",
     qEn: "PMJJBY age eligibility",
     understand: "PMJJBY टर्म लाइफ इंश्योरेंस जॉइन करने के लिए एक एज ब्रैकेट फिक्स है।",
@@ -3706,7 +3786,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.jansuraksha.gov.in/",
   },
   {
-    rank: 259, kgId: "GOVT028", bucket: "schemes", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 259, kgId: "GOVT028", bucket: "schemes", subtopic: "women-girl-child", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "बेटी बचाओ बेटी पढ़ाओ स्कीम क्या है?",
     qEn: "What is Beti Bachao Beti Padhao",
     understand: "बेटी बचाओ बेटी पढ़ाओ महिला सशक्तिकरण और सामाजिक अवेयरनेस की स्कीम है।",
@@ -3720,7 +3800,7 @@ export const QUESTIONS = [
     authority: "Ministry of Women and Child Development", link: "https://wcd.nic.in/bbbp-schemes",
   },
   {
-    rank: 260, kgId: "GOVT029", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 260, kgId: "GOVT029", bucket: "schemes", subtopic: "welfare-id-access", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "सरकारी स्कॉलरशिप योजना कैसे अप्लाई करें?",
     qEn: "How to apply for govt scholarship",
     understand: "सरकारी स्कॉलरशिप अप्लाई करना एक सिंगल सेंट्रल पोर्टल से सेफ हो जाता है।",
@@ -3734,7 +3814,7 @@ export const QUESTIONS = [
     authority: "Ministry of Education", link: "https://scholarships.gov.in/",
   },
   {
-    rank: 261, kgId: "GOVT030", bucket: "schemes", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 261, kgId: "GOVT030", bucket: "schemes", subtopic: "welfare-id-access", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "myScheme पोर्टल क्या है और कैसे यूज़ करें?",
     qEn: "What is myScheme portal",
     understand: "myScheme पोर्टल पर आप अपने लायक सारी योजनाएं एक जगह देख सकते हैं।",
@@ -3748,7 +3828,7 @@ export const QUESTIONS = [
     authority: "MeitY", link: "https://www.myscheme.gov.in/",
   },
   {
-    rank: 262, kgId: "KYC004", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 262, kgId: "KYC004", bucket: "kyc", subtopic: "pan-aadhaar-linking", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "राशन कार्ड आधार से लिंक मैंडेटरी है क्या?",
     qEn: "Is ration-Aadhaar link mandatory",
     understand: "राशन कार्ड को आधार से लिंक करना मैंडेटरी बनाया गया है सब्सिडी सिक्योरिटी के लिए।",
@@ -3762,7 +3842,7 @@ export const QUESTIONS = [
     authority: "Department of Food and Public Distribution", link: "https://nfsa.gov.in",
   },
   {
-    rank: 263, kgId: "KYC007", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 263, kgId: "KYC007", bucket: "kyc", subtopic: "aadhaar-services", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "आधार खो गया, नंबर भी लिंक्ड नहीं, कैसे निकालें?",
     qEn: "Download Aadhaar without linked phone",
     understand: "आधार कार्ड खो गया है और फोन लिंक नहीं है तो बायोमेट्रिक वेरिफाई करना होगा।",
@@ -3776,7 +3856,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 264, kgId: "KYC008", bucket: "kyc", type: "A", verified: "VERIFIED",
+    rank: 264, kgId: "KYC008", bucket: "kyc", subtopic: "aadhaar-security", type: "A", verified: "VERIFIED",
     q: "एक आधार पर कितने SIM निकलवा सकते?",
     qEn: "SIMs per Aadhaar",
     understand: "सिक्योरिटी नियम के अनुसार एक ID पर SIM कार्ड लेने की एक फिक्स अपर लिमिट होती है।",
@@ -3790,7 +3870,7 @@ export const QUESTIONS = [
     authority: "Department of Telecommunications", link: "https://tafcop.sancharsaathi.gov.in",
   },
   {
-    rank: 265, kgId: "KYC009", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 265, kgId: "KYC009", bucket: "kyc", subtopic: "kyc-process", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "बैंक में नाम गलत है आधार से, सुधार कैसे?",
     qEn: "Name mismatch with Aadhaar",
     understand: "बैंक अकाउंट और आधार कार्ड में नाम की स्पेलिंग एक जैसी होना मैंडेटरी है।",
@@ -3804,7 +3884,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 266, kgId: "KYC010", bucket: "kyc", type: "A", verified: "VERIFIED",
+    rank: 266, kgId: "KYC010", bucket: "kyc", subtopic: "aadhaar-services", type: "A", verified: "VERIFIED",
     q: "बच्चे का आधार (बाल आधार) कैसे बनता है?",
     qEn: "How to make a child's Aadhaar (Bal Aadhaar)",
     understand: "छोटे बच्चों का आधार बिना बायोमेट्रिक डिटेल्स के तुरंत बन जाता है।",
@@ -3818,7 +3898,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 267, kgId: "KYC014", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 267, kgId: "KYC014", bucket: "kyc", subtopic: "aadhaar-services", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "आधार अपडेट करने के लिए कौनसे डॉक्यूमेंट्स चाहिए?",
     qEn: "Documents needed for Aadhaar update",
     understand: "आधार डिटेल्स अपडेट करने के लिए वैलिड सपोर्टिंग डॉक्यूमेंट्स चाहिए होते हैं।",
@@ -3832,7 +3912,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://uidai.gov.in",
   },
   {
-    rank: 268, kgId: "KYC015", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 268, kgId: "KYC015", bucket: "kyc", subtopic: "aadhaar-services", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "आधार OTP नहीं आ रहा, क्या करें?",
     qEn: "Aadhaar OTP not received",
     understand: "ऑनलाइन आधार OTP ना आना मोबाइल नंबर नॉन-रजिस्ट्रेशन के कारण हो सकता है।",
@@ -3846,7 +3926,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 269, kgId: "KYC016", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 269, kgId: "KYC016", bucket: "kyc", subtopic: "pan-card", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "PAN कार्ड खो गया, दोबारा कैसे बनाएं?",
     qEn: "Lost PAN, how to get duplicate",
     understand: "खो गया PAN कार्ड ऑफिशियल पोर्टल्स से सिक्योर रूप से रीप्रिंट हो जाता है।",
@@ -3860,7 +3940,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://incometax.gov.in",
   },
   {
-    rank: 270, kgId: "KYC017", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 270, kgId: "KYC017", bucket: "kyc", subtopic: "aadhaar-security", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "आधार और PAN दोनों खो गए, पहचान कैसे साबित करें?",
     qEn: "Lost both Aadhaar and PAN, how to prove identity",
     understand: "आधार और PAN दोनों खोने पर आइडेंटिटी प्रूफ के लिए बैकअप डॉक्यूमेंट्स यूज़ होते हैं।",
@@ -3874,7 +3954,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://uidai.gov.in",
   },
   {
-    rank: 271, kgId: "KYC018", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 271, kgId: "KYC018", bucket: "kyc", subtopic: "aadhaar-security", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "मास्क्ड आधार क्या होता है?",
     qEn: "What is masked Aadhaar",
     understand: "मास्क्ड आधार पर्सनल प्राइवेसी और कार्ड मैपिंग को सिक्योर रखने के लिए होता है।",
@@ -3888,7 +3968,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 272, kgId: "KYC019", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 272, kgId: "KYC019", bucket: "kyc", subtopic: "aadhaar-security", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "आधार वर्चुअल ID (VID) क्या होती है?",
     qEn: "What is Aadhaar Virtual ID",
     understand: "वर्चुअल ID (VID) ऑथेंटिकेशन प्राइवेसी टूल है।",
@@ -3902,7 +3982,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 273, kgId: "KYC020", bucket: "kyc", type: "C", verified: "VERIFIED",
+    rank: 273, kgId: "KYC020", bucket: "kyc", subtopic: "kyc-process", type: "C", verified: "VERIFIED",
     q: "CKYC क्या होता है?",
     qEn: "What is CKYC",
     understand: "सेंट्रल KYC (CKYC) एक सेंट्रलाइज्ड इकोसिस्टम रजिस्ट्री है।",
@@ -3916,7 +3996,7 @@ export const QUESTIONS = [
     authority: "CERSAI", link: "https://www.ckycindia.in/",
   },
   {
-    rank: 274, kgId: "KYC021", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 274, kgId: "KYC021", bucket: "kyc", subtopic: "kyc-process", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "वीडियो KYC क्या होता है?",
     qEn: "What is video KYC",
     understand: "वीडियो KYC से बैंक ब्रांच गए बिना घर बैठे वेरिफिकेशन हो जाती है।",
@@ -3930,7 +4010,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 275, kgId: "KYC022", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 275, kgId: "KYC022", bucket: "kyc", subtopic: "aadhaar-services", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "आधार एनरोलमेंट कैसे करें नए बच्चे/व्यक्ति का?",
     qEn: "How to enroll for new Aadhaar",
     understand: "आधार कार्ड एनरोलमेंट हमेशा ऑथराइज्ड रजिस्ट्रेशन सेंटर से ऑफलाइन होता है।",
@@ -3944,7 +4024,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 276, kgId: "KYC023", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 276, kgId: "KYC023", bucket: "kyc", subtopic: "kyc-process", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Demat account opening status कैसे check करें?",
     qEn: "Check Demat account opening status",
     understand: "Demat account verification dashboard से open status तुरंत देख सकते हैं।",
@@ -3958,7 +4038,7 @@ export const QUESTIONS = [
     authority: "SEBI", link: "https://www.sebi.gov.in",
   },
   {
-    rank: 277, kgId: "KYC026", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 277, kgId: "KYC026", bucket: "kyc", subtopic: "pan-card", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Form 60 क्या होता है?",
     qEn: "What is Form 60",
     understand: "Form 60 PAN card न होने पर भरा जाने वाला legal declaration विकल्प है।",
@@ -3972,7 +4052,7 @@ export const QUESTIONS = [
     authority: "Income Tax Department", link: "https://www.incometax.gov.in/",
   },
   {
-    rank: 278, kgId: "KYC028", bucket: "kyc", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 278, kgId: "KYC028", bucket: "kyc", subtopic: "aadhaar-services", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Aadhaar center कैसे ढूंढें पास में?",
     qEn: "How to find nearest Aadhaar center",
     understand: "Aadhaar center ढूंढना local area pin code से simple हो जाता है।",
@@ -3986,7 +4066,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 279, kgId: "KYC030", bucket: "kyc", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 279, kgId: "KYC030", bucket: "kyc", subtopic: "aadhaar-security", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Aadhaar lock/unlock biometric क्या होता है?",
     qEn: "What is Aadhaar biometric lock/unlock",
     understand: "Biometric lock features आपके identity system को fraud से सुरक्षित रखने के लिए हैं।",
@@ -4000,7 +4080,7 @@ export const QUESTIONS = [
     authority: "UIDAI", link: "https://myaadhaar.uidai.gov.in",
   },
   {
-    rank: 280, kgId: "LOAN004", bucket: "loans", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 280, kgId: "LOAN004", bucket: "loans", subtopic: "business-microfinance-loans", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Mobile से सिलाई/parlour/tiffin business loan कैसे?",
     qEn: "Loan for home business",
     understand: "घर से सिलाई, parlour या tiffin कारोबार शुरू करने के लिए सरकारी financial schemes हैं।",
@@ -4014,7 +4094,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.mudra.org.in",
   },
   {
-    rank: 281, kgId: "LOAN005", bucket: "loans", type: "B", verified: "VARIES",
+    rank: 281, kgId: "LOAN005", bucket: "loans", subtopic: "loan-types", type: "B", verified: "VARIES",
     q: "Shriram/Chola से bike loan सरकारी bank से सस्ता?",
     qEn: "NBFC vs bank bike loan",
     understand: "Commercial bank vs NBFC agency के interest rate का systematic comparison ज़रूरी है।",
@@ -4028,7 +4108,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 282, kgId: "LOAN006", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 282, kgId: "LOAN006", bucket: "loans", subtopic: "loan-types", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Gold loan सुनार सस्ता या Muthoot/Manappuram?",
     qEn: "Jeweler vs NBFC gold loan",
     understand: "Gold loan लेने के लिए accurate और safe system चुनना ज़रूरी है।",
@@ -4042,7 +4122,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 283, kgId: "LOAN007", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 283, kgId: "LOAN007", bucket: "loans", subtopic: "credit-cards-bnpl", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Amazon Pay Later से CIBIL खराब होता?",
     qEn: "Does Amazon Pay Later hurt CIBIL",
     understand: "Pay Later apps के cycle use का impact credit reporting network पर पड़ता है।",
@@ -4056,7 +4136,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.transunion.cibil.com",
   },
   {
-    rank: 284, kgId: "LOAN008", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 284, kgId: "LOAN008", bucket: "loans", subtopic: "credit-cards-bnpl", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "सरकारी नौकरी न हो तो भी credit card मिलेगा?",
     qEn: "Credit card without govt job",
     understand: "Credit card पाने के लिए सरकारी नौकरी का होना बिल्कुल mandatory नहीं है।",
@@ -4070,7 +4150,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 285, kgId: "LOAN013", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 285, kgId: "LOAN013", bucket: "loans", subtopic: "credit-cards-bnpl", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Credit card minimum due भरने से interest रुकता?",
     qEn: "Does minimum due stop CC interest",
     understand: "Credit card पर सिर्फ 'Minimum Amount Due' भरने से ब्याज का circle नहीं रुकता।",
@@ -4084,7 +4164,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 286, kgId: "LOAN014", bucket: "loans", type: "B", verified: "VARIES",
+    rank: 286, kgId: "LOAN014", bucket: "loans", subtopic: "loan-types", type: "B", verified: "VARIES",
     q: "महिलाओं के लिए home loan पर ब्याज कम होती?",
     qEn: "Cheaper home loan rates for women",
     understand: "महिलाओं के लिए special home loan packages में interest percentage पर extra benefit मिलता है।",
@@ -4098,7 +4178,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 287, kgId: "LOAN015", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 287, kgId: "LOAN015", bucket: "loans", subtopic: "loan-safety-legal", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "5 minute loan app से लेना सही है क्या?",
     qEn: "Are instant loan apps safe",
     understand: "Mobile internet पर दिखने वाले ad '5-minute instant loan' app से बहुत सावधान रहें।",
@@ -4112,7 +4192,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 288, kgId: "LOAN016", bucket: "loans", type: "A", verified: "VERIFIED",
+    rank: 288, kgId: "LOAN016", bucket: "loans", subtopic: "emi-repayment", type: "A", verified: "VERIFIED",
     q: "Loan prepayment पर charge लगता?",
     qEn: "Charge for loan prepayment",
     understand: "Retail loans prepayment operational charges को लेकर RBI के clear directives हैं।",
@@ -4126,7 +4206,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 289, kgId: "LOAN021", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 289, kgId: "LOAN021", bucket: "loans", subtopic: "cibil-score", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Loan settlement करने से CIBIL पर क्या असर पड़ता है?",
     qEn: "Impact of loan settlement on CIBIL",
     understand: "Loan account का 'Settlement' close balance से अलग है और इसका बुरा असर database पर दिखता है।",
@@ -4140,7 +4220,7 @@ export const QUESTIONS = [
     authority: "TransUnion CIBIL", link: "https://www.transunion.cibil.com",
   },
   {
-    rank: 290, kgId: "LOAN022", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 290, kgId: "LOAN022", bucket: "loans", subtopic: "loan-safety-legal", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Guarantor बनने से क्या risk है?",
     qEn: "Risks of becoming a loan guarantor",
     understand: "किसी के loan का Guarantor बनना एक बड़ी कानूनी और financial ज़िम्मेदारी है।",
@@ -4154,7 +4234,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 291, kgId: "LOAN023", bucket: "loans", type: "A", verified: "VARIES",
+    rank: 291, kgId: "LOAN023", bucket: "loans", subtopic: "loan-types", type: "A", verified: "VARIES",
     q: "Loan against FD कैसे मिलता है?",
     qEn: "How to get a loan against FD",
     understand: "Fixed Deposit (FD) balance को premature break किए बिना emergency loan मिल सकता है।",
@@ -4168,7 +4248,7 @@ export const QUESTIONS = [
     authority: "Bank", link: null,
   },
   {
-    rank: 292, kgId: "LOAN024", bucket: "loans", type: "A", verified: "VERIFIED-NO-FIGURE",
+    rank: 292, kgId: "LOAN024", bucket: "loans", subtopic: "loan-types", type: "A", verified: "VERIFIED-NO-FIGURE",
     q: "Education loan कैसे लें?",
     qEn: "How to get an education loan",
     understand: "Vidya Lakshmi education loan central schemes के dashboard verification से मिलता है।",
@@ -4182,7 +4262,7 @@ export const QUESTIONS = [
     authority: "Ministry of Finance", link: "https://www.vidyalakshmi.co.in/",
   },
   {
-    rank: 293, kgId: "LOAN025", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 293, kgId: "LOAN025", bucket: "loans", subtopic: "emi-repayment", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Loan foreclosure और prepayment में क्या फर्क है?",
     qEn: "Difference between loan foreclosure and prepayment",
     understand: "कर्ज़ जल्दी खत्म करने के लिए Prepayment और Foreclosure के rules अलग काम करते हैं।",
@@ -4196,7 +4276,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 294, kgId: "LOAN026", bucket: "loans", type: "A", verified: "VERIFIED",
+    rank: 294, kgId: "LOAN026", bucket: "loans", subtopic: "emi-repayment", type: "A", verified: "VERIFIED",
     q: "NPA क्या होता है?",
     qEn: "What is NPA (non-performing asset)",
     understand: "NPA account classification system के strict timeline parameters होते हैं।",
@@ -4210,7 +4290,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 295, kgId: "LOAN030", bucket: "loans", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 295, kgId: "LOAN030", bucket: "loans", subtopic: "loan-safety-legal", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Co-applicant और guarantor में क्या फर्क है?",
     qEn: "Difference between co-applicant and guarantor",
     understand: "कर्ज़े में शामिल होने वाले Co-applicant और Guarantor की legal responsibility बिल्कुल अलग होती है।",
@@ -4224,7 +4304,7 @@ export const QUESTIONS = [
     authority: "RBI", link: "https://rbi.org.in",
   },
   {
-    rank: 296, kgId: "upi_language", bucket: "upi", type: "C", verified: "VERIFIED",
+    rank: 296, kgId: "upi_language", bucket: "upi", subtopic: "features-limits", type: "C", verified: "VERIFIED",
     q: "Gpay/PhonePe को vernacular भाषा में कैसे करें?",
     qEn: "Change app language",
     understand: "App की भाषा बदलना एक छोटी पर काम की setting है।",
@@ -4238,7 +4318,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 297, kgId: "upi_merchant_qr", bucket: "upi", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 297, kgId: "upi_merchant_qr", bucket: "upi", subtopic: "payments-qr", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "Personal UPI से किसी भी दुकानदार को payment कर सकता हूं?",
     qEn: "Pay merchant QR with personal UPI",
     understand: "किसी भी QR को scan करने को लेकर confusion आम है।",
@@ -4252,7 +4332,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 298, kgId: "upi_two_apps", bucket: "upi", type: "C", verified: "VERIFIED-NO-FIGURE",
+    rank: 298, kgId: "upi_two_apps", bucket: "upi", subtopic: "account-linking", type: "C", verified: "VERIFIED-NO-FIGURE",
     q: "एक ही bank account Gpay और PhonePe दोनों में चला सकते?",
     qEn: "Same account in two apps",
     understand: "एक account को कई app में चलाने को लेकर confusion होता है।",
@@ -4266,7 +4346,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 299, kgId: "upi_international", bucket: "upi", type: "A", verified: "VERIFIED",
+    rank: 299, kgId: "upi_international", bucket: "upi", subtopic: "features-limits", type: "A", verified: "VERIFIED",
     q: "भारत के बाहर PhonePe से payment कैसे?",
     qEn: "UPI outside India",
     understand: "विदेश में UPI चलाने का feature अभी सभी जगह नहीं है।",
@@ -4280,7 +4360,7 @@ export const QUESTIONS = [
     authority: "NPCI", link: "https://www.npci.org.in/",
   },
   {
-    rank: 300, kgId: "KYC024", bucket: "kyc", type: "B", verified: "VARIES",
+    rank: 300, kgId: "KYC024", bucket: "kyc", subtopic: "pan-aadhaar-linking", type: "B", verified: "VARIES",
     q: "NRI के लिए PAN/Aadhaar rules अलग हैं क्या?",
     qEn: "Are PAN/Aadhaar rules different for NRIs",
     understand: "Non-Resident Indians (NRI) के लिए ID mapping और verification rules अलग हैं।",
@@ -4300,6 +4380,15 @@ export function findBucketMeta(id) {
 }
 export function findNeedMeta(id) {
   return NEEDS.find((n) => n.id === id);
+}
+export function subtopicsForBucket(id) {
+  return SUBTOPICS[id] || [];
+}
+export function findSubtopicMeta(bucketId, subtopicId) {
+  return (SUBTOPICS[bucketId] || []).find((s) => s.id === subtopicId);
+}
+export function questionsForSubtopic(bucketId, subtopicId) {
+  return QUESTIONS.filter((q) => q.bucket === bucketId && q.subtopic === subtopicId);
 }
 export function questionsForBucket(id) {
   return QUESTIONS.filter((q) => q.bucket === id);

@@ -17,7 +17,8 @@ import { speakMukund } from '../utils/tts';
 import { useLang } from '../hooks/useLang';
 import {
   CATEGORIES, NEEDS, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, BUCKET_ICON, PAGE_SIZE,
-  findBucketMeta, findNeedMeta, questionsForBucket, findByRank, totalPages, pageOf,
+  findBucketMeta, findNeedMeta, subtopicsForBucket, findSubtopicMeta, questionsForSubtopic,
+  findByRank, totalPages, pageOf,
 } from '../data/money-questions';
 import { IcChevronLeft, IcFlame, IcMicrophone, IcShield } from './icons/Icons';
 
@@ -237,17 +238,53 @@ export default function MoneyQuestions() {
     );
   }
 
-  // ── Bucket — question list for one topic ──────────────────────────────────
+  // ── Bucket — sub-topic list for one topic (level 2, e.g. inside UPI:
+  // PIN & setup / Payments & QR / Fraud & scams / ...) ───────────────────────
   if (cur.screen === 'bucket') {
     const meta = findBucketMeta(cur.id);
     const Icon = BUCKET_ICON[meta.icon];
     const style = CATEGORY_STYLE[cur.id];
-    const items = questionsForBucket(cur.id);
+    const subtopics = subtopicsForBucket(cur.id);
     return (
       <div className="animate-fade-in flex flex-col gap-2">
         <BackRow
           onBack={back}
-          label={meta.label}
+          label={isEn ? meta.label : meta.labelHi}
+          icon={
+            <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
+              <Icon size={16} color={style.fg} />
+            </span>
+          }
+        />
+        {subtopics.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => push({ screen: 'subtopic', bucketId: cur.id, id: s.id })}
+            className="border-primary-20 flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3 text-left active:scale-[0.99]"
+          >
+            <span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${style.bg}`}>
+              <Icon size={15} color={style.fg} />
+            </span>
+            <span className="font-deva text-ink flex-1 text-[13px] font-semibold">{isEn ? s.label : s.labelHi}</span>
+            <IcChevronLeft size={14} color="var(--color-ink-disabled)" className="rotate-180" />
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // ── Subtopic — actual question list (level 3) ─────────────────────────────
+  if (cur.screen === 'subtopic') {
+    const meta = findBucketMeta(cur.bucketId);
+    const sub = findSubtopicMeta(cur.bucketId, cur.id);
+    const Icon = BUCKET_ICON[meta.icon];
+    const style = CATEGORY_STYLE[cur.bucketId];
+    const items = questionsForSubtopic(cur.bucketId, cur.id);
+    return (
+      <div className="animate-fade-in flex flex-col gap-2">
+        <BackRow
+          onBack={back}
+          label={isEn ? sub.label : sub.labelHi}
           icon={
             <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
               <Icon size={16} color={style.fg} />
