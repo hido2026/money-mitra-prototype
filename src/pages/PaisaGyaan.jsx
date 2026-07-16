@@ -21,7 +21,7 @@ const COPY = {
     tag: (i, n) => `आज की टिप · ${i}/${n}`,
     alreadyKnew: 'पहले से पता था', learnedNew: 'नया सीखा',
     alreadyKnewShort: 'पता था', learnedNewShort: 'नया',
-    next: 'अगला →', finish: 'पूरा करो',
+    next: 'अगला →', finish: 'पूरा करें',
     savedToast: 'सेव हुआ — यह आपके स्ट्रीक में गिना जाएगा',
     askMore: 'और जानना है?',
     streakLine: (n) => `${n}-दिन स्ट्रीक!`,

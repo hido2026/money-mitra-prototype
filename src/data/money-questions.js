@@ -24,14 +24,14 @@ import {
 } from '../components/icons/Icons';
 
 export const CATEGORIES = [
-  { id: "upi", label: "UPI & payments", labelHi: "UPI व पेमेंट्स", icon: "upi" },
+  { id: "upi", label: "UPI & payments", labelHi: "UPI और पेमेंट्स", icon: "upi" },
   { id: "bank", label: "Bank basics & charges", labelHi: "बैंकिंग की बातें", icon: "bank" },
   { id: "schemes", label: "Govt schemes", labelHi: "सरकारी योजनाएं", icon: "schemes" },
-  { id: "kyc", label: "KYC, Aadhaar & PAN", labelHi: "KYC, आधार व PAN", icon: "kyc" },
-  { id: "loans", label: "Loans & CIBIL", labelHi: "लोन व CIBIL", icon: "loans" },
-  { id: "savings", label: "Savings & investing", labelHi: "बचत व निवेश", icon: "savings" },
-  { id: "fraud", label: "Fraud & safety", labelHi: "ठगी व सुरक्षा", icon: "fraud" },
-  { id: "bills", label: "Bills & utilities", labelHi: "बिल व यूटिलिटी", icon: "bills" },
+  { id: "kyc", label: "KYC, Aadhaar & PAN", labelHi: "KYC, आधार और PAN", icon: "kyc" },
+  { id: "loans", label: "Loans & CIBIL", labelHi: "लोन और CIBIL", icon: "loans" },
+  { id: "savings", label: "Savings & investing", labelHi: "बचत और निवेश", icon: "savings" },
+  { id: "fraud", label: "Fraud & safety", labelHi: "ठगी और सुरक्षा", icon: "fraud" },
+  { id: "bills", label: "Bills & utilities", labelHi: "बिल और यूटिलिटी", icon: "bills" },
   { id: "earn", label: "Earning income", labelHi: "कमाई", icon: "earn" },
   { id: "insurance", label: "Insurance", labelHi: "बीमा", icon: "insurance" },
 ];
@@ -49,17 +49,27 @@ export const NEEDS = [
   { id: "scheme", label: "Govt scheme", labelHi: "सरकारी योजना", buckets: ["schemes"] },
   { id: "bill", label: "Pay a bill", labelHi: "बिल भरना", buckets: ["bills"] },
   { id: "protect", label: "Protection", labelHi: "सुरक्षा", buckets: ["fraud", "insurance"] },
-  { id: "bankid", label: "Bank & KYC", labelHi: "बैंक व KYC", buckets: ["bank", "kyc"] },
+  { id: "bankid", label: "Bank & KYC", labelHi: "बैंक और KYC", buckets: ["bank", "kyc"] },
   { id: "earn", label: "Increase income", labelHi: "कमाई बढ़ाना", buckets: ["earn"] },
 ];
 
+// Badge labels -- bilingual (previously English-only, silently ignoring the
+// hi/en toggle). Hindi wording drops jargon like "verified"/"universal" for
+// plain phrasing, per the vernacular copy review.
 export const TYPE_LABEL = {
-  A: 'Universal fact', B: 'Varies by bank / state', C: 'How-to / concept', D: "Depends on your situation", E: 'Fraud — act now',
+  A: { en: 'True for everyone', hi: 'सबके लिए सही बात' },
+  B: { en: 'Varies by bank / state', hi: 'हर बैंक/राज्य का अलग नियम' },
+  C: { en: 'How to do it', hi: 'कैसे करें' },
+  D: { en: 'Depends on your situation', hi: 'आपकी स्थिति पर निर्भर' },
+  E: { en: 'Fraud — act now', hi: 'ठगी — अभी सावधान रहें' },
 };
 export const TYPE_TONE = { A: 'success', B: 'warning', C: 'info', D: 'muted', E: 'danger' };
 
 export const VER_LABEL = {
-  VERIFIED: 'Verified — exact figure', 'VERIFIED-NO-FIGURE': 'Verified — process confirmed', VARIES: 'Varies — stated honestly', 'CANNOT-VERIFY': 'Not confirmed yet',
+  VERIFIED: { en: 'Verified — exact figure', hi: 'जाँची हुई सही जानकारी' },
+  'VERIFIED-NO-FIGURE': { en: 'Verified — process confirmed', hi: 'तरीका जाँच लिया गया है' },
+  VARIES: { en: 'Varies — stated honestly', hi: 'बदलता है — साफ़ बताया गया है' },
+  'CANNOT-VERIFY': { en: 'Not confirmed yet', hi: 'अभी पक्का नहीं पता' },
 };
 export const VER_TONE = {
   VERIFIED: 'success', 'VERIFIED-NO-FIGURE': 'success', VARIES: 'warning', 'CANNOT-VERIFY': 'muted',
@@ -109,11 +119,11 @@ export const SUBTOPICS = {
     { id: "statements-complaints", label: "Statements & complaints", labelHi: "स्टेटमेंट और शिकायत" },
   ],
   schemes: [
-    { id: "women-girl-child", label: "Women & girl child", labelHi: "महिला व बालिका योजना" },
-    { id: "pension-insurance", label: "Pension & insurance", labelHi: "पेंशन व बीमा योजना" },
-    { id: "farmer-livelihood", label: "Farmer & livelihood", labelHi: "किसान व रोज़गार योजना" },
-    { id: "housing-subsidy", label: "Housing & subsidy", labelHi: "आवास व सब्सिडी योजना" },
-    { id: "welfare-id-access", label: "Welfare & ID schemes", labelHi: "कल्याण व पहचान योजना" },
+    { id: "women-girl-child", label: "Women & girl child", labelHi: "महिलाओं और बच्चियों की योजनाएं" },
+    { id: "pension-insurance", label: "Pension & insurance", labelHi: "पेंशन और बीमा योजना" },
+    { id: "farmer-livelihood", label: "Farmer & livelihood", labelHi: "किसान और रोज़गार योजना" },
+    { id: "housing-subsidy", label: "Housing & subsidy", labelHi: "आवास और सब्सिडी योजना" },
+    { id: "welfare-id-access", label: "Welfare & ID schemes", labelHi: "कल्याण और पहचान योजना" },
   ],
   kyc: [
     { id: "pan-card", label: "PAN card", labelHi: "PAN कार्ड" },
@@ -124,7 +134,7 @@ export const SUBTOPICS = {
   ],
   loans: [
     { id: "cibil-score", label: "CIBIL Score", labelHi: "CIBIL स्कोर" },
-    { id: "credit-cards-bnpl", label: "Credit Cards & BNPL", labelHi: "क्रेडिट कार्ड और BNPL" },
+    { id: "credit-cards-bnpl", label: "Credit Cards & pay-later", labelHi: "क्रेडिट कार्ड और बाद में भुगतान" },
     { id: "loan-types", label: "Loan Types", labelHi: "लोन के प्रकार" },
     { id: "business-microfinance-loans", label: "Business & Microfinance", labelHi: "बिज़नेस और माइक्रोफाइनेंस" },
     { id: "emi-repayment", label: "Loan EMI & Repayment", labelHi: "लोन EMI और रीपेमेंट" },

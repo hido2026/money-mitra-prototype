@@ -105,7 +105,7 @@ export default function Passbook() {
             <InfoBox tone="warning">
               <span className="flex items-center justify-between gap-2">
                 <span className="font-deva text-reward-ink font-bold">
-                  {lang === 'en' ? 'Loan / Borrowed' : 'उधार / ऋण मिला'}
+                  {lang === 'en' ? 'Loan / Borrowed' : 'उधार / लोन मिला'}
                 </span>
                 <span className="font-deva text-reward-ink text-[15px] font-extrabold">{inr(uC)}</span>
               </span>
@@ -222,7 +222,7 @@ export default function Passbook() {
               {lang === 'en' ? 'No documents yet — show a photo and your hisaab builds itself.' : 'अभी कोई कागज़ नहीं — एक फ़ोटो दिखाइए, हिसाब अपने आप बन जाएगा।'}
             </p>
             <button onClick={() => nav('/decoder', { state: { openCamera: true, attribution: 'points_view' } })} className="font-deva bg-primary-50 flex items-center gap-2 rounded-full px-5.5 py-3 text-[15px] font-bold text-white">
-              <IcCamera size={18} color="#fff" /> {lang === 'en' ? 'Show a photo' : 'फ़ोटो दिखाओ'}
+              <IcCamera size={18} color="#fff" /> {lang === 'en' ? 'Show a photo' : 'फ़ोटो दिखाइए'}
             </button>
           </div>
         )}

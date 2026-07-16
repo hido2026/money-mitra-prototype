@@ -22,12 +22,52 @@ import {
 } from '../data/money-questions';
 import { IcChevronLeft, IcFlame, IcMicrophone, IcShield } from './icons/Icons';
 
-function SafetyLine() {
+// Screen chrome copy -- previously hardcoded English-only throughout this
+// file, so the hi/en toggle silently did nothing here even though every
+// other screen in the app respects it. Also drops internal jargon ("Grounded
+// answer", "Handpicked") and the accidental Gemini mention in the alltop
+// helper line, per the vernacular copy review.
+const COPY = {
+  hi: {
+    trust: 'हम कभी आपसे OTP, PIN या पैसे नहीं माँगेंगे।',
+    mostAsked: 'लोग सबसे ज़्यादा क्या पूछते हैं',
+    mostAskedSub: 'सही और पक्की जानकारी',
+    allTop: 'सबसे ज़रूरी सवाल',
+    allTopSub: 'लोगों की ज़रूरत के हिसाब से, और पक्की जगह से जाँचा हुआ।',
+    answer: 'जवाब',
+    safetyAlert: 'ज़रूरी सावधानी',
+    groundedAnswer: 'पक्का जवाब',
+    doThisNow: 'अभी यह करें',
+    source: 'जानकारी कहाँ से मिली: ',
+    disclaimer: 'सही जगह से जाँचा गया · लेकिन फ़ैसला अपनी समझ से लें।',
+    listen: 'सुनें',
+    playing: 'चल रहा है',
+    wantMore: 'और जानना है?',
+  },
+  en: {
+    trust: "We'll never ask for your OTP, PIN, or money.",
+    mostAsked: 'Most asked questions',
+    mostAskedSub: 'Checked and reliable',
+    allTop: 'Most important questions',
+    allTopSub: 'Ranked by what people actually ask, checked against official sources.',
+    answer: 'Answer',
+    safetyAlert: 'Safety alert',
+    groundedAnswer: 'Verified answer',
+    doThisNow: 'Do this now',
+    source: 'Where this comes from: ',
+    disclaimer: 'Checked against official sources — but the decision is yours to make.',
+    listen: 'Listen',
+    playing: 'Playing',
+    wantMore: 'Want to know more?',
+  },
+};
+
+function SafetyLine({ t }) {
   return (
     <div className="flex items-center justify-center gap-1.5 py-1">
       <IcShield size={14} color="var(--color-success)" />
       <span className="font-deva text-success text-[11.5px] font-semibold">
-        We'll never ask for your OTP, PIN, or money.
+        {t.trust}
       </span>
     </div>
   );
@@ -128,6 +168,7 @@ export default function MoneyQuestions() {
   const [playingRank, setPlayingRank] = useState(null);
   const cur = stack[stack.length - 1];
   const isEn = lang === 'en';
+  const t = COPY[isEn ? 'en' : 'hi'];
 
   const push = (s) => setStack((prev) => [...prev, s]);
   const back = () => setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
@@ -160,8 +201,8 @@ export default function MoneyQuestions() {
             <IcFlame size={20} color="#fff" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="font-deva text-primary-50 block text-[15px] font-extrabold">Most asked questions</span>
-            <span className="font-deva text-ink-soft mt-0.5 block text-xs">Handpicked and checked</span>
+            <span className="font-deva text-primary-50 block text-[15px] font-extrabold">{t.mostAsked}</span>
+            <span className="font-deva text-ink-soft mt-0.5 block text-xs">{t.mostAskedSub}</span>
           </span>
           <IcChevronLeft size={16} color="var(--color-primary-50)" className="rotate-180" />
         </button>
@@ -204,7 +245,7 @@ export default function MoneyQuestions() {
             );
           })}
         </ScrollRow>
-        <SafetyLine />
+        <SafetyLine t={t} />
       </div>
     );
   }
@@ -317,9 +358,9 @@ export default function MoneyQuestions() {
     const items = pageOf(page);
     return (
       <div className="animate-fade-in flex flex-col gap-2">
-        <BackRow onBack={back} label="All top questions" />
+        <BackRow onBack={back} label={t.allTop} />
         <p className="font-deva text-ink-soft mb-1 text-[11.5px] leading-snug">
-          Ranked by real demand, Gemini-verified against official sources.
+          {t.allTopSub}
         </p>
         {items.map((it) => (
           <button
@@ -336,7 +377,7 @@ export default function MoneyQuestions() {
           </button>
         ))}
         <Pager page={page} onGo={(p) => setStack((prev) => [...prev.slice(0, -1), { screen: 'alltop', page: p }])} />
-        <SafetyLine />
+        <SafetyLine t={t} />
       </div>
     );
   }
@@ -351,19 +392,19 @@ export default function MoneyQuestions() {
     const showLink = it.link && !isFraud;
     return (
       <div className="animate-fade-in flex flex-col gap-3">
-        <BackRow onBack={back} label="Answer" />
+        <BackRow onBack={back} label={t.answer} />
         <div className="border-primary-20 rounded-xl border bg-surface p-4">
           <div className="bg-primary-50 -m-4 mb-4 rounded-t-xl p-4">
             <span className="font-deva text-[10px] font-extrabold tracking-wide text-white/75 uppercase">
-              {isFraud ? 'Safety alert' : 'Grounded answer'}
+              {isFraud ? t.safetyAlert : t.groundedAnswer}
             </span>
             <p className="font-deva mt-1.5 text-[17px] leading-snug font-extrabold text-white">{qPrimary(it)}</p>
             {qSecondary(it) && <p className="mt-1 text-[12px] text-white/85">{qSecondary(it)}</p>}
           </div>
 
           <div className="mb-3 flex flex-wrap gap-1.5">
-            <TagChip tone={TYPE_TONE[it.type]}>{TYPE_LABEL[it.type]}</TagChip>
-            <TagChip tone={VER_TONE[it.verified]}>{VER_LABEL[it.verified]}</TagChip>
+            <TagChip tone={TYPE_TONE[it.type]}>{TYPE_LABEL[it.type][isEn ? 'en' : 'hi']}</TagChip>
+            <TagChip tone={VER_TONE[it.verified]}>{VER_LABEL[it.verified][isEn ? 'en' : 'hi']}</TagChip>
           </div>
 
           {isFraud && (
@@ -377,7 +418,7 @@ export default function MoneyQuestions() {
 
           {!isFraud && (
             <div className="bg-primary-20 mb-3 rounded-lg p-3">
-              <span className="font-deva text-primary-50 block text-[10px] font-extrabold tracking-wide uppercase">Do this now</span>
+              <span className="font-deva text-primary-50 block text-[10px] font-extrabold tracking-wide uppercase">{t.doThisNow}</span>
               <p className="font-deva text-ink mt-1 text-[13px] leading-relaxed font-semibold">{doNowText(it)}</p>
             </div>
           )}
@@ -389,22 +430,22 @@ export default function MoneyQuestions() {
           )}
 
           <button onClick={() => listen(it.rank, answerText(it))} className={jdsBtn('tertiary') + ' !h-9 !px-3.5 !text-xs'}>
-            {playingRank === it.rank ? 'Playing' : 'Listen'}
+            {playingRank === it.rank ? t.playing : t.listen}
           </button>
 
           {it.authority && (
             <div className="bg-surface-minimal mt-3 rounded-lg px-3 py-2 text-[11px] font-semibold">
-              <span className="text-ink-soft">Source: </span><span className="text-ink">{it.authority}</span>
+              <span className="text-ink-soft">{t.source}</span><span className="text-ink">{it.authority}</span>
             </div>
           )}
           <p className="font-deva text-ink-soft mt-2 text-center text-[10.5px]">
-            Checked against official sources · this is not financial advice.
+            {t.disclaimer}
           </p>
         </div>
 
         {nextQuestionText(it) && (
           <div className="flex flex-col items-center gap-1.5 pt-1 text-center">
-            <span className="font-deva text-ink-soft text-xs">Want to know more?</span>
+            <span className="font-deva text-ink-soft text-xs">{t.wantMore}</span>
             <button
               onClick={() => askNext(nextQuestionText(it))}
               className="bg-primary-20 text-primary-50 font-deva inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12.5px] font-bold"

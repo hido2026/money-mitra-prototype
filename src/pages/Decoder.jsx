@@ -140,7 +140,7 @@ export default function Decoder() {
     }
   }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Opened from मेरा हिसाब's "फ़ोटो दिखाओ" → open the camera straight away.
+  // Opened from मेरा हिसाब's "फ़ोटो दिखाइए" → open the camera straight away.
   useEffect(() => {
     if (location.state?.openCamera && !camOpenedRef.current) {
       camOpenedRef.current = true;
@@ -535,7 +535,7 @@ export default function Decoder() {
 
         <button onClick={reset} className={jdsBtn('primary')}>
           <IcCamera size={20} color="#fff" />
-          <span>{lang === 'en' ? 'Check another document' : 'एक और कागज़ दिखाओ'}</span>
+          <span>{lang === 'en' ? 'Check another document' : 'एक और कागज़ दिखाइए'}</span>
         </button>
       </div>
     );
