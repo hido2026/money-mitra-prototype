@@ -16,7 +16,11 @@ import { useLang, LangToggle } from '../hooks/useLang';
 import BottomInputBar from '../components/BottomInputBar';
 import AttachSheet from '../components/AttachSheet';
 import PortraitAvatar from '../components/PortraitAvatar';
-import { IcReceipt, IcFlameColor, IcSchoolColor, IcShieldColor } from '../components/icons/Icons';
+import { IcFlameColor, IcShieldColor } from '../components/icons/Icons';
+import cardAsk from '../assets/icons/card-ask.png';
+import cardDocument from '../assets/icons/card-document.png';
+import cardHisaab from '../assets/icons/card-hisaab.png';
+import cardGyaan from '../assets/icons/card-gyaan.png';
 import { getStreak } from '../data/tip-bank';
 
 const _apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -173,12 +177,12 @@ export default function Home() {
             gold flame badge — matches the reference's 🔥, swapped for a
             compliant SVG. Example prompts + free-text ghost pill live one tap
             in, on the actual Ask screen (MoneyQuestions), not duplicated here. */}
+        {/* 🚩 DEV FLAG: card icon is a raster sticker (gradient + shadow), not
+            a JDS SVG token icon — deliberate exception for this visual pass,
+            approved by product. Revisit if/when these get redrawn as JDS SVGs. */}
         <button className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left" onClick={() => nav('/chat')} style={{ animationDelay: '60ms' }}>
-          <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-            <svg viewBox="0 0 24 24" width="26" height="26">
-              <path fill="var(--color-primary-50)" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
-              <text x="12" y="13.5" textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#fff">₹</text>
-            </svg>
+          <span className="flex size-13 shrink-0 items-center justify-center">
+            <img src={cardAsk} alt="" width="52" height="52" className="size-13 object-contain" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.askTitle}</span>
@@ -201,8 +205,8 @@ export default function Home() {
           onClick={() => nav('/paisa-gyaan')}
           style={{ animationDelay: '120ms' }}
         >
-          <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-            <IcSchoolColor size={26} />
+          <span className="flex size-13 shrink-0 items-center justify-center">
+            <img src={cardGyaan} alt="" width="52" height="52" className="size-13 object-contain" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.gyaanTitle}</span>
@@ -218,8 +222,8 @@ export default function Home() {
 
         {/* Document door — same uniform light-violet chip as Ask above. */}
         <button className="animate-fade-in bg-surface flex w-full items-center gap-3.5 rounded-xl p-[18px] text-left" onClick={() => nav('/decoder')} style={{ animationDelay: '180ms' }}>
-          <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+          <span className="flex size-13 shrink-0 items-center justify-center">
+            <img src={cardDocument} alt="" width="52" height="52" className="size-13 object-contain" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="font-deva text-ink block text-base font-bold">{t.docTitle}</span>
@@ -241,8 +245,8 @@ export default function Home() {
             split bar appear once there's data. */}
         <button className="animate-fade-in bg-surface border-primary-20 block w-full rounded-xl border-[1.5px] p-[18px] text-left" onClick={() => nav('/passbook')} style={{ animationDelay: '240ms' }}>
           <div className="flex items-center gap-3.5">
-            <span className="bg-primary-20 flex size-13 shrink-0 items-center justify-center rounded-2xl">
-              <IcReceipt size={24} color="var(--color-primary-50)" />
+            <span className="flex size-13 shrink-0 items-center justify-center">
+              <img src={cardHisaab} alt="" width="52" height="52" className="size-13 object-contain" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="font-deva text-ink block text-base font-bold">{t.hisaabTitle}</span>
