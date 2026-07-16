@@ -16,11 +16,40 @@ import { TagChip, jdsBtn } from './jds';
 import { speakMukund } from '../utils/tts';
 import { useLang } from '../hooks/useLang';
 import {
-  CATEGORIES, NEEDS, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, BUCKET_ICON, PAGE_SIZE,
+  CATEGORIES, NEEDS, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, PAGE_SIZE,
   findBucketMeta, findNeedMeta, subtopicsForBucket, findSubtopicMeta, questionsForSubtopic,
   findByRank, totalPages, pageOf,
 } from '../data/money-questions';
 import { IcChevronLeft, IcFlame, IcMicrophone, IcShield } from './icons/Icons';
+import topicUpi from '../assets/icons/topic-upi.png';
+import topicBank from '../assets/icons/topic-bank.png';
+import topicSchemes from '../assets/icons/topic-schemes.png';
+import topicKyc from '../assets/icons/topic-kyc.png';
+import topicLoans from '../assets/icons/topic-loans.png';
+import topicSavings from '../assets/icons/topic-savings.png';
+import topicFraud from '../assets/icons/topic-fraud.png';
+import topicBills from '../assets/icons/topic-bills.png';
+import topicEarn from '../assets/icons/topic-earn.png';
+import topicInsurance from '../assets/icons/topic-insurance.png';
+import needSend from '../assets/icons/need-send.png';
+import needSave from '../assets/icons/need-save.png';
+import needLoan from '../assets/icons/need-loan.png';
+import needScheme from '../assets/icons/need-scheme.png';
+import needBill from '../assets/icons/need-bill.png';
+import needProtect from '../assets/icons/need-protect.png';
+import needBankid from '../assets/icons/need-bankid.png';
+import needEarn from '../assets/icons/need-earn.png';
+
+// 🚩 DEV FLAG: these are raster sticker icons (gradient + shadow), not JDS
+// SVG token icons -- same deliberate exception as the Home card icons.
+const TOPIC_ICON = {
+  upi: topicUpi, bank: topicBank, schemes: topicSchemes, kyc: topicKyc, loans: topicLoans,
+  savings: topicSavings, fraud: topicFraud, bills: topicBills, earn: topicEarn, insurance: topicInsurance,
+};
+const NEED_ICON = {
+  send: needSend, save: needSave, loan: needLoan, scheme: needScheme, bill: needBill,
+  protect: needProtect, bankid: needBankid, earn: needEarn,
+};
 
 // Screen chrome copy -- previously hardcoded English-only throughout this
 // file, so the hi/en toggle silently did nothing here even though every
@@ -109,15 +138,13 @@ function ScrollRow({ children }) {
   );
 }
 
-function CarouselTile({ label, Icon, style, onClick }) {
+function CarouselTile({ label, img, onClick }) {
   return (
     <button
       onClick={onClick}
       className="border-primary-20 flex w-[84px] shrink-0 flex-col items-center gap-2 rounded-xl border bg-surface p-3 text-center active:scale-[0.98]"
     >
-      <span className={`flex size-9 items-center justify-center rounded-lg ${style.bg}`}>
-        <Icon size={17} color={style.fg} />
-      </span>
+      <img src={img} alt="" className="size-9" />
       <span className="font-deva text-ink text-[11px] leading-tight font-bold">{label}</span>
     </button>
   );
@@ -210,15 +237,11 @@ export default function MoneyQuestions() {
         <p className="font-deva text-ink mt-1 text-sm font-bold">{isEn ? 'By need' : 'ज़रूरत के हिसाब से'}</p>
         <ScrollRow>
           {NEEDS.map((n) => {
-            const primaryBucket = n.buckets[0];
-            const Icon = BUCKET_ICON[primaryBucket];
-            const style = CATEGORY_STYLE[primaryBucket];
             return (
               <CarouselTile
                 key={n.id}
                 label={isEn ? n.label : n.labelHi}
-                Icon={Icon}
-                style={style}
+                img={NEED_ICON[n.id]}
                 onClick={() =>
                   n.buckets.length > 1
                     ? push({ screen: 'need', id: n.id })
@@ -232,14 +255,11 @@ export default function MoneyQuestions() {
         <p className="font-deva text-ink mt-1 text-sm font-bold">{isEn ? 'By topic' : 'विषय के हिसाब से'}</p>
         <ScrollRow>
           {CATEGORIES.map((c) => {
-            const Icon = BUCKET_ICON[c.icon];
-            const style = CATEGORY_STYLE[c.id];
             return (
               <CarouselTile
                 key={c.id}
                 label={isEn ? c.label : c.labelHi}
-                Icon={Icon}
-                style={style}
+                img={TOPIC_ICON[c.icon]}
                 onClick={() => push({ screen: 'bucket', id: c.id })}
               />
             );
@@ -259,17 +279,13 @@ export default function MoneyQuestions() {
         <BackRow onBack={back} label={isEn ? need.label : need.labelHi} />
         {need.buckets.map((bid) => {
           const meta = findBucketMeta(bid);
-          const Icon = BUCKET_ICON[meta.icon];
-          const style = CATEGORY_STYLE[bid];
           return (
             <button
               key={bid}
               onClick={() => push({ screen: 'bucket', id: bid })}
               className="border-primary-20 flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3 text-left active:scale-[0.99]"
             >
-              <span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${style.bg}`}>
-                <Icon size={15} color={style.fg} />
-              </span>
+              <img src={TOPIC_ICON[meta.icon]} alt="" className="size-8 shrink-0" />
               <span className="font-deva text-ink flex-1 text-[13px] font-semibold">{isEn ? meta.label : meta.labelHi}</span>
               <IcChevronLeft size={14} color="var(--color-ink-disabled)" className="rotate-180" />
             </button>
@@ -283,19 +299,13 @@ export default function MoneyQuestions() {
   // PIN & setup / Payments & QR / Fraud & scams / ...) ───────────────────────
   if (cur.screen === 'bucket') {
     const meta = findBucketMeta(cur.id);
-    const Icon = BUCKET_ICON[meta.icon];
-    const style = CATEGORY_STYLE[cur.id];
     const subtopics = subtopicsForBucket(cur.id);
     return (
       <div className="animate-fade-in flex flex-col gap-2">
         <BackRow
           onBack={back}
           label={isEn ? meta.label : meta.labelHi}
-          icon={
-            <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
-              <Icon size={16} color={style.fg} />
-            </span>
-          }
+          icon={<img src={TOPIC_ICON[meta.icon]} alt="" className="size-8 shrink-0" />}
         />
         {subtopics.map((s) => (
           <button
@@ -303,9 +313,7 @@ export default function MoneyQuestions() {
             onClick={() => push({ screen: 'subtopic', bucketId: cur.id, id: s.id })}
             className="border-primary-20 flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3 text-left active:scale-[0.99]"
           >
-            <span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${style.bg}`}>
-              <Icon size={15} color={style.fg} />
-            </span>
+            <img src={TOPIC_ICON[meta.icon]} alt="" className="size-8 shrink-0" />
             <span className="font-deva text-ink flex-1 text-[13px] font-semibold">{isEn ? s.label : s.labelHi}</span>
             <IcChevronLeft size={14} color="var(--color-ink-disabled)" className="rotate-180" />
           </button>
@@ -318,19 +326,13 @@ export default function MoneyQuestions() {
   if (cur.screen === 'subtopic') {
     const meta = findBucketMeta(cur.bucketId);
     const sub = findSubtopicMeta(cur.bucketId, cur.id);
-    const Icon = BUCKET_ICON[meta.icon];
-    const style = CATEGORY_STYLE[cur.bucketId];
     const items = questionsForSubtopic(cur.bucketId, cur.id);
     return (
       <div className="animate-fade-in flex flex-col gap-2">
         <BackRow
           onBack={back}
           label={isEn ? sub.label : sub.labelHi}
-          icon={
-            <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
-              <Icon size={16} color={style.fg} />
-            </span>
-          }
+          icon={<img src={TOPIC_ICON[meta.icon]} alt="" className="size-8 shrink-0" />}
         />
         {items.map((it) => (
           <button
@@ -338,9 +340,7 @@ export default function MoneyQuestions() {
             onClick={() => push({ screen: 'question', rank: it.rank })}
             className="border-primary-20 flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3 text-left active:scale-[0.99]"
           >
-            <span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${style.bg}`}>
-              <Icon size={15} color={style.fg} />
-            </span>
+            <img src={TOPIC_ICON[meta.icon]} alt="" className="size-8 shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="font-deva text-ink block text-[13px] leading-snug font-semibold">{qPrimary(it)}</span>
               {qSecondary(it) && <span className="text-ink-soft block text-[11px]">{qSecondary(it)}</span>}

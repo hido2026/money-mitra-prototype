@@ -75,23 +75,6 @@ export const VER_TONE = {
   VERIFIED: 'success', 'VERIFIED-NO-FIGURE': 'success', VARIES: 'warning', 'CANNOT-VERIFY': 'muted',
 };
 
-// Category icon accent — decorative variety for the browse grid, translating
-// the reference mock's per-category emoji into JDS token colors (never emoji,
-// never raw hex). Intentionally disjoint from TYPE_TONE/VER_TONE above so a
-// category color and a status color never carry conflicting meaning.
-export const CATEGORY_STYLE = {
-  upi: { bg: 'bg-primary-20', fg: 'var(--color-primary-50)' },
-  bank: { bg: 'bg-primary-20', fg: 'var(--color-primary-60)' },
-  schemes: { bg: 'bg-reward-soft', fg: 'var(--color-reward-ink)' },
-  kyc: { bg: 'bg-topic-blue-soft', fg: 'var(--color-topic-blue)' },
-  loans: { bg: 'bg-topic-rose-soft', fg: 'var(--color-topic-rose)' },
-  savings: { bg: 'bg-success-soft', fg: 'var(--color-success)' },
-  fraud: { bg: 'bg-error-soft', fg: 'var(--color-error)' },
-  bills: { bg: 'bg-warning-soft', fg: 'var(--color-warning)' },
-  earn: { bg: 'bg-topic-teal-soft', fg: 'var(--color-topic-teal)' },
-  insurance: { bg: 'bg-surface-ghost', fg: 'var(--color-neutral)' },
-};
-
 // Shared with Paisa Gyaan (tip-bank.js's TAG_TO_BUCKET maps its own
 // tag_category slugs onto these same bucket ids) so both surfaces use one
 // icon per category instead of drifting apart.
