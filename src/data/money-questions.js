@@ -24,16 +24,33 @@ import {
 } from '../components/icons/Icons';
 
 export const CATEGORIES = [
-  { id: "upi", label: "UPI & payments", icon: "upi" },
-  { id: "bank", label: "Bank basics & charges", icon: "bank" },
-  { id: "schemes", label: "Govt schemes", icon: "schemes" },
-  { id: "kyc", label: "KYC, Aadhaar & PAN", icon: "kyc" },
-  { id: "loans", label: "Loans & CIBIL", icon: "loans" },
-  { id: "savings", label: "Savings & investing", icon: "savings" },
-  { id: "fraud", label: "Fraud & safety", icon: "fraud" },
-  { id: "bills", label: "Bills & utilities", icon: "bills" },
-  { id: "earn", label: "Earning income", icon: "earn" },
-  { id: "insurance", label: "Insurance", icon: "insurance" },
+  { id: "upi", label: "UPI & payments", labelHi: "UPI व पेमेंट्स", icon: "upi" },
+  { id: "bank", label: "Bank basics & charges", labelHi: "बैंकिंग की बातें", icon: "bank" },
+  { id: "schemes", label: "Govt schemes", labelHi: "सरकारी योजनाएं", icon: "schemes" },
+  { id: "kyc", label: "KYC, Aadhaar & PAN", labelHi: "KYC, आधार व PAN", icon: "kyc" },
+  { id: "loans", label: "Loans & CIBIL", labelHi: "लोन व CIBIL", icon: "loans" },
+  { id: "savings", label: "Savings & investing", labelHi: "बचत व निवेश", icon: "savings" },
+  { id: "fraud", label: "Fraud & safety", labelHi: "ठगी व सुरक्षा", icon: "fraud" },
+  { id: "bills", label: "Bills & utilities", labelHi: "बिल व यूटिलिटी", icon: "bills" },
+  { id: "earn", label: "Earning income", labelHi: "कमाई", icon: "earn" },
+  { id: "insurance", label: "Insurance", labelHi: "बीमा", icon: "insurance" },
+];
+
+// Needs — the primary browse axis (evidence-based: intent/goal beats topic
+// for low-literacy first-time-digital users, see MSR India navigation
+// research + Kaleidofin's "Ummeed"/"Udaan" goal-bundling). Each need maps to
+// one or more existing CATEGORIES buckets so no question re-tagging was
+// needed. A need with 2+ buckets shows a small topic-picker screen; a need
+// with exactly 1 bucket jumps straight to that bucket's question list.
+export const NEEDS = [
+  { id: "send", label: "Send money", labelHi: "पैसा भेजना", buckets: ["upi"] },
+  { id: "save", label: "Save & invest", labelHi: "पैसा बचाना", buckets: ["savings"] },
+  { id: "loan", label: "Take a loan", labelHi: "लोन लेना", buckets: ["loans"] },
+  { id: "scheme", label: "Govt scheme", labelHi: "सरकारी योजना", buckets: ["schemes"] },
+  { id: "bill", label: "Pay a bill", labelHi: "बिल भरना", buckets: ["bills"] },
+  { id: "protect", label: "Protection", labelHi: "सुरक्षा", buckets: ["fraud", "insurance"] },
+  { id: "bankid", label: "Bank & KYC", labelHi: "बैंक व KYC", buckets: ["bank", "kyc"] },
+  { id: "earn", label: "Increase income", labelHi: "कमाई बढ़ाना", buckets: ["earn"] },
 ];
 
 export const TYPE_LABEL = {
@@ -4280,6 +4297,9 @@ export const QUESTIONS = [
 
 export function findBucketMeta(id) {
   return CATEGORIES.find((c) => c.id === id);
+}
+export function findNeedMeta(id) {
+  return NEEDS.find((n) => n.id === id);
 }
 export function questionsForBucket(id) {
   return QUESTIONS.filter((q) => q.bucket === id);

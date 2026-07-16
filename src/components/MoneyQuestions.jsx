@@ -10,14 +10,14 @@
 // mode we show Hinglish as primary with the English gloss underneath; in EN
 // mode we show English only -- no Hinglish left on screen.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TagChip, jdsBtn } from './jds';
 import { speakMukund } from '../utils/tts';
 import { useLang } from '../hooks/useLang';
 import {
-  CATEGORIES, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, BUCKET_ICON, PAGE_SIZE,
-  findBucketMeta, questionsForBucket, findByRank, totalPages, pageOf,
+  CATEGORIES, NEEDS, TYPE_LABEL, TYPE_TONE, VER_LABEL, VER_TONE, CATEGORY_STYLE, BUCKET_ICON, PAGE_SIZE,
+  findBucketMeta, findNeedMeta, questionsForBucket, findByRank, totalPages, pageOf,
 } from '../data/money-questions';
 import { IcChevronLeft, IcFlame, IcMicrophone, IcShield } from './icons/Icons';
 
@@ -44,6 +44,41 @@ function BackRow({ onBack, label, count, icon }) {
         <span className="bg-surface-ghost text-ink-soft rounded-full px-2.5 py-1 text-[11px] font-bold">{count}</span>
       )}
     </div>
+  );
+}
+
+// Horizontal scroll row with visible prev/next buttons -- swipe-only carousels
+// hide most items behind a gesture a first-time-digital user may not think to
+// try, so the arrow buttons are the primary affordance, not a decoration.
+function ScrollRow({ children }) {
+  const ref = useRef(null);
+  const scroll = (dir) => ref.current?.scrollBy({ left: dir * 180, behavior: 'smooth' });
+  return (
+    <div className="flex items-center gap-1">
+      <button onClick={() => scroll(-1)} aria-label="Scroll left" className="bg-surface-ghost flex size-7 shrink-0 items-center justify-center rounded-full">
+        <IcChevronLeft size={13} color="var(--color-ink)" />
+      </button>
+      <div ref={ref} className="flex flex-1 gap-2.5 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {children}
+      </div>
+      <button onClick={() => scroll(1)} aria-label="Scroll right" className="bg-surface-ghost flex size-7 shrink-0 items-center justify-center rounded-full">
+        <IcChevronLeft size={13} color="var(--color-ink)" className="rotate-180" />
+      </button>
+    </div>
+  );
+}
+
+function CarouselTile({ label, Icon, style, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="border-primary-20 flex w-[84px] shrink-0 flex-col items-center gap-2 rounded-xl border bg-surface p-3 text-center active:scale-[0.98]"
+    >
+      <span className={`flex size-9 items-center justify-center rounded-lg ${style.bg}`}>
+        <Icon size={17} color={style.fg} />
+      </span>
+      <span className="font-deva text-ink text-[11px] leading-tight font-bold">{label}</span>
+    </button>
   );
 }
 
@@ -130,26 +165,74 @@ export default function MoneyQuestions() {
           <IcChevronLeft size={16} color="var(--color-primary-50)" className="rotate-180" />
         </button>
 
-        <p className="font-deva text-ink mt-1 text-sm font-bold">Browse by topic</p>
-        <div className="grid grid-cols-2 gap-2.5">
+        <p className="font-deva text-ink mt-1 text-sm font-bold">{isEn ? 'By need' : 'ज़रूरत के हिसाब से'}</p>
+        <ScrollRow>
+          {NEEDS.map((n) => {
+            const primaryBucket = n.buckets[0];
+            const Icon = BUCKET_ICON[primaryBucket];
+            const style = CATEGORY_STYLE[primaryBucket];
+            return (
+              <CarouselTile
+                key={n.id}
+                label={isEn ? n.label : n.labelHi}
+                Icon={Icon}
+                style={style}
+                onClick={() =>
+                  n.buckets.length > 1
+                    ? push({ screen: 'need', id: n.id })
+                    : push({ screen: 'bucket', id: n.buckets[0] })
+                }
+              />
+            );
+          })}
+        </ScrollRow>
+
+        <p className="font-deva text-ink mt-1 text-sm font-bold">{isEn ? 'By topic' : 'विषय के हिसाब से'}</p>
+        <ScrollRow>
           {CATEGORIES.map((c) => {
             const Icon = BUCKET_ICON[c.icon];
             const style = CATEGORY_STYLE[c.id];
             return (
-              <button
+              <CarouselTile
                 key={c.id}
+                label={isEn ? c.label : c.labelHi}
+                Icon={Icon}
+                style={style}
                 onClick={() => push({ screen: 'bucket', id: c.id })}
-                className="border-primary-20 flex flex-col gap-2 rounded-xl border bg-surface p-3.5 text-left active:scale-[0.98]"
-              >
-                <span className={`flex size-9 items-center justify-center rounded-lg ${style.bg}`}>
-                  <Icon size={18} color={style.fg} />
-                </span>
-                <span className="font-deva text-ink text-[12.5px] leading-tight font-bold">{c.label}</span>
-              </button>
+              />
             );
           })}
-        </div>
+        </ScrollRow>
         <SafetyLine />
+      </div>
+    );
+  }
+
+  // ── Need — topic picker for needs spanning 2+ buckets (e.g. Protection
+  // covers both fraud and insurance) ─────────────────────────────────────────
+  if (cur.screen === 'need') {
+    const need = findNeedMeta(cur.id);
+    return (
+      <div className="animate-fade-in flex flex-col gap-2">
+        <BackRow onBack={back} label={isEn ? need.label : need.labelHi} />
+        {need.buckets.map((bid) => {
+          const meta = findBucketMeta(bid);
+          const Icon = BUCKET_ICON[meta.icon];
+          const style = CATEGORY_STYLE[bid];
+          return (
+            <button
+              key={bid}
+              onClick={() => push({ screen: 'bucket', id: bid })}
+              className="border-primary-20 flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3 text-left active:scale-[0.99]"
+            >
+              <span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${style.bg}`}>
+                <Icon size={15} color={style.fg} />
+              </span>
+              <span className="font-deva text-ink flex-1 text-[13px] font-semibold">{isEn ? meta.label : meta.labelHi}</span>
+              <IcChevronLeft size={14} color="var(--color-ink-disabled)" className="rotate-180" />
+            </button>
+          );
+        })}
       </div>
     );
   }
