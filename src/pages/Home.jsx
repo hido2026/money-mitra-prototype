@@ -25,7 +25,9 @@ const groqClient = _apiKey ? new Groq({ apiKey: _apiKey, dangerouslyAllowBrowser
 const COPY = {
   hi: {
     greet: (n) => (n ? `नमस्ते, ${n} जी` : 'नमस्ते जी'),
+    newUserHint: 'फ़ोटो दिखाइए या सवाल पूछिए — आपका हिसाब यहीं बनना शुरू होगा',
     savedInsight: (amt) => `इस महीने आपने ${amt} बचाए`,
+    streakMention: (n) => `🔥 ${n}-दिन से साथ`,
     askTitle: 'पैसे की बात पूछिए',
     askPopular: 'सबसे ज़्यादा पूछे गए',
     docTitle: 'कोई कागज़ समझ नहीं आ रहा?',
@@ -42,7 +44,9 @@ const COPY = {
   },
   en: {
     greet: (n) => (n ? `Namaste, ${n} ji` : 'Namaste ji'),
+    newUserHint: 'Show a photo or ask a question — your hisaab starts building right here',
     savedInsight: (amt) => `You've saved ${amt} this month`,
+    streakMention: (n) => `🔥 ${n}-day streak`,
     askTitle: 'Ask about money',
     askPopular: 'MOST ASKED',
     docTitle: 'Understand a document',
@@ -135,9 +139,13 @@ export default function Home() {
         {/* A1. Greeting + insight (bound to user + हिसाब) */}
         <div className="animate-fade-in mx-0.5 mt-1">
           <h1 className="font-deva text-ink m-0 text-[22px] font-black tracking-tight">{t.greet(userName)}</h1>
+          {!hasData && (
+            <p className="font-deva text-ink-soft mt-1 mb-0 text-[13px]">{t.newUserHint}</p>
+          )}
           {hasData && bacha >= 0 && (
             <p className="font-deva text-ink-soft mt-1 mb-0 text-[13px]">
               {t.savedInsight(inr(bacha))}{reminder ? ` · ${reminder.docType} ${reminder.dueDate}` : ''}
+              {gyaanStreak > 0 && ` · ${t.streakMention(gyaanStreak)}`}
             </p>
           )}
         </div>

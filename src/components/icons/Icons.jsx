@@ -1,5 +1,16 @@
 // Tabler-style inline icons used across home + corridor screens.
 // Each icon takes { size, color } and emits a stroke-only SVG.
+//
+// Generic/utility icons (chevrons, mic, plus, edit, camera, check, x) are
+// sourced from lucide-react instead of hand-drawn -- a mature, widely-used
+// icon set with more consistent optical balance than a one-off SVG, per the
+// vernacular/product review. Domain-specific icons (rupee, UPI, gas, Indian
+// scheme concepts below) stay hand-authored since lucide has no equivalents
+// for those. Same { size, color } signature everywhere, so no call site
+// needed to change.
+import {
+  ChevronLeft, ChevronUp, Pencil, MoreHorizontal, Plus, Mic, Camera, Check, X,
+} from 'lucide-react';
 
 const base = (size, color) => ({
   width: size, height: size,
@@ -13,37 +24,27 @@ const base = (size, color) => ({
 });
 
 export const IcChevronLeft = ({ size = 24, color = '#2C2C2A' }) => (
-  <svg {...base(size, color)}><path d="M15 6l-6 6 6 6"/></svg>
+  <ChevronLeft size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcChevronUp = ({ size = 14, color = '#888780' }) => (
-  <svg {...base(size, color)}><path d="M6 15l6-6 6 6"/></svg>
+  <ChevronUp size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcEdit = ({ size = 22, color = '#2C2C2A' }) => (
-  <svg {...base(size, color)}>
-    <path d="M4 20h4l10-10a2.83 2.83 0 1 0-4-4L4 16v4"/>
-    <path d="M13.5 6.5l4 4"/>
-  </svg>
+  <Pencil size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcDots = ({ size = 22, color = '#2C2C2A' }) => (
-  <svg {...base(size, color)}>
-    <circle cx="5"  cy="12" r="1"/>
-    <circle cx="12" cy="12" r="1"/>
-    <circle cx="19" cy="12" r="1"/>
-  </svg>
+  <MoreHorizontal size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcPlus = ({ size = 20, color = '#6D17CE' }) => (
-  <svg {...base(size, color)}><path d="M12 5v14M5 12h14"/></svg>
+  <Plus size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcMicrophone = ({ size = 18, color = '#FFFFFF' }) => (
-  <svg {...base(size, color)}>
-    <rect x="9" y="2" width="6" height="11" rx="3"/>
-    <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3"/>
-  </svg>
+  <Mic size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcBulb = ({ size = 15, color = '#6D17CE' }) => (
@@ -98,9 +99,7 @@ export const IcStamp = ({ size = 16, color = '#6D17CE' }) => (
 );
 
 export const IcPencil = ({ size = 16, color = '#888780' }) => (
-  <svg {...base(size, color)}>
-    <path d="M4 20h4l10-10a2.83 2.83 0 1 0-4-4L4 16v4"/>
-  </svg>
+  <Pencil size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcAlertOctagon = ({ size = 16, color = '#D85A30' }) => (
@@ -149,10 +148,7 @@ export const IcHome = ({ size = 16, color = '#3B6D11' }) => (
 // ── New icons for Decoder / Passbook / Products ────────────────────────────────
 
 export const IcCamera = ({ size = 16, color = '#6D17CE' }) => (
-  <svg {...base(size, color)}>
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-    <circle cx="12" cy="13" r="4"/>
-  </svg>
+  <Camera size={size} color={color} strokeWidth={1.75} aria-hidden />
 );
 
 export const IcZap = ({ size = 16, color = '#D85A30' }) => (
@@ -201,11 +197,11 @@ export const IcBuilding = ({ size = 16, color = '#6D17CE' }) => (
 );
 
 export const IcCheck = ({ size = 20, color = '#3B6D11' }) => (
-  <svg {...base(size, color)}><path d="M20 6L9 17l-5-5"/></svg>
+  <Check size={size} color={color} strokeWidth={2} aria-hidden />
 );
 
 export const IcXMark = ({ size = 20, color = '#D85A30' }) => (
-  <svg {...base(size, color)}><path d="M18 6L6 18M6 6l12 12"/></svg>
+  <X size={size} color={color} strokeWidth={2} aria-hidden />
 );
 
 export const IcRepeat = ({ size = 16, color = '#6D17CE' }) => (
