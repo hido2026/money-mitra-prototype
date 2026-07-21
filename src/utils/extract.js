@@ -16,7 +16,12 @@ const _key = import.meta.env.VITE_GROQ_API_KEY;
 const groq = _key ? new Groq({ apiKey: _key, dangerouslyAllowBrowser: true }) : null;
 export const hasKey = !!groq;
 
-const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+// 🚩 DEV FLAG: Groq deprecated llama-4-scout on 2026-06-17 (every decode was
+// failing with a silent 404 -> generic error). qwen3.6-27b is the current
+// vision-capable replacement, but it's a reasoning model that burns ~1,200
+// tokens on internal reasoning before the actual JSON -- max_tokens below is
+// sized for that overhead, not just the answer.
+const VISION_MODEL = 'qwen/qwen3.6-27b';
 
 const EXTRACT_PROMPT =
   "You are a document-extraction engine for an Indian money app. Extract ONLY what is literally visible in the image. " +
@@ -191,7 +196,7 @@ export async function extractFromFile(file) {
   const resp = await groq.chat.completions.create({
     model: VISION_MODEL,
     temperature: 0,
-    max_tokens: 380,
+    max_tokens: 2500,
     response_format: { type: 'json_object' },
     messages: [{
       role: 'user',
